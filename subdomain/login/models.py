@@ -18,6 +18,7 @@ class LoginCode(models.Model):
     expiration_time = models.DateTimeField(
         null=True, blank=True
     )  # Expiration time for usage
+    access_to = models.CharField(max_length=200)
 
     def is_valid(self):
         """
@@ -53,4 +54,4 @@ class LoginCode(models.Model):
         return False  # Code cannot be used
 
     def __str__(self):
-        return f"LoginCode(code={self.code}, is_used={self.is_used})"
+        return f"LoginCode(code={self.code}, is_used={self.is_used}), access_to{self.access_to}"
