@@ -55,3 +55,11 @@ class LoginCode(models.Model):
 
     def __str__(self):
         return f"LoginCode(code={self.code}, is_used={self.is_used}), access_to{self.access_to}"
+
+
+class AdminUser(models.Model):
+    username = models.CharField(max_length=50)
+    password = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.username
