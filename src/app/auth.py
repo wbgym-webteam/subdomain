@@ -7,6 +7,5 @@ auth = Blueprint("auth", __name__)
 def login(request):
     if request.method == "POST":
         pass
-        # Login Logic
     else:
         return render_template("login.html")
