@@ -3,6 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, Blueprint
 GoG = Blueprint("GoG", __name__)
 
 
-@GoG.route("/home")
+@GoG.route("/dashboard")
 def home():
-    return render_template("GoG/home.html")
+    return render_template("dashboard.html")
