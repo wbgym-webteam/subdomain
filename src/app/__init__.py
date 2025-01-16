@@ -7,7 +7,7 @@ from .migrations import migrate
 # Importing Views
 from .views import views
 from .auth import auth
-from .GoG_views import GoG
+from .gog_views import gog
 
 
 def create_app():
@@ -15,7 +15,7 @@ def create_app():
 
     app.register_blueprint(views, url_prefix="/")
     app.register_blueprint(auth, url_prefix="/")
-    app.register_blueprint(GoG, url_prefix="/gog")
+    app.register_blueprint(gog, url_prefix="/gog")
 
     db = sqlite3.connect("wbgym.db")
     migrate(db)
