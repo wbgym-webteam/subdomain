@@ -6,11 +6,13 @@
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
-    <main>
-        {% block content%} {% endblock %}
-    </main>
-    <footer>
-        Weinberg-Gymnasium Kleinmachnow
-    </footer>
+    {% block content%} {% endblock %}
+
+    <style>
+        html, body {
+            margin: 0;
+            font-family: 'Arial';
+        }
+    </style>
 </body>
 </html>

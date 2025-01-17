@@ -39,7 +39,7 @@ def teamManagement():
     if request.method == "POST":
         pass
     else:
-        return render_template("gog/gog_teamManagement")
+        return render_template("gog/gog_teamManagement.html")
 
 
 @gog.route("/logs", methods=["GET", "POST"])
@@ -47,4 +47,4 @@ def logs():
     if request.method == "POST":
         pass
     else:
-        return render_template("gog_logs.html")
+        return render_template("gog/gog_logs.html")
