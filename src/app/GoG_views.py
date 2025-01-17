@@ -13,28 +13,38 @@ def login():
     if request.method == "POST":
         pass
     elif request.method == "GET":
-        return render_template("gog_login.html")
+        return render_template("gog/gog_login.html")
 
 
 @gog.route("/dashboard")
 def dashboard():
-    return render_template("gog_dashboard.html")
+    return render_template("gog/gog_dashboard.html")
 
 
 @gog.route("/setup", methods=["GET", "POST"])
 def setup():
-    pass
+    if request.method == "POST":
+        pass
+    else:
+        return render_template("gog/gog_setup.html")
 
 
-@gog.route("ranking", methods=["GET", "POST"])
+@gog.route("ranking")
 def ranking():
-    pass
+    return render_template("gog/gog_ranking.html")
 
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
 def teamManagement():
-    pass
+    if request.method == "POST":
+        pass
+    else:
+        return render_template("gog/gog_teamManagement")
+
 
 @gog.route("/logs", methods=["GET", "POST"])
 def logs():
-    pass
+    if request.method == "POST":
+        pass
+    else:
+        return render_template("gog_logs.html")
