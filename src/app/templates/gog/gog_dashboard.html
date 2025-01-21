@@ -13,10 +13,18 @@ Home for GoG
 
 <main>
     <ul>
-        <li><a href="./ranking">Ranking</a></li>
-        <li><a href="./logs">Game Logs</a></li>
-        <li><a href="./teamManagement">Team Management</a></li>
-        <li><a href="./setup">Setup</a></li>
+        <a href="./ranking">
+            <li>Ranking</li>
+        </a>
+        <a href="./logs">
+            <li>Game Logs</li>
+        </a>
+        <a href="./teamManagement">
+            <li>Team Management</li>
+        </a>
+        <a href="./setup">
+            <li>Setup</li>
+        </a>
     </ul>
 </main>
 
@@ -37,9 +45,29 @@ Home for GoG
         padding: 1%;
     }
 
-    button {
+    ul {
+        list-style-type: none;
+        text-align: center;
+        font-size: larger;
+    }
+
+    li {
+        padding: 1%;
+        margin: 1.5%;
+        margin-left: 15%;
+        margin-right: 15%;
+        border: 1px solid black;
+    }
+
+    a {
         text-decoration: none;
         color: black;
+    }
+
+    li:hover {
+        /* i know it is ugly, but it does the job i guess ~Micha */
+        background: linear-gradient(to bottom, #830b77 0%, #830b77 20%, #bb13aa 50%, #bb13aa 100%);
+        color: aliceblue;
     }
 </style>
 
