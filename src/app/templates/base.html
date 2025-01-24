@@ -1,18 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
 </head>
+
 <body>
     {% block content%} {% endblock %}
 
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             font-family: 'Arial';
         }
+
+        header {
+            background: #560d4f;
+            color: white;
+            text-align: center;
+            padding: 0.5%;
+            margin-top: 1.5%;
+            margin-left: 2.5%;
+            margin-right: 2.5%;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+            padding: 1%;
+        }
     </style>
 </body>
+
 </html>

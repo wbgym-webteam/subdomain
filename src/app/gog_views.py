@@ -1,6 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, Blueprint
+import sqlite3
+from .models import User  # Import the User model
 
 gog = Blueprint("gog", __name__)
+
+DATABASE = "wbgym.db"  # Update this to the path of your SQLite database
+
+
+def get_db_connection():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 @gog.route("/")
@@ -11,9 +21,22 @@ def redirectToLogin():
 @gog.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        pass
-    elif request.method == "GET":
-        return render_template("gog/gog_login.html")
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        conn = get_db_connection()
+        user = conn.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,),
+        ).fetchone()
+        conn.close()
+
+        if user and User.check_password(user["password_hash"], password):
+            return redirect(url_for("gog.dashboard"))
+        else:
+            return render_template("gog/gog_login.html", error="Invalid credentials")
+
+    return render_template("gog/gog_login.html")
 
 
 @gog.route("/dashboard")
@@ -29,7 +52,7 @@ def setup():
         return render_template("gog/gog_setup.html")
 
 
-@gog.route("ranking")
+@gog.route("/ranking")
 def ranking():
     return render_template("gog/gog_ranking.html")
 

@@ -6,8 +6,38 @@ Login for GoG
 
 {% block content %}
 
-<h1>GAME OF GRAPES</h1>
+<header>
+    <h1>GAME OF GRAPES</h1>
+    <h2>Login</h2>
+</header>
 
-<h2>Login</h2>
+<form action="{{ url_for('gog.login') }}" method="post">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username" required><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" required><br>
+    <input type="submit" value="Login" id="submit">
+</form>
+
+<style>
+    form {
+        display: inline-block;
+        padding: 1%;
+        margin-top: 5%;
+        text-align: center;
+        margin-left: 45%;
+        margin-right: 50%;
+        font-size: 18px;
+    }
+
+    input,
+    label {
+        margin: 5%;
+    }
+</style>
+
+{% if error %}
+<p style="color: red;">{{ error }}</p>
+{% endif %}
 
 {% endblock %}
