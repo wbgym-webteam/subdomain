@@ -6,6 +6,127 @@ Home for GoG
 
 {% block content %}
 
-<h1>GAME OF GRAPES</h1>
+<body>
+
+<div class="logs-container">
+<h1>Logs Übersicht</h1>
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Log-Nachricht</th>
+                <th>Zeitstempel</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td class="log-entry">Benutzer hat sich angemeldet</td>
+                <td class="timestamp">2025-01-29 14:33:12</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td class="log-entry">Datenbank-Update abgeschlossen</td>
+                <td class="timestamp">2025-01-29 14:34:45</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td class="log-entry">Fehler bei API-Anfrage</td>
+                <td class="timestamp">2025-01-29 14:35:27</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td class="log-entry">Benutzer hat sich abgemeldet</td>
+                <td class="timestamp">2025-01-29 14:36:00</td>
+            </tr>
+            <!-- More logs can be added here -->
+        </tbody>
+    </table>
+</div>
+</div>
+
+</body>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f3f4f6;
+        color: #333;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .logs-container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        height: 80%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .logs-container h1 {
+        text-align: center;
+        font-size: 32px;
+        color: #4a4e69;
+        margin-bottom: 20px;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        flex: 1;
+        overflow-y: auto;
+        margin-top: 10px;
+    }
+    
+    th, td {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    th {
+        background-color: #560d4f;
+        color: white;
+        font-size: 16px;
+        position: sticky;
+        top: 0;
+    }
+    
+    tbody {
+        overflow-y: auto;
+    }
+    
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+    
+    td {
+        font-size: 14px;
+    }
+    
+    .log-entry {
+        color: #555;
+        font-weight: bold;
+    }
+    
+    .timestamp {
+        color: #888;
+        font-style: italic;
+    }
+    
+    /* Make the logs scrollable if they exceed the container height */
+    .table-wrapper {
+        flex: 1;
+        overflow-y: auto;
+    }
+    </style>
 
 {% endblock %}
