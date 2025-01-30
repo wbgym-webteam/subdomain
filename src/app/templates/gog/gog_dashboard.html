@@ -11,48 +11,71 @@ Home for GoG
     <h2>Dashboard</h2>
 </header>
 
-<main>
-    <ul>
-        <a href="./ranking">
-            <li>Ranking</li>
-        </a>
-        <a href="./logs">
-            <li>Game Logs</li>
-        </a>
-        <a href="./teamManagement">
-            <li>Team Management</li>
-        </a>
-        <a href="./setup">
-            <li>Setup</li>
-        </a>
-    </ul>
-</main>
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f3f4f6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
 
-<style>
-    ul {
-        list-style-type: none;
-        text-align: center;
-        font-size: larger;
-    }
+.dashboard {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    width: 400px;
+}
 
-    li {
-        padding: 1%;
-        margin: 1.5%;
-        margin-left: 15%;
-        margin-right: 15%;
-        border: 1px solid black;
-    }
+.dashboard h1 {
+    font-size: 32px;
+    color: #4a4e69;
+    margin-bottom: 10px;
+}
 
-    a {
-        text-decoration: none;
-        color: black;
-    }
+.dashboard h2 {
+    font-size: 20px;
+    color: #7b8794;
+    margin-bottom: 20px;
+}
 
-    li:hover {
-        /* i know it is ugly, but it does the job i guess ~Micha */
-        background: linear-gradient(to bottom, #830b77 0%, #830b77 20%, #bb13aa 50%, #bb13aa 100%);
-        color: aliceblue;
-    }
+.button {
+    display: block;
+    background-color: #560d4f;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 15px 20px;
+    margin: 10px auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    width: 80%;
+    text-align: center;
+}
+
+.button:hover {
+    background-color: #8846a4;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
 </style>
+<body>
+
+<div class="dashboard">
+<h1>GAME OF GRAPES</h1>
+<h2>Dashboard</h2>
+<a href="/gog_ranking" class="button">Ranking</a>
+<a href="/gog_logs" class="button">Game Logs</a>
+<a href="/gog_teammanagement" class="button">Team Management</a>
+<a href="/gog_setup" class="button">Setup</a>
+</div>
+
+</body>
 
 {% endblock %}
