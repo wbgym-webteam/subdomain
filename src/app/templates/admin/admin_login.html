@@ -5,35 +5,14 @@ Login
 {% endblock %}
 
 {% block content %}
-<div class="admin-panel">
-    <button onclick="AdminLogin()">Admin-Panel</button>
-</div>
-
 <form method="post" class="login-container">
-    <h1>Willkommen zurück!</h1>
-    <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
-    <input type="password" id="loginCode" placeholder="Login-Code">
-    <button onclick="checkLogin()">Anmelden</button>
+    <h1>Admin Login</h1>
+    <input type="text" name="username" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <input type="submit" value="login" id="submit">
     <p id="errorMessage" class="error-message"></p>
 </form>
 
-<script>
-    function checkLogin() {
-        const correctCode = "123456"; //Login-Code anpassen
-        const enteredCode = document.getElementById("loginCode").value;
-        const errorMessage = document.getElementById("errorMessage");
-
-        if (enteredCode === correctCode) {
-            window.location.href = "gog_dashboard"; // Zielseite nach erfolgreichem Login
-        } else {
-            errorMessage.textContent = "Falscher Code! Bitte versuchen Sie es erneut.";
-        }
-    }
-
-    function AdminLogin() {
-        window.location.href = "admin_login"; // Zielseite nach Klick auf Admin-Login
-    }
-</script>
 
 <style>
     body {

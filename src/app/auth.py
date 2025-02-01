@@ -9,3 +9,13 @@ def login():
         pass
     else:
         return render_template("login.html")
+
+
+@auth.route("/admin-login", methods=["GET", "POST"])
+def adminLogin():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        # FIXME
+        if username == "admin" and password == "admin":
+            redirect("/admin-panel")
