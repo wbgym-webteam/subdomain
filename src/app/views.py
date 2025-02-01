@@ -13,9 +13,4 @@ views = Blueprint("views", __name__, static_folder="static")
 
 @views.route("/")
 def hello_world():
-    return "<p>Hello, World!</p>"
-
-
-@views.route("/home")
-def home():
-    return render_template("home.html")
+    return redirect("/login")
