@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, Blueprint
-import sqlite3
+import sqlalchemy
 from .models import User  # Import the User model
 
 gog = Blueprint("gog", __name__)
@@ -8,8 +8,8 @@ DATABASE = "wbgym.db"  # Update this to the path of your SQLite database
 
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
+    conn = sqlalchemy.connect(DATABASE)
+    conn.row_factory = sqlalchemy.Row
     return conn
 
 
