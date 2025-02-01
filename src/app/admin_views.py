@@ -11,9 +11,14 @@ from flask import (
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
 
-@views.route("/admin_login", methods=["GET", "POST"])
-def hello_world():
+@admin_views.route("/admin_login", methods=["GET", "POST"])
+def adminLogin():
     if request.method == "POST":
         pass
     else:
         return render_template("admin/admin_login.html")
+
+
+@admin_views.route("/")
+def adminDashboard():
+    return render_template("admin/admin_dashboard.html")
