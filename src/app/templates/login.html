@@ -6,7 +6,7 @@ Login
 
 {% block content %}
 <div class="admin-panel">
-    <button onclick="AdminLogin()">Admin-Panel</button>
+    <a href="/admin_login">Admin-Panel</a>
 </div>
 
 <form method="post" class="login-container">
@@ -30,9 +30,6 @@ Login
         }
     }
 
-    function AdminLogin() {
-        window.location.href = "admin_login"; // Zielseite nach Klick auf Admin-Login
-    }
 </script>
 
 <style>
