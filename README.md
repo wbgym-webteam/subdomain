@@ -9,6 +9,12 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 3. Create a DB-File called `src/wbgym,.db`.
 4. Run the script `main.py` to start the server.
 
+# DB Guide
+
+1. Move to `/src` in your terminal.
+2. Run `flask db init`.
+3. Run `flask db migrate`.
+
 # Deployment Guide
 
 - Pull the latest commits from the repository.

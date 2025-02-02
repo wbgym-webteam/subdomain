@@ -1,8 +1,7 @@
 from flask import Flask
 from flask import render_template, redirect
-import sqlalchemy
-
-from .migrations import migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 # Importing Views
 from .views import views
@@ -19,7 +18,9 @@ def create_app():
     app.register_blueprint(gog, url_prefix="/gog")
 
     # TODO: fix the DB
-    # db = sqlalchemy.connect("wbgym.db")
-    # migrate(db)
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///wbgym.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    db = SQLAlchemy(app)
+    migrate = Migrate(app, db)
 
     return app

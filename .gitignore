@@ -3,4 +3,7 @@ __pycache__
 .vscode
 wbgym.db
 
+instance
+migrations
+
 uv.lock
