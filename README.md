@@ -7,7 +7,17 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 1. Clone the repository using git.
 2. Install the required packages using [command].
 3. Create a DB-File called `src/wbgym,.db`.
-4. Run the script `main.py` to start the server.
+4. Add the following folders under `src/`:
+
+```
+---src
+ |---data
+   |---tdw
+     |---downloads
+     |---uploads
+```
+
+5. Run the script `main.py` to start the server.
 
 # DB Guide
 
