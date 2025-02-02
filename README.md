@@ -12,8 +12,9 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 # DB Guide
 
 1. Move to `/src` in your terminal.
-2. Run `flask db init`.
+2. [only once] Run `flask db init`.
 3. Run `flask db migrate`.
+4. Run `flask db upgrade`.
 
 # Deployment Guide
 
