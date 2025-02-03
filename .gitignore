@@ -3,6 +3,7 @@ __pycache__
 .vscode
 wbgym.db
 
+data
 .htpasswd
 
 instance

@@ -7,6 +7,8 @@ from flask import (
     session,
 )
 
+from .tdw_filehandler import FileHandler
+
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
 
@@ -27,5 +29,7 @@ def upload_file():
     file = request.files["file"]
     if file.filename == "":
         return redirect(url_for("admin_views.tdw_panel"))
-    file.save(f"data/tdw/uploads/{file.filename}")
+    file.save(f"src/app/data/tdw/uploads/", file.name)
+
+    FileHandler(file)
     return redirect(url_for("admin_views.tdw_panel"))
