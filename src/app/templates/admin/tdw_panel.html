@@ -7,14 +7,21 @@ TdW - Admin Panel
 {% block content %}
 
 <header>
-    <h1>Admin Dashboard</h1>
+    <h1>TdW - Control Panel</h1>
 </header>
 
 <main>
+    <!-- Upload -->
     <form action="{{ url_for('admin_views.upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="file">Upload File:</label>
-        <input type="file" name="file" id="file" required>
+        <!-- IDEA: Maybe include .csv as a file type ?-->
+        <input type="file" name="file" id="file" accept=".xlsx, .xls" required>
         <button type="submit">Upload</button>
     </form>
+
+    <!-- Acticate / Deactivate the module -->
+
+    <!-- Generate CSV-file after selection process -->
+
 </main>
 {% endblock %}
