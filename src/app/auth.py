@@ -11,7 +11,6 @@ def login():
         return render_template("login.html")
 
 
-# FIXME: not this route is not existing idk
 @auth.route("/admin-login", methods=["GET", "POST"])
 def adminLogin():
     if request.method == "POST":
@@ -19,6 +18,6 @@ def adminLogin():
         password = request.form.get("password")
         # FIXME
         if username == "admin" and password == "admin":
-            redirect("/admin-panel")
+            redirect("/admin-dashboard")
 
     return render_template("admin/admin_login.html")
