@@ -2,14 +2,14 @@
 
 This is the repository, where the Weinberg Secondary School develops a subdomain for their website wbgym.de.
 
-# Installation Guide
+## Installation Guide
 
 1. Clone the repository using git.
 2. Install the required packages using [command].
 3. Create a DB-File called `src/wbgym,.db`.
 4. Add the following folders under `src/`:
 
-```
+```text
 ---src
  |---data
    |---tdw
@@ -17,18 +17,20 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
      |---uploads
 ```
 
-5. Run the script `main.py` to start the server.
+5. Create a file `data/security/.htpaswd` to ensure security to your data.
+6. Run the script `main.py` to start the server.
 
-# DB Guide
+## DB Guide
 
 1. Move to `/src` in your terminal.
 2. [only once] Run `flask db init`.
 3. Run `flask db migrate`.
 4. Run `flask db upgrade`.
 
-# Deployment Guide
+## Deployment Guide
 
 - Pull the latest commits from the repository.
+- Run `flask db upgrade` to update the database.
 - Make the following changes to `main.py`:
   - Set debug to False
   - Set host to '0.0.0.0'
