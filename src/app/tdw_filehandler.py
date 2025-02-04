@@ -28,12 +28,14 @@ def addStudent(ENGINE, ID, last_name, first_name, grade):
 def FileHandler(file):
     ENGINE = create_engine(DB_URL)
     db.metadata.create_all(ENGINE)
-    workbook = load_workbook(f"data/tdw/uploads/{file.name}")
+    workbook = load_workbook(f"app/data/tdw/uploads/workbook.xlsx")
     print("Loaded File...")
 
     # Get the Students
+    sheet1 = workbook[0]
+
     for row_index, row in enumerate(
-        workbook[0].iter_rows(min_row=2, values_only=True), start=2
+        sheet1.iter_rows(min_row=2, values_only=True), start=2
     ):
 
         id_value = row[0]  # Column A (ID)

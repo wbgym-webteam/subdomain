@@ -6,6 +6,7 @@ from flask import (
     url_for,
     session,
 )
+import os
 
 from .tdw_filehandler import FileHandler
 
@@ -29,7 +30,7 @@ def upload_file():
     file = request.files["file"]
     if file.filename == "":
         return redirect(url_for("admin_views.tdw_panel"))
-    file.save(f"app/uploads/tdw/", file.name)
+    file.save("app/data/tdw/uploads/workbook.xlsx")
 
     FileHandler(file)
     return redirect(url_for("admin_views.tdw_panel"))
