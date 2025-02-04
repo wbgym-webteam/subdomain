@@ -17,19 +17,19 @@ def adminDashboard():
     return render_template("admin/admin_dashboard.html")
 
 
-@admin_views.route("/tdw_panel", methods=["GET", "POST"])
+@admin_views.route("/tdw/panel", methods=["GET", "POST"])
 def tdwPanel():
     return render_template("admin/tdw_panel.html")
 
 
-@admin_views.route("/upload_file", methods=["POST"])
+@admin_views.route("/tdw/upload_file", methods=["POST"])
 def upload_file():
     if "file" not in request.files:
         return redirect(url_for("admin_views.tdw_panel"))
     file = request.files["file"]
     if file.filename == "":
         return redirect(url_for("admin_views.tdw_panel"))
-    file.save(f"src/app/data/tdw/uploads/", file.name)
+    file.save(f"app/uploads/tdw/", file.name)
 
     FileHandler(file)
     return redirect(url_for("admin_views.tdw_panel"))
