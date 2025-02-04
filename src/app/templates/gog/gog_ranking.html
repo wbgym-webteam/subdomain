@@ -1,23 +1,18 @@
 {% extends './base.html' %}
 
 {% block title %}
-Home for GoG
+Ranking for GoG
 {% endblock %}
 
 {% block content %}
 
-
 <body>
 
-<div class="header">
-    <h1>Game of Grapes</h1>
-    <h2>Ranking</h2>
-</div>
-
 <div class="ranking-container">
-
-    <!-- Tabellen für Klassenstufen 7 bis 11 -->
-    <div class="table-container">
+    <div class="table-container" style="margin-top: 40px;">
+        <button class="back-button" onclick="goToDashboard()">Zurück</button>
+        <h1 style="margin-top: 0;">Game of Grapes</h1>
+        <h2 style="margin-bottom: 20px;">Ranking</h2>
         <h3>Klassenstufe 7</h3>
         <table>
             <thead>
@@ -38,161 +33,23 @@ Home for GoG
             </tbody>
         </table>
     </div>
-
-    <div class="table-container">
-        <h3>Klassenstufe 8</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Klasse</th>
-                    <th>Punkte</th>
-                    <th>Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Felix Spieler</td>
-                    <td>8B</td>
-                    <td>1550</td>
-                    <td>1</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="table-container">
-        <h3>Klassenstufe 9</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Klasse</th>
-                    <th>Punkte</th>
-                    <th>Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Lisa Beispiel</td>
-                    <td>9C</td>
-                    <td>1600</td>
-                    <td>1</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="table-container">
-        <h3>Klassenstufe 10</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Klasse</th>
-                    <th>Punkte</th>
-                    <th>Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Jonas Test</td>
-                    <td>10A</td>
-                    <td>1700</td>
-                    <td>1</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="table-container">
-        <h3>Klassenstufe 11</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Klasse</th>
-                    <th>Punkte</th>
-                    <th>Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Sophie Schulz</td>
-                    <td>11B</td>
-                    <td>1800</td>
-                    <td>1</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Gesamtranking -->
-    <div class="table-container">
-        <h3>Gesamtranking</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Klasse</th>
-                    <th>Punkte</th>
-                    <th>Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Sophie Schulz</td>
-                    <td>11B</td>
-                    <td>1800</td>
-                    <td>1</td>
-                </tr>
-                <tr>
-                    <td>Jonas Test</td>
-                    <td>10A</td>
-                    <td>1700</td>
-                    <td>2</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 </div>
 
 </body>
+
 <style>
-    /* Allgemeines Styling */
     body {
         font-family: 'Arial', sans-serif;
         margin: 0;
         padding: 0;
-        background: linear-gradient(135deg, #322f40, #1d1a27); /* Dezenter dunkler Farbverlauf */
-        color: #fff;
+        background: linear-gradient(135deg, #b66ba4, #8846a4);
+        color: #333;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
-    /* Header */
-    .header {
-        text-align: center;
-        padding: 20px 0;
-        width: 100%;
-        background: rgba(255, 255, 255, 0.08); /* Weiche Transparenz */
-        backdrop-filter: blur(5px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .header h1 {
-        font-size: 34px;
-        color: #f3e8ff;
-    }
-
-    .header h2 {
-        font-size: 18px;
-        color: #cbb5d4;
-    }
-
-    /* Container für alle Tabellen */
     .ranking-container {
         width: 90%;
         max-width: 1000px;
@@ -203,61 +60,70 @@ Home for GoG
         padding-bottom: 20px;
     }
 
-    /* Tabellen-Container */
     .table-container {
         width: 100%;
-        background: rgba(255, 255, 255, 0.08); /* Dezente Box-Farbe */
+        background: #fff;
         padding: 20px;
         border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         text-align: center;
+        position: relative;
     }
 
-    .table-container h3 {
-        margin-top: 0;
-        margin-bottom: 15px;
-        color: #e0d7ef;
+    .back-button {
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        background-color: #560d4f;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
     }
 
-    /* Tabellen */
+    .back-button:hover {
+        background-color: #8a2a7b;
+    }
+
+    h1, h2 {
+        margin: 0;
+        color: #560d4f;
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
-        color: #f3e8ff;
-        table-layout: fixed; /* Einheitliche Spalten */
+        color: #333;
+        table-layout: fixed;
     }
 
-    /* Kopfzeilen */
     table thead {
-        background: #554766; /* Dunkles Lila */
+        background: #560d4f;
+        color: white;
     }
 
     table th, table td {
         padding: 12px;
-        text-align: center; /* Alle Inhalte mittig ausrichten */
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        text-align: center;
+        border: 1px solid #ddd;
     }
 
-    /* Abwechselnde Zeilen */
     table tbody tr:nth-child(even) {
-        background: rgba(255, 255, 255, 0.05);
+        background: #f1f1f1;
     }
 
     table tbody tr:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    /* Footer */
-    .footer {
-        text-align: center;
-        padding: 15px 0;
-        width: 100%;
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(5px);
-        font-size: 14px;
-        color: #cbb5d4;
+        background: transparent;
     }
 </style>
+
+<script>
+    function goToDashboard() {
+            window.location.href = "/dashboard";
+    }
+</script>
 
 {% endblock %}
