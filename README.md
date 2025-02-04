@@ -17,7 +17,7 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
      |---uploads
 ```
 
-5. Create a file `data/security/.htpaswd` to ensure security to your data.
+(5. Create a file `data/security/.htpaswd` to ensure security to your data.) _not in current version_
 6. Run the script `main.py` to start the server.
 
 ## DB Guide
