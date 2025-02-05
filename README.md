@@ -6,7 +6,8 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 
 1. Clone the repository using git.
 2. Install the required packages using [command].
-3. Create a DB-File called `src/wbgym,.db`.
+3.1. Create a DB-File called `src/wbgym,.db`.
+3.2. Run the SQL-Commands to create the tables in the DB-File. (temporary solution, there will be a script to run for that)
 4. Add the following folders under `src/`:
 
 ```text

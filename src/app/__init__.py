@@ -26,4 +26,6 @@ def create_app():
     db = SQLAlchemy(app)
     migrate = Migrate(app, db)
 
+    from .models import Student
+
     return app

@@ -54,8 +54,8 @@ class Presentation(db.Model):
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ID = db.Column(db.Integer, unique=True, nullable=False)
+    student_id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(80), nullable=False)
     first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
-    # presentation --> Col
+    presentations = db.Column(db.String)
