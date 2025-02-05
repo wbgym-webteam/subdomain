@@ -59,3 +59,10 @@ class Student(db.Model):
     first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
     presentations = db.Column(db.String)
+
+
+class LoginCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(10), unique=True, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
+    student = db.relationship("Student", backref="login_codes")
