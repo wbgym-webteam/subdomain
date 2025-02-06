@@ -48,7 +48,6 @@ class Presentation(db.Model):
     grades = db.Column(
         db.String(20), nullable=False
     )  # Which grades the presentation is for
-    students = db.Column(db.String)  # TODO: add a relation here?
 
 
 class Student(db.Model):

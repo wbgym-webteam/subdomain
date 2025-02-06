@@ -19,6 +19,5 @@ CREATE TABLE Presentation (
     presenter VARCHAR(80) NOT NULL,
     abstract VARCHAR(250),
     grades VARCHAR(20) NOT NULL,
-    students TEXT
 );
 ```

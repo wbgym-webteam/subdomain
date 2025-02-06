@@ -34,3 +34,8 @@ def upload_file():
 
     FileHandler(file)
     return redirect("/admin/tdw/panel")
+
+
+@admin_views.route("/tdw/generate_logincodes", methods=["POST"])
+def generate_logincodes():
+    pass
