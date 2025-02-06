@@ -10,3 +10,15 @@ CREATE TABLE student (
     presentations TEXT  -- This column can store a string (or text) for presentations
 );
 ```
+
+```sql
+CREATE TABLE Presentation (
+    id INT PRIMARY KEY,
+    ID INT UNIQUE NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    presenter VARCHAR(80) NOT NULL,
+    abstract VARCHAR(250),
+    grades VARCHAR(20) NOT NULL,
+    students TEXT
+);
+```
