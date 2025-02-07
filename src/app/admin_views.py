@@ -6,11 +6,13 @@ from flask import (
     url_for,
     session,
 )
-import os
 
 from .tdw_filehandler import FileHandler
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
+
+# ------------------------------------------------------------------
+# Routing
 
 
 @admin_views.route("/admin_dashboard")
@@ -34,8 +36,3 @@ def upload_file():
 
     FileHandler(file)
     return redirect("/admin/tdw/panel")
-
-
-@admin_views.route("/tdw/generate_logincodes", methods=["POST"])
-def generate_logincodes():
-    pass

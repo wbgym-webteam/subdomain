@@ -1,21 +1,33 @@
+# Imports
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
 
 from openpyxl import load_workbook
 
+import random as r
+import string as s
+
+from .models import Presentation, Student
+
+# CONSTANTS
 DB_URL = "sqlite:///wbgym.db"
+CHARACTERS = s.ascii_letters + s.digits
 
 db = SQLAlchemy()
 
-# Import the Models
-from .models import Presentation, Student
+# --------------------------------------------------
+# Helper Functions
 
 
-def addStudent(ENGINE, student_id, last_name, first_name, grade):
+def addStudent(ENGINE, student_id, last_name, first_name, grade, logincode):
     new_student = Student(
-        student_id=student_id, name=last_name, first_name=first_name, grade=grade
+        student_id=student_id,
+        last_name=last_name,
+        first_name=first_name,
+        grade=grade,
+        logincode=logincode,
     )
 
     # Create a new session
@@ -26,6 +38,19 @@ def addStudent(ENGINE, student_id, last_name, first_name, grade):
     session.add(new_student)
     session.commit()
     session.close()
+
+
+def logincode_exists(c):
+    return db.session.query(student).filter_by(logincode=c).first() is not None
+
+
+def generateLoginCode():
+    logincode = "".join(r.choice(CHARACTERS) for _ in range(8))
+
+    if logincode_exists(logincode):
+        return generateLoginCode()
+    else:
+        return logincode
 
 
 def addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades):
@@ -47,6 +72,10 @@ def addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades)
     session.close()
 
 
+# ------------------------------------------------------------------------------
+# This is the place where the magic happens ✨✨✨
+
+
 def FileHandler(file):
     ENGINE = create_engine(DB_URL)
     db.metadata.create_all(ENGINE)
@@ -55,46 +84,38 @@ def FileHandler(file):
 
     # Get the Students
     sheet1 = workbook.worksheets[0]
-    try:
-        for row_index, row in enumerate(
-            sheet1.iter_rows(min_row=2, values_only=True), start=2
-        ):
 
-            student_id = row[0]  # Column A (ID)
-            last_name = row[1]  # Column B (Last Name)
-            first_name = row[2]  # Column C (First Name)
-            grade = row[4]  # Column E (Grade)
+    for row_index, row in enumerate(
+        sheet1.iter_rows(min_row=2, values_only=True), start=2
+    ):
+        student_id = row[0]  # Column A (ID)
+        last_name = row[1]  # Column B (Last Name)
+        first_name = row[2]  # Column C (First Name)
+        grade = row[4]  # Column E (Grade)
+        logincode = generateLoginCode()
 
-            addStudent(ENGINE, student_id, last_name, first_name, grade)
-    except IntegrityError:
-        pass
+        addStudent(ENGINE, student_id, last_name, first_name, grade, logincode)
 
     # Get the Presentations
     sheet2 = workbook.worksheets[2]
 
-    try:
-        for row_index, row in enumerate(
-            sheet2.iter_rows(min_row=2, values_only=True), start=2
-        ):
-            presentation_id = row[0]
-            title = row[1]
-            presenter = row[2]
-            abstract = row[3]
+    for row_index, row in enumerate(
+        sheet2.iter_rows(min_row=2, values_only=True), start=2
+    ):
+        presentation_id = row[0]
+        title = row[1]
+        presenter = row[2]
+        abstract = row[3]
 
-            grades = []
-            g = 5
-            for grade in row[4:11]:
-                if grade == -1:
-                    grades.append(g)
-                else:
-                    pass
-                g += 1
+        grades = []
+        g = 5
+        for grade in row[4:11]:
+            if grade == -1:
+                grades.append(g)
+            else:
+                pass
+            g += 1
 
-            grades = str(grades)[1:-1]
+        grades = str(grades)[1:-1]
 
-            addPresentation(EGNINE, presentation_id, title, presenter, abstract, grades)
-    except IntegrityError:
-        pass
-
-
-# Who ever will see this code... Please forgive me. But that was the smoothest way to resolve this issue duh. :)
+        addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades)

@@ -40,8 +40,7 @@ class gogUser(db.Model):
 
 
 class Presentation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    ID = db.Column(db.Integer, unique=True, nullable=False)
+    presentation_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     presenter = db.Column(db.String(80), nullable=False)
     abstract = db.Column(db.String(250))
@@ -51,16 +50,8 @@ class Presentation(db.Model):
 
 
 class Student(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, unique=True, nullable=False)
+    student_id = db.Column(db.Integer, primary_key=True)
     last_name = db.Column(db.String(80), nullable=False)
     first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
-    presentations = db.Column(db.String)  # TODO: add a relation here too?
-
-
-class LoginCode(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(10), unique=True, nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
-    student = db.relationship("Student", backref="login_codes")
+    logincode = db.Column(db.String(20), nullable=False, unique=True)
