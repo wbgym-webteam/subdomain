@@ -1,104 +1,148 @@
 {% extends './base.html' %}
 
 {% block title %}
-Home for GoG
+Setup for GoG
 {% endblock %}
 
 {% block content %}
 
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 0;
-        background: linear-gradient(135deg, #1e293b, #0f172a);
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-    }
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #b66ba4, #8846a4);
+            color: #000000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    .container {
-        width: 90%;
-        max-width: 600px;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(10px);
-        margin-top: 30px;
-    }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: #ffffff; /* Hintergrund der Container auf Weiß gesetzt */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            margin-top: 30px;
+            color: #000000; /* Textfarbe innerhalb der Container auf Schwarz gesetzt */
+            position: relative;
+            text-align: left;
+        }
 
-    h1 {
-        text-align: center;
-        color: #e2e8f0;
-    }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+        }
 
-    h2 {
-        color: #e2e8f0;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        padding-bottom: 5px;
-    }
+        h2 {
+            color: #ab62a4;
+            border-bottom: 2px solid #ab62a4;
+            padding-bottom: 5px;
+            text-align: center;
+        }
 
-    label {
-        font-size: 16px;
-        margin-top: 10px;
-        display: block;
-        color: #cbd5e1;
-    }
+        label {
+            font-size: 16px;
+            margin-top: 10px;
+            display: block;
+            color: #ab62a4;
+        }
 
-    .input-field {
-        width: 100%;
-        height: 45px;
-        padding: 10px;
-        margin-top: 5px;
-        border: none;
-        border-radius: 5px;
-        background: rgba(255, 255, 255, 0.2);
-        color: #fff;
-        font-size: 16px;
-        box-sizing: border-box;
-    }
+        .input-field, .dropdown {
+            width: 100%;
+            height: 45px;
+            padding: 10px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 10px;
+            background: #d4c2ad;
+            color: #ffffff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
 
-    input::placeholder {
-        color: #94a3b8;
-    }
+        select {
+            appearance: none;
+            cursor: pointer;
+        }
 
-    button {
-        width: 100%;
-        height: 50px;
-        padding: 10px;
-        background: #334155;
-        color: #fff;
-        font-size: 18px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 15px;
-        transition: 0.3s;
-    }
+        select option {
+            background: #d4c2ad;
+            color: #ffffff;
+        }
 
-    button:hover {
-        background: #475569;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-</style>
+        input::placeholder {
+            color: #fff;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        button {
+            width: 100%;
+            height: 50px;
+            padding: 10px;
+            background: #560d4f;
+            color: #ffffff;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        button:hover {
+            background: #8846a4;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .back-button {
+            width: 80px;
+            height: 40px;
+            font-size: 14px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #560d4f;
+        }
+
+        .back-button:hover {
+            background: #8846a4;
+        }
+    </style>
 <body>
 
-<h1>Team Setup</h1>
+    <h1>Team Setup</h1>
 
-<div class="container">
-    <h2> Teamerstellung</h2>
-    <label for="teamName">Teamname:</label>
-    <input type="text" id="teamName" class="input-field" placeholder="Team eingeben...">
+    <div class="container">
+        <button class="back-button" onclick="goToDashboard()">Zurück</button>
+        <h2>Teamerstellung</h2>
+        <label for="teamName">Teamname:</label>
+        <input type="text" id="teamName" class="input-field" placeholder="Team eingeben...">
 
-    <label for="teamClass">Klasse:</label>
-    <input type="text" id="teamClass" class="input-field" placeholder="Klasse eingeben...">
+        <label for="teamClass">Klasse:</label>
+        <input type="text" id="teamClass" class="input-field" placeholder="Klasse eingeben...">
 
-    <button>Team erstellen</button>
-</div>
+        <div class="button-container">
+            <button>Team erstellen</button>
+        </div>
+    </div>
+
+    <script>
+        function goToDashboard() {
+            window.location.href = "/dashboard";
+        }
+    </script>
 
 </body>
 
