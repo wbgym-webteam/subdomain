@@ -1,14 +1,14 @@
 {% extends './base.html' %}
 
 {% block title %}
-Teammanagement for GoG
+Team Management
 {% endblock %}
 
 {% block content %}
 
     <style>
         body {
-            font-family: 'Verdana', sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #b66ba4, #8846a4);
@@ -22,13 +22,15 @@ Teammanagement for GoG
         .container {
             width: 90%;
             max-width: 600px;
-            background: #ffffff; /* Hintergrund der Container auf Weiß gesetzt */
+            background: #ffffff;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(12px);
             margin-top: 30px;
-            color: #000000; /* Textfarbe innerhalb der Container auf Schwarz gesetzt */
+            color: #ffffff;
+            position: relative;
+            text-align: left;
         }
 
         h1 {
@@ -40,6 +42,7 @@ Teammanagement for GoG
             color: #ab62a4;
             border-bottom: 2px solid #ab62a4;
             padding-bottom: 5px;
+            text-align: center;
         }
 
         label {
@@ -65,6 +68,7 @@ Teammanagement for GoG
         select {
             appearance: none;
             cursor: pointer;
+            color: #ffffff;
         }
 
         select option {
@@ -73,7 +77,13 @@ Teammanagement for GoG
         }
 
         input::placeholder {
-            color: #e2d1e8;
+            color: #ffffff;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
         }
 
         button {
@@ -86,10 +96,10 @@ Teammanagement for GoG
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            margin-top: 15px;
             transition: 0.3s;
             font-weight: bold;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+            margin-top: 25px;
         }
 
         button:hover {
@@ -97,13 +107,28 @@ Teammanagement for GoG
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
         }
+
+        .back-button {
+            width: 80px;
+            height: 40px;
+            font-size: 14px;
+            position: absolute;
+            top: -15px;
+            left: 10px;
+            background: #560d4f;
+        }
+
+        .back-button:hover {
+            background: #8846a4;
+        }
     </style>
 <body>
 
     <h1>Team Management</h1>
 
     <div class="container">
-        <h2> Punktevergabe</h2>
+        <button class="back-button" onclick="goToDashboard()">Zurück</button>
+        <h2>Punktevergabe</h2>
         <label for="teamSelect">Team:</label>
         <select id="teamSelect" class="dropdown">
             <option>Wähle ein Team</option>
@@ -111,9 +136,9 @@ Teammanagement for GoG
 
         <label for="gameName">Spiel:</label>
         <select id="gameName" class="dropdown">
-            <option value="Fußball"> Fußball</option>
-            <option value="Basketball"> Basketball</option>
-            <option value="Tennis"> Tennis</option>
+            <option value="Fußball">Fußball</option>
+            <option value="Basketball">Basketball</option>
+            <option value="Tennis">Tennis</option>
         </select>
 
         <label for="points">Punkte:</label>
@@ -123,7 +148,7 @@ Teammanagement for GoG
     </div>
 
     <div class="container">
-        <h2> Punkte aktualisieren</h2>
+        <h2>Punkte aktualisieren</h2>
         <label for="editTeam">Team:</label>
         <select id="editTeam" class="dropdown">
             <option>Wähle ein Team</option>
@@ -131,9 +156,9 @@ Teammanagement for GoG
 
         <label for="editGame">Spiel:</label>
         <select id="editGame" class="dropdown">
-            <option value="Fußball"> Fußball</option>
-            <option value="Basketball"> Basketball</option>
-            <option value="Tennis"> Tennis</option>
+            <option value="Fußball">Fußball</option>
+            <option value="Basketball">Basketball</option>
+            <option value="Tennis">Tennis</option>
         </select>
 
         <label for="editPoints">Neue Punktzahl:</label>
@@ -141,6 +166,12 @@ Teammanagement for GoG
 
         <button>Punkte aktualisieren</button>
     </div>
+
+    <script>
+        function goToDashboard() {
+            window.location.href = "/dashboard";
+        }
+    </script>
 
 </body>
 
