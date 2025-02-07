@@ -12,6 +12,10 @@ Login
 <form method="post" class="login-container">
     <h1>Willkommen zurück!</h1>
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
+    <select name="event" id="event-selector">
+        <option value="TdW">TdW</option>
+        <option value="SmS">SmS</option>
+    </select>
     <input type="password" id="loginCode" placeholder="Login-Code">
     <button onclick="checkLogin()">Anmelden</button>
     <p id="errorMessage" class="error-message"></p>
