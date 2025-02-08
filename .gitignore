@@ -2,6 +2,7 @@ __pycache__
 .venv
 ubuntu
 .vscode
+.env
 
 wbgym.db
 wbgym.db-journal
