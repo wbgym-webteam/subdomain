@@ -19,10 +19,15 @@ TdW - Admin Panel
         <button type="submit">Upload</button>
     </form>
 
-    <!-- Generate the LoginCodes-->
-
-
     <!-- Acticate / Deactivate the module -->
+    <form action="{{ url_for('admin_views.module_status') }}" method="post">
+        <label for="module_status">Module Status:</label>
+        <select name="module_status" id="module_status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+        <input type="submit" value="Submit">
+    </form>
 
     <!-- Generate CSV-file after selection process -->
 

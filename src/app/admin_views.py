@@ -7,6 +7,8 @@ from flask import (
     session,
 )
 
+import json
+
 from .tdw_filehandler import FileHandler
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
@@ -36,3 +38,15 @@ def upload_file():
 
     FileHandler(file)
     return redirect("/admin/tdw/panel")
+
+
+@admin_views.route("/tdw/module_status", methods=["POST"])
+def module_status():
+    with open("app/data/module_status.json", "r") as f:
+        data = json.load(f)
+
+    status = request.form.get("options")
+    data["TdW"] = status
+
+    with open("app/data/module_status.json", "w") as f:
+        json.dump(data, f, indent=4)
