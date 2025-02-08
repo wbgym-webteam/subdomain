@@ -5,14 +5,9 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 
-# Importing Views
-from .views import views
-from .auth import auth
-from .admin_views import admin_views
-from .gog_views import gog
-from .tdw_views import tdw
-
 load_dotenv()
+
+db = SQLAlchemy()
 
 
 def create_app():
@@ -20,17 +15,27 @@ def create_app():
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-    app.register_blueprint(views, url_prefix="/")
-    app.register_blueprint(auth, url_prefix="/")
-    app.register_blueprint(admin_views, url_prefix="/admin")
-    app.register_blueprint(gog, url_prefix="/gog")
-    app.register_blueprint(tdw, url_prefix="/tdw")
-
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///wbgym.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    db = SQLAlchemy(app)
-    migrate = Migrate(app, db)
 
-    from .models import Student, Presentation
+    with app.app_context():
+        from .models import Student, Presentation
+
+        # Importing Views
+        from .views import views
+        from .auth import auth
+        from .admin_views import admin_views
+        from .gog_views import gog
+        from .tdw_views import tdw
+
+        app.register_blueprint(views, url_prefix="/")
+        app.register_blueprint(auth, url_prefix="/")
+        app.register_blueprint(admin_views, url_prefix="/admin")
+        app.register_blueprint(gog, url_prefix="/gog")
+        app.register_blueprint(tdw, url_prefix="/tdw")
+
+        db.init_app(app)
+        db.create_all()
+        migrate = Migrate(app, db)
 
     return app
