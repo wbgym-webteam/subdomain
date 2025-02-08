@@ -15,7 +15,7 @@ from .models import Presentation, Student
 DB_URL = "sqlite:///wbgym.db"
 CHARACTERS = s.ascii_letters + s.digits
 
-db = SQLAlchemy()
+from . import db
 
 # --------------------------------------------------
 # Helper Functions

@@ -2,12 +2,17 @@ from flask import Blueprint, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 import json
 
+from .models import Student
+
 auth = Blueprint("auth", __name__)
-db = SQLAlchemy()
+from . import db
 
 
 def logincode_exists(c):
-    return db.session.query(Student).filter_by(logincode=c).first() is not None
+    if db.session.query(Student).filter_by(logincode=c).first != None:
+        return db.session.query(Student).filter_by(logincode=c).first()
+    else:
+        return None
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -17,7 +22,10 @@ def login():
         with open("app/data/module_status.json", "r") as f:
             module_status = json.load(f)
 
-        if request.form.get("options") == "tdw" and module_status["TdW"] == "Active":
+        if (
+            request.form.get("event") == "tdw"
+            and module_status["modules"]["TdW"] == "active"
+        ):
             logincode = request.form.get("logincode")
             student = logincode_exists(logincode)
             if student:
@@ -25,7 +33,10 @@ def login():
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
                 return render_template("login.html", error="Invalid login code")
-        elif request.form.get("options") == "sms" and module_status["SmS"] == "Active":
+        elif (
+            request.form.get("event") == "sms"
+            and module_status["modules"]["SmS"] == "active"
+        ):
             pass
         # TODO: add the logic here, when the module is in dev
         else:
