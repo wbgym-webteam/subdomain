@@ -24,7 +24,18 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 SECRET_KEY = 'yoursecretkey'
 ```
 
-6. Run the script `main.py` to start the server.
+6. Create the file `/app/data/module_status.json` with the following content:
+
+```json
+{
+    "modules": {
+        "TdW": "Inactive",
+        "SmS": "Inactive"
+    }
+}
+```
+
+Now run the script `main.py` to start the server.
 
 ## DB Guide
 
