@@ -22,10 +22,7 @@ TdW - Admin Panel
     <!-- Acticate / Deactivate the module -->
     <form action="{{ url_for('admin_views.module_status') }}" method="post">
         <label for="module_status">Module Status:</label>
-        <select name="module_status" id="module_status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-        </select>
+        <p class="status">{{ status }}</p>
         <input type="submit" value="Submit">
     </form>
 

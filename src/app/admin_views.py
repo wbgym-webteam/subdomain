@@ -24,7 +24,10 @@ def adminDashboard():
 
 @admin_views.route("/tdw/panel", methods=["GET", "POST"])
 def tdwPanel():
-    return render_template("admin/tdw_panel.html")
+    with open("app/data/module_status.json", "r") as f:
+        module_status = json.load(f)
+        ms = module_status["modules"]["TdW"]
+    return render_template("admin/tdw_panel.html", status=ms)
 
 
 @admin_views.route("/tdw/upload_file", methods=["POST"])
@@ -45,8 +48,14 @@ def module_status():
     with open("app/data/module_status.json", "r") as f:
         data = json.load(f)
 
-    status = request.form.get("options")
-    data["TdW"] = status
+    current_status = data["modules"]["TdW"]
+
+    if current_status == "active":
+        data["modules"]["TdW"] = "inactive"
+    else:
+        data["modules"]["TdW"] = "active"
 
     with open("app/data/module_status.json", "w") as f:
         json.dump(data, f, indent=4)
+
+    return redirect("./panel")
