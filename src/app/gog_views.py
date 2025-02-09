@@ -1,10 +1,39 @@
-from flask import Flask, render_template, request, redirect, url_for, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, Blueprint, current_app
+from . import db
+from .models import Game, Teams, GamePoints, Log, TeamType, User, DependencyType
 import sqlite3
-from .models import User  # Import the User model
 
 gog = Blueprint("gog", __name__)
-
 DATABASE = "wbgym.db"  # Update this to the path of your SQLite database
+
+
+def calculate_ranked_points(game_id):
+    
+    game = Game.query.get(game_id)
+
+    # Separate rankings for A Teams and B Teams
+    for team_type in [TeamType.A, TeamType.B]:
+        game_points = GamePoints.query.filter_by(game_id=game_id, team_type=team_type).all()
+
+        # Determine ordering based on dependency type
+        if game.dependency_type == DependencyType.TIME_DEPENDENT:
+            game_points.sort(key=lambda x: x.time_taken)  # Lower is better
+        elif game.dependency_type == DependencyType.POINT_DEPENDENT:
+            game_points.sort(key=lambda x: x.points, reverse=True)  # Higher is better
+
+        # Assign ranks within each team type
+        for rank, game_point in enumerate(game_points, start=1):
+            game_point.final_points = rank
+            db.session.add(game_point)
+
+            # Get or create log, then update points
+            log = Log.query.filter_by(team_id=game_point.team_id, game_id=game_point.game_id).first()
+            if not log:
+                log = Log(team_id=game_point.team_id, game_id=game_point.game_id, points=game_point.points)
+            else:
+                log.points = game_point.points
+            db.session.add(log)
+    db.session.commit()
 
 
 def get_db_connection():
@@ -54,15 +83,43 @@ def setup():
 
 @gog.route("/ranking")
 def ranking():
-    return render_template("gog/gog_ranking.html")
+    try:
+        a_teams = Teams.query.filter_by(team_type=TeamType.A).all()
+        b_teams = Teams.query.filter_by(team_type=TeamType.B).all()
+
+        for team in a_teams:
+            team.total_final_points = sum(gp.final_points for gp in team.gamepoints)
+
+        for team in b_teams:
+            team.total_final_points = sum(gp.final_points for gp in team.gamepoints)
+
+        a_teams.sort(key=lambda x: x.total_final_points)
+        b_teams.sort(key=lambda x: x.total_final_points)
+
+        return render_template("gog/gog_ranking.html", a_teams=a_teams, b_teams=b_teams)
+    except Exception as e:
+        current_app.logger.error(f"Error in ranking route: {str(e)}")
+        return "An error occurred while fetching rankings", 500
 
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
 def teamManagement():
+
     if request.method == "POST":
-        pass
-    else:
-        return render_template("gog/gog_teamManagement.html")
+        team_id = request.form.get("team_id")
+        game_id = request.form.get("game_id")
+        points = request.form.get("points")
+
+        game_point = GamePoints(team_id=team_id, game_id=game_id, points=points)
+        db.session.add(game_point)
+        db.session.commit()
+
+        calculate_ranked_points(game_id)
+
+        return redirect(url_for("gog.teamManagement"))
+    teams = Teams.query.all()
+    games = Game.query.all()
+    return render_template("gog/gog_teamManagement.html", teams=teams, games=games)
 
 
 @gog.route("/logs", methods=["GET", "POST"])

@@ -1,9 +1,9 @@
+# subdomain/src/app/models.py
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from enum import Enum
-
-db = SQLAlchemy()
+from flask_sqlalchemy import SQLAlchemy
+from . import db  # Only import db from __init__.py
 
 
 class User(db.Model):
@@ -17,9 +17,6 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
-
-
 class TeamType(Enum):
     A = 'A'
     B = 'B'
@@ -31,7 +28,6 @@ class DependencyType(Enum):
 class ScoringPreference(Enum):
     BETTER_HIGHER = 'higher'
     BETTER_LOWER = 'lower'
-
 
 class Teams(db.Model):
     __tablename__ = 'teams'
@@ -47,7 +43,6 @@ class Teams(db.Model):
 
     def __repr__(self):
         return f"{self.team_name} ({self.team_type.value})"
-    
 
 class Game(db.Model):
     __tablename__ = 'games'
@@ -58,7 +53,6 @@ class Game(db.Model):
 
     def __repr__(self):
         return f"{self.name} ({self.dependency_type}, {self.scoring_preference})"
-    
 
 class GamePoints(db.Model):
     __tablename__ = 'game_points'
@@ -66,7 +60,7 @@ class GamePoints(db.Model):
     team_id = db.Column(db.String(10), db.ForeignKey('teams.id'), nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
 
-    points = db.Column(db.Integer, default=0) #for point dependent games
+    points = db.Column(db.Integer, default=0)  # for point dependent games
     time_taken = db.Column(db.Time, nullable=True)  # Used for time-based games
     final_points = db.Column(db.Integer, default=0)  # Rank-based points
 
@@ -75,7 +69,6 @@ class GamePoints(db.Model):
 
     def __repr__(self):
         return f"{self.team.team_name} - {self.game.name}: {self.points} points"
-
 
 class Log(db.Model):
     __tablename__ = 'logs'
@@ -86,7 +79,3 @@ class Log(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     team = db.relationship('Teams', backref=db.backref('logs', lazy=True))
-    game = db.relationship('Game', backref=db.backref('logs', lazy=True))
-
-    def __repr__(self):
-        return f"Log: {self.team.team_name} - {self.game.name} ({self.points} points)"
