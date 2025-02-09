@@ -6,26 +6,13 @@ Login for GoG
 
 {% block content %}
 
-<header>
-    <h1>GAME OF GRAPES</h1>
-    <h2>Login</h2>
+<head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gog/gog_login.css') }}">
-
-</header>
-
-<form action="{{ url_for('gog.login') }}" method="post">
-    <label for="username">Username:</label><br>
-    <input type="text" id="username" name="username" required><br>
-    <label for="password">Password:</label><br>
-    <input type="password" id="password" name="password" required><br>
-    <input type="submit" value="Login" id="submit">
-</form>
-
-
-<body>
+</head>
 
 <div class="login-container">
-    <h1>Willkommen zurück!</h1>
+    <h1>GAME OF GRAPES</h1>
+    <h2>Login</h2>
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     <input type="password" id="loginCode" placeholder="Login-Code">
     <button onclick="checkLogin()">Anmelden</button>
@@ -45,8 +32,6 @@ Login for GoG
         }
     }
 </script>
-
-</body>
 
 {% if error %}
 <p style="color: red;">{{ error }}</p>
