@@ -87,19 +87,23 @@ def ranking():
         a_teams = Teams.query.filter_by(team_type=TeamType.A).all()
         b_teams = Teams.query.filter_by(team_type=TeamType.B).all()
 
-        for team in a_teams:
-            team.total_final_points = sum(gp.final_points for gp in team.gamepoints)
+        game_leaderboards = {
+            'A_Teams': [],
+            'B_Teams': []
+        }
 
-        for team in b_teams:
-            team.total_final_points = sum(gp.final_points for gp in team.gamepoints)
+        games = Game.query.all()
+        for game in games:
+            a_team_ranking = GamePoints.query.filter_by(game_id=game.id, team_type=TeamType.A).order_by(GamePoints.final_points).all()
+            b_team_ranking = GamePoints.query.filter_by(game_id=game.id, team_type=TeamType.B).order_by(GamePoints.final_points).all()
+            game_leaderboards['A_Teams'].append((game, a_team_ranking))
+            game_leaderboards['B_Teams'].append((game, b_team_ranking))
 
-        a_teams.sort(key=lambda x: x.total_final_points)
-        b_teams.sort(key=lambda x: x.total_final_points)
-
-        return render_template("gog/gog_ranking.html", a_teams=a_teams, b_teams=b_teams)
+        return render_template("gog/gog_ranking.html", a_teams=a_teams, b_teams=b_teams, game_leaderboards=game_leaderboards)
+    
     except Exception as e:
-        current_app.logger.error(f"Error in ranking route: {str(e)}")
-        return "An error occurred while fetching rankings", 500
+        current_app.logger.error(f"Error in ranking route: {e}")
+        return render_template("error.html", error=str(e))
 
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
