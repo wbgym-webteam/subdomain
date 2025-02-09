@@ -1,0 +1,80 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #b66ba4, #8846a4);
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ranking-container {
+    width: 90%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.table-container {
+    width: 100%;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+}
+
+.back-button {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    background-color: #560d4f;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.back-button:hover {
+    background-color: #8a2a7b;
+}
+
+h1, h2 {
+    margin: 0;
+    color: #560d4f;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #333;
+    table-layout: fixed;
+}
+
+table thead {
+    background: #560d4f;
+    color: white;
+}
+
+table th, table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+table tbody tr:nth-child(even) {
+    background: #f1f1f1;
+}
+
+table tbody tr:hover {
+    background: transparent;
+}
