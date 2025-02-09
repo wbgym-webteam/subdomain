@@ -2,7 +2,8 @@ import sqlite3
 
 
 def migrate(db):
-    conn = sqlite3.connect(db)
+    db_path = db.engine.url.database
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     # Create users table
