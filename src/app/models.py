@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
+
 # ------------------------------------------------------
 # Admin Panel
 
@@ -55,3 +57,6 @@ class Student(db.Model):
     first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False, unique=True)
+
+
+
