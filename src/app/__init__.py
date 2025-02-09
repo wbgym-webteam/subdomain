@@ -18,11 +18,11 @@ def create_app():
 
         # Register blueprints inside app context
         from .gog_views import gog
-        from .views import views
+        from .views import main_views
         from .auth import auth
 
         app.register_blueprint(gog, url_prefix='/gog')
-        app.register_blueprint(views, url_prefix='/views')
+        app.register_blueprint(main_views, url_prefix='/')
         app.register_blueprint(auth, url_prefix='/auth')
 
     return app

@@ -73,6 +73,7 @@ def dashboard():
     return render_template("gog/gog_dashboard.html")
 
 
+
 @gog.route("/setup", methods=["GET", "POST"])
 def setup():
     if request.method == "POST":

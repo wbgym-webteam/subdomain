@@ -8,14 +8,12 @@ from flask import (
     send_from_directory,
 )
 
-views = Blueprint("views", __name__, static_folder="static")
+main_views = Blueprint("main_views", __name__, static_folder="static")
 
-
-@views.route("/")
+@main_views.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
 
-
-@views.route("/home")
+@main_views.route("/home")
 def home():
     return render_template("home.html")
