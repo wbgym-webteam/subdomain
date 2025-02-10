@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, Blueprint,
 from . import db
 from .models import Game, Teams, GamePoints, Log, TeamType, User, DependencyType
 import sqlite3
+from flask_login import login_user, logout_user, login_required, current_user
 
 gog = Blueprint("gog", __name__)
 DATABASE = "wbgym.db"  # Update this to the path of your SQLite database
@@ -52,29 +53,24 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-
-        conn = get_db_connection()
-        user = conn.execute(
-            "SELECT * FROM users WHERE username = ?",
-            (username,),
-        ).fetchone()
-        conn.close()
-
-        if user and User.check_password(user["password_hash"], password):
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
             return redirect(url_for("gog.dashboard"))
         else:
             return render_template("gog/gog_login.html", error="Invalid credentials")
-
     return render_template("gog/gog_login.html")
 
 
 @gog.route("/dashboard")
+@login_required
 def dashboard():
     return render_template("gog/gog_dashboard.html")
 
 
 
 @gog.route("/setup", methods=["GET", "POST"])
+@login_required
 def setup():
     if request.method == "POST":
         pass
@@ -83,6 +79,7 @@ def setup():
 
 
 @gog.route("/ranking")
+@login_required
 def ranking():
     try:
         a_teams = Teams.query.filter_by(team_type=TeamType.A).all()
@@ -108,6 +105,7 @@ def ranking():
 
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
+@login_required
 def teamManagement():
 
     if request.method == "POST":
@@ -128,6 +126,7 @@ def teamManagement():
 
 
 @gog.route("/logs", methods=["GET", "POST"])
+@login_required
 def logs():
     if request.method == "POST":
         pass
