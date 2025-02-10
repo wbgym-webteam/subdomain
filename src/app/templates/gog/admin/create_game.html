@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
+</head>
+<body>
+    <div class="container login-container">
+        <h1>Create New Game</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'admin' %}
+                        <div class="error-message">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <input type="text" name="name" placeholder="Game Name" required>
+            
+            <select name="dependency_type" required>
+                <option value="" disabled selected>Select Score Type</option>
+                <option value="point">Points Based</option>
+                <option value="time">Time Based (seconds)</option>
+            </select>
+            
+            <select name="scoring_preference" required>
+                <option value="" disabled selected>Select Scoring Preference</option>
+                <option value="higher">Higher is Better</option>
+                <option value="lower">Lower is Better</option>
+            </select>
+            
+            <button type="submit">Create Game</button>
+        </form>
+        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;">Back to Dashboard</a>
+    </div>
+</body>
+</html>

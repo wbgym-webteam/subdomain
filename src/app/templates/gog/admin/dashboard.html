@@ -10,6 +10,7 @@
         <div class="action-buttons">
             <a href="{{ url_for('admin.create_user') }}" class="action-button">Create New User</a>
             <a href="{{ url_for('admin.create_team') }}" class="action-button">Create New Team</a>
+            <a href="{{ url_for('admin.create_game') }}" class="action-button">Create New Game</a>
             <a href="{{ url_for('admin.admin_logout') }}" class="action-button" style="background: #ff4444;">Logout</a>
         </div>
 
@@ -33,6 +34,15 @@
                         <button type="submit" class="delete-button">Delete</button>
                     </form>
                 </li>
+            {% endfor %}
+            </ul>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Games</h2>
+            <ul class="user-list">
+            {% for game in games %}
+                <li>{{ game.name }} ({{ game.dependency_type }}, {{ game.scoring_preference }})</li>
             {% endfor %}
             </ul>
         </div>

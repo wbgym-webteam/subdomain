@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user, login_user, logout_user
-from .models import User, Teams, TeamType, db  # Fix the import here - removed 'dbams' typo
+from .models import User, Teams, TeamType, Game, DependencyType, ScoringPreference, db  # Add Game and its enums
 from functools import wraps
 
 admin = Blueprint('admin', __name__)
@@ -9,7 +9,8 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_administrator:
-            return redirect(url_for('auth.login'))
+            flash('Please login as admin to access this area.', 'admin')
+            return redirect(url_for('admin.admin_login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -45,7 +46,8 @@ def admin_logout():
 def dashboard():
     users = User.query.filter_by(is_admin=False).all()
     teams = Teams.query.all()
-    return render_template('gog/admin/dashboard.html', users=users, teams=teams)
+    games = Game.query.all()
+    return render_template('gog/admin/dashboard.html', users=users, teams=teams, games=games)
 
 
 @admin.route('/admin/create_user', methods=['GET', 'POST'])  # Remove /gog prefix
@@ -109,3 +111,26 @@ def delete_team(team_id):
     except Exception as e:
         flash(f'Error deleting team: {str(e)}', 'admin')
     return redirect(url_for('admin.dashboard'))
+
+@admin.route('/admin/create_game', methods=['GET', 'POST'])
+@admin_required
+def create_game():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        dependency_type = request.form.get('dependency_type')
+        scoring_preference = request.form.get('scoring_preference')
+        
+        try:
+            game = Game(
+                name=name,
+                dependency_type=dependency_type,
+                scoring_preference=scoring_preference
+            )
+            db.session.add(game)
+            db.session.commit()
+            flash('Game created successfully', 'admin')
+            return redirect(url_for('admin.dashboard'))
+        except Exception as e:
+            flash(f'Error creating game: {str(e)}', 'admin')
+            
+    return render_template('gog/admin/create_game.html')
