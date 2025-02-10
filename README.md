@@ -17,3 +17,9 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
   - Set host to '0.0.0.0'
 
 And run the `main.py`-file!
+
+# Admin User Creation
+  - type in the terminal
+    - flask create-admin
+
+#

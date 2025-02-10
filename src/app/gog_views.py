@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, Blueprint, current_app
+from flask import Flask, render_template, request, redirect, url_for, Blueprint, current_app, flash
 from . import db
 from .models import Game, Teams, GamePoints, Log, TeamType, User, DependencyType
 import sqlite3
 from flask_login import login_user, logout_user, login_required, current_user
+from functools import wraps
 
 gog = Blueprint("gog", __name__)
 DATABASE = "wbgym.db"  # Update this to the path of your SQLite database
@@ -48,25 +49,39 @@ def redirectToLogin():
     return redirect("/gog/login")
 
 
+# Add decorator for regular users only
+def regular_user_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.is_administrator:
+            flash("Please login with a regular user account to access this area.")
+            return redirect(url_for('gog.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @gog.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username, is_admin=False).first()
+        
         if user and user.check_password(password):
             login_user(user)
             return redirect(url_for("gog.dashboard"))
         else:
-            return render_template("gog/gog_login.html", error="Invalid credentials")
+            flash("Invalid username or password for regular user account")
+            return render_template("gog/gog_login.html")
+            
     return render_template("gog/gog_login.html")
 
 
+# Update all protected routes to use both decorators
 @gog.route("/dashboard")
 @login_required
+@regular_user_required
 def dashboard():
     return render_template("gog/gog_dashboard.html")
-
 
 
 @gog.route("/setup", methods=["GET", "POST"])
@@ -78,8 +93,10 @@ def setup():
         return render_template("gog/gog_setup.html")
 
 
+# Add regular_user_required to other routes
 @gog.route("/ranking")
 @login_required
+@regular_user_required
 def ranking():
     try:
         a_teams = Teams.query.filter_by(team_type=TeamType.A).all()
@@ -106,6 +123,7 @@ def ranking():
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
 @login_required
+@regular_user_required
 def teamManagement():
 
     if request.method == "POST":
@@ -127,8 +145,17 @@ def teamManagement():
 
 @gog.route("/logs", methods=["GET", "POST"])
 @login_required
+@regular_user_required
 def logs():
     if request.method == "POST":
         pass
     else:
         return render_template("gog/gog_logs.html")
+
+
+@gog.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.')
+    return redirect(url_for('gog.login'))

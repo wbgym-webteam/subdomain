@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
+</head>
+<body>
+    <div class="container dashboard-container">
+        <h1>Admin Dashboard</h1>
+        <div class="action-buttons">
+            <a href="{{ url_for('admin.create_user') }}" class="action-button">Create New User</a>
+            <a href="{{ url_for('admin.create_team') }}" class="action-button">Create New Team</a>
+            <a href="{{ url_for('admin.admin_logout') }}" class="action-button" style="background: #ff4444;">Logout</a>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Users</h2>
+            <ul class="user-list">
+            {% for user in users %}
+                <li>{{ user.username }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Teams</h2>
+            <ul class="user-list">
+            {% for team in teams %}
+                <li style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>{{ team.team_name }} ({{ team.id }})</span>
+                    <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}" style="display: inline;" 
+                          onsubmit="return confirm('Are you sure you want to delete {{ team.team_name }}?');">
+                        <button type="submit" class="delete-button">Delete</button>
+                    </form>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

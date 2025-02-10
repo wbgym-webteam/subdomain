@@ -7,16 +7,28 @@ from flask_login import UserMixin
 from . import db  # Only import db from __init__.py
 
 
-class User(UserMixin ,db.Model):
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'  # Add explicit table name
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_administrator(self):
+        return self.is_admin
+
+    @classmethod
+    def create_admin(cls, username, password):
+        user = cls(username=username, is_admin=True)
+        user.set_password(password)
+        return user
 
 class TeamType(Enum):
     A = 'A'

@@ -1,31 +1,26 @@
-{% extends './base.html' %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game of Grapes - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
+</head>
+<body>
+    <div class="container dashboard-container">
+        <h1>Game of Grapes</h1>
+        <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2>Welcome, {{ current_user.username }}!</h2>
+            <a href="{{ url_for('gog.logout') }}" class="action-button" style="background: #ff4444;">Logout</a>
+        </div>
+        
+        <div class="navigation-buttons" style="display: flex; gap: 15px; margin-bottom: 30px;">
+            <a href="{{ url_for('gog.ranking') }}" class="action-button">Rankings</a>
+            <a href="{{ url_for('gog.teamManagement') }}" class="action-button">Team Management</a>
+            <a href="{{ url_for('gog.logs') }}" class="action-button">Logs</a>
+        </div>
 
-{% block title %}
-Home for GoG
-{% endblock %}
-
-{% block head %}
-{{ super() }}
-
-{% endblock %}
-
-{% block content %}
-<header>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gog/gog_dashboard.css') }}">
-    <h1>GAME OF GRAPES</h1>
-    <h2>Dashboard</h2>
-    
-</header>
-
-<div class="dashboard">
-    <h1>GAME OF GRAPES</h1>
-    <h2>Dashboard</h2>
-    <a href="/ranking" class="button">Ranking</a>
-    <a href="/logs" class="button">Game Logs</a>
-    <a href="/teammanagement" class="button">Team Management</a>
-    <a href="/setup" class="button">Setup</a>
-</div>
-
-
-
-{% endblock %}
+        <div class="dashboard-content">
+            <!-- Dashboard content will go here -->
+        </div>
+    </div>
+</body>
+</html>

@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Game of Grapes - Login</title>
+    <title>Admin Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
 </head>
 <body>
     <div class="container login-container">
-        <h1>Game of Grapes</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
+        <h1>Admin Login</h1>
+        {% with messages = get_flashed_messages() %}
             {% if messages %}
-                {% for category, message in messages %}
-                    {% if category != 'admin' %}
-                        <div class="error-message">{{ message }}</div>
-                    {% endif %}
+                {% for message in messages %}
+                    <div class="error-message">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
