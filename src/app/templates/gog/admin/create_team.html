@@ -1,32 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Team</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
+    <title>Create New Team</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/admin_forms.css') }}">
 </head>
 <body>
-    <div class="container login-container">
+    <div class="container">
         <h1>Create New Team</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% if category == 'admin' %}
-                        <div class="error-message">{{ message }}</div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
         <form method="POST">
-            <select name="team_type" required>
-                <option value="" disabled selected>Select Team Type</option>
-                <option value="A">A Team</option>
-                <option value="B">B Team</option>
+            <input type="text" name="name" placeholder="Team Name">
+            <select name="type" required>
+                <option value="A">Type A</option>
+                <option value="B">Type B</option>
             </select>
-            <input type="number" name="team_number" placeholder="Team Number" min="1" required>
-            <input type="text" name="team_name" placeholder="Team Name" required>
+            <input type="number" name="number" placeholder="Team Number" required>
             <button type="submit">Create Team</button>
         </form>
-        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;">Back to Dashboard</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="action-button">Back to Dashboard</a>
     </div>
 </body>
 </html>

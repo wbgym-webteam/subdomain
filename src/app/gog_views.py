@@ -125,22 +125,58 @@ def ranking():
 @login_required
 @regular_user_required
 def teamManagement():
-
     if request.method == "POST":
         team_id = request.form.get("team_id")
         game_id = request.form.get("game_id")
-        points = request.form.get("points")
+        score = request.form.get("score")
 
-        game_point = GamePoints(team_id=team_id, game_id=game_id, points=points)
-        db.session.add(game_point)
-        db.session.commit()
+        if not all([team_id, game_id, score]):
+            flash("Please fill in all fields")
+            return redirect(url_for("gog.teamManagement"))
 
-        calculate_ranked_points(game_id)
+        game = Game.query.get(game_id)
+        if not game:
+            flash("Invalid game selected")
+            return redirect(url_for("gog.teamManagement"))
+        
+        try:
+            # Check if team already has a score for this game
+            existing_score = GamePoints.query.filter_by(
+                team_id=team_id,
+                game_id=game_id
+            ).first()
 
+            if existing_score:
+                # Update existing score
+                existing_score.points = score
+                flash('Score updated successfully')
+            else:
+                # Create new score
+                game_point = GamePoints(team_id=team_id, game_id=game_id, points=score)
+                db.session.add(game_point)
+            
+            db.session.commit()
+            calculate_ranked_points(game_id)
+            flash('Score recorded successfully')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error recording score: {str(e)}')
+        
         return redirect(url_for("gog.teamManagement"))
+
+    # Get all teams and games for the form
     teams = Teams.query.all()
     games = Game.query.all()
-    return render_template("gog/gog_teamManagement.html", teams=teams, games=games)
+    
+    # Get all game points for displaying current standings
+    game_points = GamePoints.query.all()
+    
+    return render_template(
+        "gog/gog_teamManagement.html",
+        teams=teams,
+        games=games,
+        game_points=game_points
+    )
 
 
 @gog.route("/logs", methods=["GET", "POST"])

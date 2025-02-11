@@ -48,23 +48,25 @@ label {
     height: 45px;
     padding: 10px;
     margin-top: 5px;
-    border: none;
+    border: 1px solid #ab62a4;  /* Added border */
     border-radius: 10px;
-    background: #d4c2ad;
-    color: #ffffff;
+    background: #ffffff;  /* Changed to white background */
+    color: #000000;  /* Changed to black text */
     font-size: 16px;
     box-sizing: border-box;
 }
 
 select {
-    appearance: none;
+    appearance: auto;  /* Changed from 'none' to 'auto' */
     cursor: pointer;
-    color: #ffffff;
+    background-color: #ffffff;  /* Light background for dropdown */
+    color: #000000;  /* Dark text color */
 }
 
 select option {
-    background: #d4c2ad;
-    color: #ffffff;
+    background: #ffffff;  /* Light background for options */
+    color: #000000;  /* Dark text color */
+    padding: 10px;
 }
 
 input::placeholder {

@@ -18,8 +18,29 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 
 And run the `main.py`-file!
 
+
+
 # Admin User Creation
+
   - type in the terminal
     - flask create-admin
 
-#
+# Admin list Command
+  
+  - type in the terminal
+    - flask list-admins
+
+# Deleate Admin Account
+
+  - type in the terminal
+    - flask delete-admin
+
+# initialize migration repository, if it has not been initialized yet
+
+  - type in the terminal
+    - flask db init
+
+  # apply migrations
+
+  - type in terminal
+    - flask db upgrade

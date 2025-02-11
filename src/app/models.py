@@ -1,4 +1,3 @@
-# subdomain/src/app/models.py
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from enum import Enum
@@ -6,13 +5,18 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from . import db  # Only import db from __init__.py
 
-
 class User(UserMixin, db.Model):
     __tablename__ = 'users'  # Add explicit table name
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    type = db.Column(db.String(50))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'user',
+        'polymorphic_on': type
+    }
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -30,17 +34,29 @@ class User(UserMixin, db.Model):
         user.set_password(password)
         return user
 
+class Admin(User):
+    __mapper_args__ = {
+        'polymorphic_identity': 'admin',
+    }
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.is_admin = True
+
 class TeamType(Enum):
     A = 'A'
     B = 'B'
 
 class DependencyType(Enum):
+    NONE = 'none'
     POINT_DEPENDENT = 'point'
     TIME_DEPENDENT = 'time'
 
 class ScoringPreference(Enum):
     BETTER_HIGHER = 'higher'
     BETTER_LOWER = 'lower'
+    HIGHER_BETTER = 'higher'
+    LOWER_BETTER = 'lower'
 
 class Teams(db.Model):
     __tablename__ = 'teams'

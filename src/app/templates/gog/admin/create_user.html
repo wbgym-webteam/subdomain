@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create User</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
+    <title>Create New User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/admin_forms.css') }}">
 </head>
 <body>
-    <div class="container login-container">
+    <div class="container">
         <h1>Create New User</h1>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -19,7 +19,7 @@
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Create User</button>
         </form>
-        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;">Back to Dashboard</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="action-button">Back to Dashboard</a>
     </div>
 </body>
 </html>
