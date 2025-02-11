@@ -2,7 +2,7 @@ from flask import Blueprint, session, request, redirect, url_for, flash, render_
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.security import check_password_hash
 from functools import wraps
-from .models import User, Teams, TeamType, Game, DependencyType, ScoringPreference, Admin, db  # Fixed import
+from .models import User, Teams, TeamType, Game, DependencyType, ScoringPreference, Admin, db  
 import logging
 
 # Configure logging
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 admin = Blueprint('admin', __name__, 
                  url_prefix='/gog/admin', 
-                 template_folder='templates/gog',  # Updated template folder path
+                 template_folder='templates/gog',  
                  static_folder='static/gog/admin',
                  static_url_path='/static/admin')
 
@@ -137,7 +137,7 @@ def create_team():
     flash('Team created successfully!')
     return redirect(url_for('admin.dashboard'))
 
-@admin.route('/teams/delete/<string:team_id>', methods=['POST'])  # Change to <string:team_id>
+@admin.route('/teams/delete/<string:team_id>', methods=['POST'])  
 @admin_required
 def delete_team(team_id):
     team = Teams.query.get_or_404(team_id)
