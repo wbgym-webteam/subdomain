@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create New Game</title>
+    <title>Neues Spiel erstellen</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/admin_forms.css') }}">
 </head>
 <body>
     <div class="container login-container">
-        <h1>Create New Game</h1>
+        <h1>Neues Spiel erstellen</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -21,19 +21,19 @@
             
             <select name="dependency_type" required>
                 <option value="" disabled selected>Select Score Type</option>
-                <option value="point">Points Based</option>
-                <option value="time">Time Based (seconds)</option>
+                <option value="point">Punkte Abh&auml;ngig</option>
+                <option value="time">Zeit Abg&auml;ngig</option>
             </select>
             
             <select name="scoring_preference" required>
-                <option value="" disabled selected>Select Scoring Preference</option>
-                <option value="higher">Higher is Better</option>
-                <option value="lower">Lower is Better</option>
+                <option value="" disabled selected>Bepunktungs Preferenze</option>
+                <option value="higher">H&ouml;her ist besser</option>
+                <option value="lower">Niedriger ist besser</option>
             </select>
             
-            <button type="submit">Create Game</button>
+            <button type="submit">Spiel erstellen</button>
         </form>
-        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;">Back to Dashboard</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;">Zur&uuml;ck zum Dashboard</a>
     </div>
 </body>
 </html>

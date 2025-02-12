@@ -31,16 +31,16 @@
 
 <body>
 
-    <h1>Team Management</h1>
+    <h1>Punkte Verteilung</h1>
 
     <div class="container">
         <button class="back-button" onclick="goToDashboard()">Zurück</button>
         <h2>Punktevergabe</h2>
         <form method="POST" class="score-form">
             <div class="form-group">
-                <label for="team_select">Select Team:</label>
+                <label for="team_select">Team Auswahl:</label>
                 <select id="team_select" name="team_id" required>
-                    <option value="" disabled selected>Choose a team</option>
+                    <option value="" disabled selected>Teams</option>
                     {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.team_name }} ({{ team.id }})</option>
                     {% endfor %}
@@ -48,9 +48,9 @@
             </div>
 
             <div class="form-group">
-                <label for="game_select">Select Game:</label>
+                <label for="game_select">Spiel Auswahl:</label>
                 <select id="game_select" name="game_id" required onchange="updateInputType()">
-                    <option value="" disabled selected>Choose a game</option>
+                    <option value="" disabled selected>Spiele</option>
                     {% for game in games %}
                         <option value="{{ game.id }}" data-type="{{ game.dependency_type }}">
                             {{ game.name }}
@@ -65,16 +65,16 @@
             </div>
 
             <div class="form-group">
-                <label id="score_label" for="score_input">Score:</label>
+                <label id="score_label" for="score_input">Punktzahl:</label>
                 <input id="score_input" name="score" type="number" min="0" required placeholder="Enter score">
             </div>
 
-            <button type="submit">Submit Score</button>
+            <button type="submit">Punktzahl einreichen</button>
         </form>
     </div>
 
     <div class="container">
-        <h2>Current Standings</h2>
+        <h2>Aktueller Stand</h2>
         {% for game in games %}
             <div class="game-standings">
                 <h3>{{ game.name }}</h3>
