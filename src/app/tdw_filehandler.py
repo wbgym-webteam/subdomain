@@ -17,20 +17,22 @@ CHARACTERS = s.ascii_letters + s.digits
 
 from . import db
 
+# --------------------------------------------------
+# Helper Functions
+
+
 # Load German words from a separate file
 def load_german_words():
     try:
-        with open("german_words.txt", "r", encoding="utf-8") as file:
+        with open("app/german_words.txt", "r", encoding="utf-8") as file:
             words = [line.strip() for line in file if line.strip()]
             return words
     except FileNotFoundError:
         print("Error: german_words.txt not found!")
         return ["defaultword"]  # Fallback in case file is missing
 
-GERMAN_WORDS = load_german_words()
 
-# --------------------------------------------------
-# Helper Functions
+GERMAN_WORDS = load_german_words()
 
 
 def addStudent(ENGINE, student_id, last_name, first_name, grade, logincode):
@@ -60,7 +62,7 @@ def generateLoginCode():
 
     # Select a random German word
     word = r.choice(GERMAN_WORDS)
-    
+
     # Generate 5 random digits
     numbers = "".join(r.choices(s.digits, k=5))
 
@@ -72,15 +74,14 @@ def generateLoginCode():
     else:
         return logincode
 
-
     # if mine is wrong or does not work, use this one
 
-    #logincode = "".join(r.choice(CHARACTERS) for _ in range(8))
+    # logincode = "".join(r.choice(CHARACTERS) for _ in range(8))
 
-    #if logincode_exists(logincode):
-       # return generateLoginCode()
-    #else:
-       # return logincode
+    # if logincode_exists(logincode):
+    # return generateLoginCode()
+    # else:
+    # return logincode
 
 
 def addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades):
@@ -149,8 +150,3 @@ def FileHandler(file):
         grades = str(grades)[1:-1]
 
         addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades)
-
-
-
-
-

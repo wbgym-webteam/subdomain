@@ -3,6 +3,7 @@ __pycache__
 ubuntu
 .vscode
 .env
+*.wheel
 wheels
 
 wbgym.db
