@@ -20,8 +20,12 @@ def create_app(config_class=Config):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your-secret-key-here'
 
-    app.config['SESSION_COOKIE_NAME'] = 'primary_session'
+    # Update session configuration
+    app.config['SESSION_COOKIE_NAME'] = 'admin_session'
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+    app.config['SESSION_PROTECTION'] = 'strong'
 
     db.init_app(app)
     migrate.init_app(app, db)

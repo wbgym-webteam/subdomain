@@ -26,37 +26,45 @@ def admin_required(f):
 
 @admin.before_request
 def check_admin():
-    if request.endpoint and 'static' not in request.endpoint:
-        if not session.get('is_admin') and request.endpoint != 'admin.login':
-            return redirect(url_for('admin.login'))
+    # Skip authentication for static files and login route
+    if not request.endpoint:
+        return
+    
+    if 'static' in request.endpoint or request.endpoint == 'admin.login':
+        return
+
+    # Check if user is authenticated and is admin
+    if not current_user.is_authenticated or not session.get('is_admin'):
+        session.clear()  # Clear any existing session
+        return redirect(url_for('admin.login'))
 
 @admin.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
+    # Clear any existing session
+    if 'is_admin' in session and not current_user.is_authenticated:
+        session.clear()
+    
+    # If user is already authenticated and is admin, redirect to dashboard
+    if current_user.is_authenticated and session.get('is_admin'):
         return redirect(url_for('admin.dashboard'))
     
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         
         user = User.query.filter_by(username=username).first()
         
-        if user:
-            logger.info(f"User found: {user.username}")
-        else:
-            logger.info("User not found")
-        
-        if user and user.check_password(password):  # Use the check_password method
-            logger.info("Password check passed")
-            session.permanent = True
-            session['user_id'] = user.id
-            session['is_admin'] = user.is_admin
+        if user and user.check_password(password) and user.is_admin:
             login_user(user)
+            session['is_admin'] = True
+            session['user_id'] = user.id
+            session.permanent = True
             return redirect(url_for('admin.dashboard'))
         
-        logger.info("Invalid username or password")
-        flash('Invalid username or password')
-    return render_template('gog/admin/login.html')  # Ensure this path is correct
+        flash('Invalid credentials or insufficient permissions')
+        return render_template('gog/admin/login.html')
+    
+    return render_template('gog/admin/login.html')
 
 @admin.route('/logout')
 @admin_required
@@ -66,13 +74,17 @@ def logout():
     return redirect(url_for('admin.login'))
 
 @admin.route('/dashboard')
+@login_required
 @admin_required
 def dashboard():
+    if not current_user.is_authenticated or not session.get('is_admin'):
+        return redirect(url_for('admin.login'))
+    
     users = User.query.filter_by(is_admin=False).all()
-    admins = Admin.query.all()  # Add this line
+    admins = Admin.query.all()
     teams = Teams.query.all()
     games = Game.query.all()
-    return render_template('gog/admin/dashboard.html', users=users, teams=teams, games=games, admins=admins)  # Ensure this path is correct
+    return render_template('gog/admin/dashboard.html', users=users, teams=teams, games=games, admins=admins)
 
 @admin.route('/users/create', methods=['GET'])
 @admin_required
