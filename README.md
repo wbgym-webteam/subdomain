@@ -18,6 +18,10 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 
 And run the `main.py`-file!
 
+# Admin login accessible through
+
+- /gog/admin/login
+
 
 
 # Admin User Creation

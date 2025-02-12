@@ -2,97 +2,116 @@ body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #b66ba4, #8846a4);
-    color: #333;
+    background: linear-gradient(135deg, #560d4f, #8846a4);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #fff;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 900px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.action-button {
+    display: inline-block;
+    background-color: #560d4f;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 12px 15px;
+    margin: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.action-button:hover {
+    background-color: #8846a4;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .logs-container {
     background: #fff;
-    padding: 20px;
+    padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    height: 80%;
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Damit der Button sich relativ zu diesem Container positioniert */
-}
-
-.back-button {
-    position: absolute;
-    top: 10px;
-    left: 20px;
-    background-color: #560d4f;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.3s;
-}
-
-.back-button:hover {
-    background-color: #8a2a7b;
-}
-
-.logs-container h1 {
-    text-align: center;
-    font-size: 32px;
-    color: #4a4e69;
-    margin-bottom: 20px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 20px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    flex: 1;
-    overflow-y: auto;
     margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 th, td {
+    padding: 14px;
+    border: 1px solid #ccc;
     text-align: left;
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+    color: #222;
 }
 
 th {
-    background-color: #560d4f;
+    background: #3d0738;
     color: white;
-    font-size: 16px;
-    position: sticky;
-    top: 0;
-}
-
-tbody {
-    overflow-y: auto;
-}
-
-tr:hover {
-    background-color: #f1f1f1;
-}
-
-td {
-    font-size: 14px;
-}
-
-.log-entry {
-    color: #555;
     font-weight: bold;
 }
 
-.timestamp {
-    color: #888;
-    font-style: italic;
+tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.85);
 }
 
-/* Make the logs scrollable if they exceed the container height */
-.table-wrapper {
-    flex: 1;
-    overflow-y: auto;
+tr:nth-child(odd) {
+    background-color: rgba(245, 245, 245, 0.9);
+}
+
+/* Adjust back button */
+.back-button {
+    background: white;
+    color: #333;
+    padding: 12px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:hover {
+    background: #ddd;
+}
+
+/* Center the button */
+.back-button-container {
+    text-align: left;
+    margin-bottom: 20px;
 }

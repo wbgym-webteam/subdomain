@@ -1,55 +1,49 @@
 from flask import Flask, render_template, request, redirect, url_for, Blueprint, current_app, flash
 from . import db
 from .models import Game, Teams, GamePoints, Log, TeamType, User, DependencyType
-import sqlite3
+from sqlalchemy import func
 from flask_login import login_user, logout_user, login_required, current_user
 from functools import wraps
+import sqlite3
 
 gog = Blueprint("gog", __name__)
-DATABASE = "wbgym.db"  # Update this to the path of your SQLite database
-
+DATABASE = "wbgym.db"
 
 def calculate_ranked_points(game_id):
-    
     game = Game.query.get(game_id)
 
     # Separate rankings for A Teams and B Teams
     for team_type in [TeamType.A, TeamType.B]:
-        game_points = GamePoints.query.filter_by(game_id=game_id, team_type=team_type).all()
+        game_points = GamePoints.query\
+            .join(Teams)\
+            .filter(Teams.team_type == team_type)\
+            .filter(GamePoints.game_id == game_id)\
+            .all()
 
-        # Determine ordering based on dependency type
         if game.dependency_type == DependencyType.TIME_DEPENDENT:
-            game_points.sort(key=lambda x: x.time_taken)  # Lower is better
-        elif game.dependency_type == DependencyType.POINT_DEPENDENT:
-            game_points.sort(key=lambda x: x.points, reverse=True)  # Higher is better
+            game_points.sort(key=lambda x: x.points)  # Lower is better for time
+        else:
+            game_points.sort(key=lambda x: x.points, reverse=True)  # Higher is better for points
 
-        # Assign ranks within each team type
-        for rank, game_point in enumerate(game_points, start=1):
-            game_point.final_points = rank
+        # Assign ranks
+        for position, game_point in enumerate(game_points, start=1):
+            game_point.final_points = position
             db.session.add(game_point)
 
-            # Get or create log, then update points
-            log = Log.query.filter_by(team_id=game_point.team_id, game_id=game_point.game_id).first()
-            if not log:
-                log = Log(team_id=game_point.team_id, game_id=game_point.game_id, points=game_point.points)
+            log_entry = Log.query.filter_by(team_id=game_point.team_id, game_id=game_point.game_id).first()
+            if log_entry:
+                log_entry.points = game_point.points
             else:
-                log.points = game_point.points
-            db.session.add(log)
+                log_entry = Log(team_id=game_point.team_id, game_id=game_point.game_id, points=game_point.points)
+            db.session.add(log_entry)
+    
     db.session.commit()
-
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
-
-@gog.route("/")
-def redirectToLogin():
-    return redirect("/gog/login")
-
-
-# Add decorator for regular users only
 def regular_user_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -58,6 +52,35 @@ def regular_user_required(f):
             return redirect(url_for('gog.login'))
         return f(*args, **kwargs)
     return decorated_function
+
+def get_rankings():
+    """
+    Returns a dictionary with game IDs as keys and game data (including A and B team rankings) as values.
+    """
+    rankings = {}
+    games = Game.query.all()
+    
+    for game in games:
+        # Get all points for this game
+        game_points = GamePoints.query\
+            .join(Teams)\
+            .filter(GamePoints.game_id == game.id)\
+            .all()
+        
+        a_teams = [p for p in game_points if p.team.team_type == TeamType.A]
+        b_teams = [p for p in game_points if p.team.team_type == TeamType.B]
+        
+        rankings[game.id] = {
+            'name': game.name,
+            'A_teams': a_teams,
+            'B_teams': b_teams
+        }
+    
+    return rankings
+
+@gog.route("/")
+def redirectToLogin():
+    return redirect("/gog/login")
 
 @gog.route("/login", methods=["GET", "POST"])
 def login():
@@ -70,56 +93,23 @@ def login():
             login_user(user)
             return redirect(url_for("gog.dashboard"))
         else:
-            flash("Invalid username or password for regular user account")
             return render_template("gog/gog_login.html")
-            
+
     return render_template("gog/gog_login.html")
 
-
-# Update all protected routes to use both decorators
 @gog.route("/dashboard")
 @login_required
 @regular_user_required
 def dashboard():
     return render_template("gog/gog_dashboard.html")
 
-
 @gog.route("/setup", methods=["GET", "POST"])
 @login_required
+@regular_user_required
 def setup():
     if request.method == "POST":
         pass
-    else:
-        return render_template("gog/gog_setup.html")
-
-
-# Add regular_user_required to other routes
-@gog.route("/ranking")
-@login_required
-@regular_user_required
-def ranking():
-    try:
-        a_teams = Teams.query.filter_by(team_type=TeamType.A).all()
-        b_teams = Teams.query.filter_by(team_type=TeamType.B).all()
-
-        game_leaderboards = {
-            'A_Teams': [],
-            'B_Teams': []
-        }
-
-        games = Game.query.all()
-        for game in games:
-            a_team_ranking = GamePoints.query.filter_by(game_id=game.id, team_type=TeamType.A).order_by(GamePoints.final_points).all()
-            b_team_ranking = GamePoints.query.filter_by(game_id=game.id, team_type=TeamType.B).order_by(GamePoints.final_points).all()
-            game_leaderboards['A_Teams'].append((game, a_team_ranking))
-            game_leaderboards['B_Teams'].append((game, b_team_ranking))
-
-        return render_template("gog/gog_ranking.html", a_teams=a_teams, b_teams=b_teams, game_leaderboards=game_leaderboards)
-    
-    except Exception as e:
-        current_app.logger.error(f"Error in ranking route: {e}")
-        return render_template("error.html", error=str(e))
-
+    return render_template("gog/gog_setup.html")
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
 @login_required
@@ -151,7 +141,6 @@ def teamManagement():
                 existing_score.points = score
                 flash('Score updated successfully')
             else:
-                # Create new score
                 game_point = GamePoints(team_id=team_id, game_id=game_id, points=score)
                 db.session.add(game_point)
             
@@ -164,11 +153,8 @@ def teamManagement():
         
         return redirect(url_for("gog.teamManagement"))
 
-    # Get all teams and games for the form
     teams = Teams.query.all()
     games = Game.query.all()
-    
-    # Get all game points for displaying current standings
     game_points = GamePoints.query.all()
     
     return render_template(
@@ -178,16 +164,13 @@ def teamManagement():
         game_points=game_points
     )
 
-
 @gog.route("/logs", methods=["GET", "POST"])
 @login_required
 @regular_user_required
 def logs():
     if request.method == "POST":
         pass
-    else:
-        return render_template("gog/gog_logs.html")
-
+    return render_template("gog/gog_logs.html")
 
 @gog.route("/logout")
 @login_required
@@ -195,3 +178,58 @@ def logout():
     logout_user()
     flash('You have been logged out.')
     return redirect(url_for('gog.login'))
+
+@gog.route('/ranking')
+def ranking():
+    # Calculate total points for teams
+    teams_a = Teams.query.filter_by(team_type=TeamType.A)\
+        .join(GamePoints)\
+        .with_entities(
+            Teams,
+            func.sum(GamePoints.final_points).label('total_points')
+        )\
+        .group_by(Teams.id)\
+        .order_by(func.sum(GamePoints.final_points).asc()).all()  # Changed to explicit asc()
+
+    teams_b = Teams.query.filter_by(team_type=TeamType.B)\
+        .join(GamePoints)\
+        .with_entities(
+            Teams,
+            func.sum(GamePoints.final_points).label('total_points')
+        )\
+        .group_by(Teams.id)\
+        .order_by(func.sum(GamePoints.final_points).asc()).all()  # Changed to explicit asc()
+
+    # Get all games
+    games = Game.query.all()
+    
+    # Dictionary to store game leaderboards
+    game_leaderboards = {'A_Teams': [], 'B_Teams': []}
+    
+    for game in games:
+        # Get rankings for A Teams
+        a_ranking = GamePoints.query.filter_by(game_id=game.id)\
+            .join(Teams)\
+            .filter(Teams.team_type == TeamType.A)\
+            .order_by(
+                GamePoints.points.asc() if game.dependency_type == DependencyType.TIME_DEPENDENT
+                else GamePoints.points.desc()
+            ).all()
+            
+        # Get rankings for B Teams
+        b_ranking = GamePoints.query.filter_by(game_id=game.id)\
+            .join(Teams)\
+            .filter(Teams.team_type == TeamType.B)\
+            .order_by(
+                GamePoints.points.asc() if game.dependency_type == DependencyType.TIME_DEPENDENT
+                else GamePoints.points.desc()
+            ).all()
+            
+        game_leaderboards['A_Teams'].append((game, a_ranking))
+        game_leaderboards['B_Teams'].append((game, b_ranking))
+    
+    return render_template('gog/gog_ranking.html',
+                         teams_a=teams_a,
+                         teams_b=teams_b,
+                         games=games,
+                         game_leaderboards=game_leaderboards)

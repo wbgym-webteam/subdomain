@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_migrate import Migrate  # Import Flask-Migrate
+from flask_migrate import Migrate
 from datetime import timedelta
 
 class Config:
@@ -10,7 +10,7 @@ class Config:
     SECRET_KEY = 'your-secret-key-here'
 
 db = SQLAlchemy()
-migrate = Migrate()  # Initialize Flask-Migrate
+migrate = Migrate()
 login_manager = LoginManager()
 
 def create_app(config_class=Config):
@@ -24,7 +24,7 @@ def create_app(config_class=Config):
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
     db.init_app(app)
-    migrate.init_app(app, db)  # Initialize Flask-Migrate with the app and db
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
 
@@ -40,12 +40,12 @@ def create_app(config_class=Config):
         from .gog_views import gog
         from .views import main_views
         from .auth import auth
-        from .admin_views import admin  # Update this import
+        from .admin_views import admin
 
         app.register_blueprint(gog, url_prefix='/gog')
         app.register_blueprint(main_views, url_prefix='/')
         app.register_blueprint(auth, url_prefix='/auth')
-        app.register_blueprint(admin)  # Only register admin once
+        app.register_blueprint(admin)
 
     # Register CLI commands
     from . import cli

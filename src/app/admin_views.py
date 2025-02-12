@@ -2,7 +2,7 @@ from flask import Blueprint, session, request, redirect, url_for, flash, render_
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.security import check_password_hash
 from functools import wraps
-from .models import User, Teams, TeamType, Game, DependencyType, ScoringPreference, Admin, db  # Fixed import
+from .models import User, Teams, TeamType, Game, DependencyType, ScoringPreference, Admin, GamePoints, Log, db
 import logging
 
 # Configure logging
@@ -137,14 +137,34 @@ def create_team():
     flash('Team created successfully!')
     return redirect(url_for('admin.dashboard'))
 
-@admin.route('/teams/delete/<string:team_id>', methods=['POST'])  # Change to <string:team_id>
+@admin.route('/teams/delete/<string:team_id>', methods=['POST'])
 @admin_required
 def delete_team(team_id):
-    team = Teams.query.get_or_404(team_id)
-    db.session.delete(team)
-    db.session.commit()
-    
-    flash('Team deleted successfully!')
+    try:
+        # Get the team
+        team = Teams.query.get_or_404(team_id)
+        logger.info(f"Found team to delete: {team.id}")
+        
+        # First delete all related game points
+        points_deleted = GamePoints.query.filter_by(team_id=team_id).delete()
+        logger.info(f"Deleted {points_deleted} game points records")
+        
+        # Delete all related logs
+        logs_deleted = Log.query.filter_by(team_id=team_id).delete()
+        logger.info(f"Deleted {logs_deleted} log records")
+        
+        # Now delete the team
+        db.session.delete(team)
+        db.session.commit()
+        
+        logger.info(f"Successfully deleted team {team_id}")
+        flash('Team deleted successfully!')
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting team {team_id}: {str(e)}")
+        flash(f'Error deleting team: {str(e)}')
+        
     return redirect(url_for('admin.dashboard'))
 
 @admin.route('/games/create', methods=['GET'])
@@ -189,5 +209,5 @@ def delete_game(game_id):
 def admin_home():
     if not current_user.is_administrator:
         flash('You do not have permission to access this page.', 'error')
-        return redirect(url_for('main.home'))
+        return redirect(url_for('main_views.home'))
     return redirect(url_for('admin.dashboard'))

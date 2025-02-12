@@ -1,17 +1,11 @@
-{% extends './base.html' %}
-
-{% block title %}
-Team Management
-{% endblock %}
-
 {% block content %}
 
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gog/gog_teamManagement.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='gog/admin/css/admin.css') }}">
+    
     <script>
         function goToDashboard() {
-            window.location.href = "/dashboard";
+            window.location.href = "/gog/dashboard";  // Updated URL
         }
 
         function updateInputType() {

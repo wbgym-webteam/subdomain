@@ -64,6 +64,17 @@ class Teams(db.Model):
     team_name = db.Column(db.String(100), nullable=True)  # Can be changed later
     points = db.Column(db.Integer, default=0)
     team_type = db.Column(db.Enum(TeamType), nullable=False)  # Choice constraint
+    
+    # Updated relationship definitions with back_populates
+    game_points = db.relationship('GamePoints', 
+                                back_populates='team',
+                                cascade='all, delete-orphan',
+                                passive_deletes=True)
+    
+    logs = db.relationship('Log',
+                          back_populates='team',
+                          cascade='all, delete-orphan',
+                          passive_deletes=True)
 
     def __init__(self, team_type, team_number):
         self.id = f"{team_type.lower()}{team_number}"
@@ -86,14 +97,16 @@ class Game(db.Model):
 class GamePoints(db.Model):
     __tablename__ = 'game_points'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    team_id = db.Column(db.String(10), db.ForeignKey('teams.id'), nullable=False)
+    team_id = db.Column(db.String(10), 
+                       db.ForeignKey('teams.id', ondelete='CASCADE'),
+                       nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
-
     points = db.Column(db.Integer, default=0)  # for point dependent games
     time_taken = db.Column(db.Time, nullable=True)  # Used for time-based games
     final_points = db.Column(db.Integer, default=0)  # Rank-based points
-
-    team = db.relationship('Teams', backref=db.backref('gamepoints', lazy=True))
+    
+    # Updated relationship with back_populates
+    team = db.relationship('Teams', back_populates='game_points')
     game = db.relationship('Game', backref=db.backref('gamepoints', lazy=True))
 
     def __repr__(self):
@@ -102,9 +115,12 @@ class GamePoints(db.Model):
 class Log(db.Model):
     __tablename__ = 'logs'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    team_id = db.Column(db.String(10), db.ForeignKey('teams.id'), nullable=False)
+    team_id = db.Column(db.String(10), 
+                       db.ForeignKey('teams.id', ondelete='CASCADE'),
+                       nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
     points = db.Column(db.Integer, default=0)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    team = db.relationship('Teams', backref=db.backref('logs', lazy=True))
+    # Single, clean relationship with Teams
+    team = db.relationship('Teams', back_populates='logs')

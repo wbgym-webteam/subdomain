@@ -1,137 +1,130 @@
-{% extends 'base.html' %}
-
-{% block title %}
-Ranking for GoG
-{% endblock %}
-
 {% block content %}
-    <div class="dashboard">
-        <!-- Main Leaderboard for A Teams -->
-        <h1 class="leaderboard-title">Gesamtrangliste - A Teams</h1>
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th class="leaderboard-number">Nummer</th>
-                    <th class="leaderboard-name">Team Name</th>
-                    <th class="leaderboard-points">Gesamtpunkte</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for team in a_teams %}
-                <tr>
-                    <td class="leaderboard-number">{{ team.team_number }}</td>
-                    <td class="leaderboard-name">{{ team.team_name }}</td>
-                    <td class="leaderboard-points">{{ team.total_final_points|default("Keine Punkte") }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3" class="leaderboard-points">Keine Daten verfügbar</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
 
-        <div class="section-divider"></div>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gog/gog_ranking.css') }}">
+</head>
 
-        <!-- Main Leaderboard for B Teams -->
-        <h1 class="leaderboard-title">Gesamtrangliste - B Teams</h1>
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th class="leaderboard-number">Nummer</th>
-                    <th class="leaderboard-name">Team Name</th>
-                    <th class="leaderboard-points">Gesamtpunkte</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for team in b_teams %}
-                <tr>
-                    <td class="leaderboard-number">{{ team.team_number }}</td>
-                    <td class="leaderboard-name">{{ team.team_name }}</td>
-                    <td class="leaderboard-points">{{ team.total_final_points|default("Keine Punkte") }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3" class="leaderboard-points">Keine Daten verfügbar</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="page-header">Rangliste</div>
 
-        <div class="section-divider"></div>
+<div class="entire-content-excluding-base">
+    <!-- Main Leaderboard for A Teams -->
+    <h1 class="leaderboard-title">Gesamtrangliste - A Teams</h1>
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-points">Gesamtpunkte</th>
+                <th class="leaderboard-rank">Platz</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for team, total_points in teams_a %}
+            <tr>
+                <td class="leaderboard-number">{{ team.id }}</td>
+                <td class="leaderboard-name">{{ team.team_name }}</td>
+                <td class="leaderboard-points">{{ total_points|default('Keine Punkte', true) }}</td>
+                <td class="leaderboard-rank">{{ loop.index }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="leaderboard-points">Keine Daten verfügbar</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-        <!-- Individual Game Leaderboards for A Teams -->
-        <h1 class="leaderboard-title">Spielranglisten - A Teams</h1>
-        {% for game, ranking in game_leaderboards.A_Teams %}
-        <h2 class="leaderboard-title">Rangliste für {{ game.name }} ({{ game.get_scoring_preference_display }})</h2>
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th class="leaderboard-number">Nummer</th>
-                    <th class="leaderboard-name">Team Name</th>
-                    <th class="leaderboard-points">Punkte/Zeit</th>
-                    <th class="leaderboard-rank">Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in ranking %}
-                <tr>
-                    <td class="leaderboard-number">{{ entry.team.team_number }}</td>
-                    <td class="leaderboard-name">{{ entry.team.team_name }}</td>
-                    <td class="leaderboard-points">
-                        {% if game.dependency_type == "time" %}
-                            {{ entry.points }} Sekunden
-                        {% else %}
-                            {{ entry.points }} Punkte
-                        {% endif %}
-                    </td>
-                    <td class="leaderboard-rank">{{ forloop.counter }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="leaderboard-points">Keine Daten verfügbar</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
+    <div class="section-divider"></div>
 
-        <div class="section-divider"></div>
+    <!-- Main Leaderboard for B Teams -->
+    <h1 class="leaderboard-title">Gesamtrangliste - B Teams</h1>
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-points">Gesamtpunkte</th>
+                <th class="leaderboard-rank">Platz</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for team, total_points in teams_b %}
+            <tr>
+                <td class="leaderboard-number">{{ team.id }}</td>
+                <td class="leaderboard-name">{{ team.team_name }}</td>
+                <td class="leaderboard-points">{{ total_points|default('Keine Punkte', true) }}</td>
+                <td class="leaderboard-rank">{{ loop.index }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="leaderboard-points">Keine Daten verfügbar</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-        <!-- Individual Game Leaderboards for B Teams -->
-        <h1 class="leaderboard-title">Spielranglisten - B Teams</h1>
-        {% for game, ranking in game_leaderboards.B_Teams %}
-        <h2 class="leaderboard-title">Rangliste für {{ game.name }} ({{ game.get_scoring_preference_display }})</h2>
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th class="leaderboard-number">Nummer</th>
-                    <th class="leaderboard-name">Team Name</th>
-                    <th class="leaderboard-points">Punkte/Zeit</th>
-                    <th class="leaderboard-rank">Platz</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in ranking %}
-                <tr>
-                    <td class="leaderboard-number">{{ entry.team.team_number }}</td>
-                    <td class="leaderboard-name">{{ entry.team.team_name }}</td>
-                    <td class="leaderboard-points">
-                        {% if game.dependency_type == "time" %}
-                            {{ entry.points }} Sekunden
-                        {% else %}
-                            {{ entry.points }} Punkte
-                        {% endif %}
-                    </td>
-                    <td class="leaderboard-rank">{{ forloop.counter }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="leaderboard-points">Keine Daten verfügbar</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
-    </div>
+    <div class="section-divider"></div>
+
+    <!-- Individual Game Rankings for A Teams -->
+    <h1 class="leaderboard-title">Spielranglisten - A Teams</h1>
+    {% for game, ranking in game_leaderboards.A_Teams %}
+    <h2 class="leaderboard-title">Rangliste für {{ game.name }}</h2>
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-points">{% if game.dependency_type == "time" %}Zeit{% else %}Punkte{% endif %}</th>
+                <th class="leaderboard-rank">Platz</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in ranking %}
+            <tr>
+                <td class="leaderboard-number">{{ entry.team.id }}</td>
+                <td class="leaderboard-name">{{ entry.team.team_name }}</td>
+                <td class="leaderboard-points">{% if game.dependency_type == "time" %}{{ entry.points }} Sekunden{% else %}{{ entry.points }} Punkte{% endif %}</td>
+                <td class="leaderboard-rank">{{ loop.index }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="leaderboard-points">Keine Daten verfügbar</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+
+    <div class="section-divider"></div>
+
+    <!-- Individual Game Rankings for B Teams -->
+    <h1 class="leaderboard-title">Spielranglisten - B Teams</h1>
+    {% for game, ranking in game_leaderboards.B_Teams %}
+    <h2 class="leaderboard-title">Rangliste für {{ game.name }}</h2>
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-points">{% if game.dependency_type == "time" %}Zeit{% else %}Punkte{% endif %}</th>
+                <th class="leaderboard-rank">Platz</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in ranking %}
+            <tr>
+                <td class="leaderboard-number">{{ entry.team.id }}</td>
+                <td class="leaderboard-name">{{ entry.team.team_name }}</td>
+                <td class="leaderboard-points">{% if game.dependency_type == "time" %}{{ entry.points }} Sekunden{% else %}{{ entry.points }} Punkte{% endif %}</td>
+                <td class="leaderboard-rank">{{ loop.index }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="leaderboard-points">Keine Daten verfügbar</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+</div>
 {% endblock %}

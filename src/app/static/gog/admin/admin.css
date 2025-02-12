@@ -2,12 +2,12 @@ body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #560d4f, #8846a4);
+    background-color: #1a1a1a;
+    color: #fff;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #333;
 }
 
 .container {
@@ -178,4 +178,159 @@ select:focus {
 .game-standings li {
     padding: 5px 0;
     border-bottom: 1px solid #ddd;
+}
+
+/* Admin specific styles */
+.admin-container {
+    background: #2d2d2d;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.admin-header {
+    color: #9370DB;
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    border-bottom: 2px solid #363636;
+}
+
+.admin-nav {
+    background: #363636;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.admin-nav a {
+    color: #B19CD9;
+    text-decoration: none;
+    padding: 8px 16px;
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.admin-nav a:hover {
+    background: #9370DB;
+    color: white;
+}
+
+.admin-content {
+    background: #363636;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.admin-table th {
+    background: #2d2d2d;
+    color: #9370DB;
+}
+
+.admin-table tr:hover {
+    background: #404040;
+}
+
+.admin-button {
+    display: inline-block;
+    background: #9370DB;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.admin-button:hover {
+    background: #8A2BE2;
+    transform: translateY(-2px);
+}
+
+.admin-delete {
+    background: #ff4444;
+}
+
+.admin-delete:hover {
+    background: #ff0000;
+}
+
+.admin-form {
+    background: #2d2d2d;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #4a4a4a;
+    border-radius: 4px;
+    background: #363636;
+    color: #fff;
+}
+
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-form textarea:focus {
+    outline: none;
+    border-color: #9370DB;
+    box-shadow: 0 0 0 2px rgba(147, 112, 219, 0.2);
+}
+
+.admin-alert {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+    background: #363636;
+}
+
+.admin-alert.success {
+    color: #4CAF50;
+    border-left: 4px solid #4CAF50;
+}
+
+.admin-alert.error {
+    color: #ff4444;
+    border-left: 4px solid #ff4444;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #9370DB;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8A2BE2;
 }
