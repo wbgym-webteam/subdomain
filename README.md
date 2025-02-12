@@ -29,8 +29,8 @@ SECRET_KEY = 'yoursecretkey'
 ```json
 {
     "modules": {
-        "TdW": "Inactive",
-        "SmS": "Inactive"
+        "TdW": "inactive",
+        "SmS": "inactive"
     }
 }
 ```
