@@ -108,8 +108,30 @@ def dashboard():
 @regular_user_required
 def setup():
     if request.method == "POST":
-        pass
-    return render_template("gog/gog_setup.html")
+        team_id = request.form.get("team_id")
+        team_name = request.form.get("team_name")
+        
+        if not team_id or not team_name:
+            flash("Please fill in all fields")
+            return redirect(url_for("gog.setup"))
+        
+        team = Teams.query.get(team_id)
+        if not team:
+            flash("Invalid team selected")
+            return redirect(url_for("gog.setup"))
+        
+        try:
+            team.team_name = team_name
+            db.session.commit()
+            flash('Team name updated successfully')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating team name: {str(e)}')
+        
+        return redirect(url_for("gog.setup"))
+
+    teams = Teams.query.all()
+    return render_template("gog/gog_setup.html", teams=teams)
 
 @gog.route("/teamManagement", methods=["GET", "POST"])
 @login_required

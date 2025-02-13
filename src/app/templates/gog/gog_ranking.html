@@ -8,24 +8,25 @@
 <div class="page-header">Rangliste</div>
 
 <div class="entire-content-excluding-base">
+    <button class="back-button" onclick="goToDashboard()">Zurück</button>
     <!-- Main Leaderboard for A Teams -->
     <h1 class="leaderboard-title">Gesamtrangliste - A Teams</h1>
     <table class="leaderboard-table">
         <thead>
             <tr>
-                <th class="leaderboard-number">Nummer</th>
-                <th class="leaderboard-name">Team Name</th>
-                <th class="leaderboard-points">Gesamtpunkte</th>
                 <th class="leaderboard-rank">Platz</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-points">Gesamtpunkte</th>
             </tr>
         </thead>
         <tbody>
             {% for team, total_points in teams_a %}
             <tr>
-                <td class="leaderboard-number">{{ team.id }}</td>
-                <td class="leaderboard-name">{{ team.team_name }}</td>
-                <td class="leaderboard-points">{{ total_points|default('Keine Punkte', true) }}</td>
                 <td class="leaderboard-rank">{{ loop.index }}</td>
+                <td class="leaderboard-name">{{ team.team_name }}</td>
+                <td class="leaderboard-number">{{ team.id }}</td>
+                <td class="leaderboard-points">{{ total_points|default('Keine Punkte', true) }}</td>
             </tr>
             {% else %}
             <tr>
@@ -42,19 +43,20 @@
     <table class="leaderboard-table">
         <thead>
             <tr>
-                <th class="leaderboard-number">Nummer</th>
-                <th class="leaderboard-name">Team Name</th>
-                <th class="leaderboard-points">Gesamtpunkte</th>
                 <th class="leaderboard-rank">Platz</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-number">Nummer</th> 
+                <th class="leaderboard-points">Gesamtpunkte</th> 
             </tr>
         </thead>
         <tbody>
             {% for team, total_points in teams_b %}
             <tr>
-                <td class="leaderboard-number">{{ team.id }}</td>
-                <td class="leaderboard-name">{{ team.team_name }}</td>
-                <td class="leaderboard-points">{{ total_points|default('Keine Punkte', true) }}</td>
                 <td class="leaderboard-rank">{{ loop.index }}</td>
+                <td class="leaderboard-name">{{ team.team_name }}</td>
+                <td class="leaderboard-number">{{ team.id }}</td>
+                <td class="leaderboard-points">{{ total_points|default('Keine Punkte', true) }}</td>
+                
             </tr>
             {% else %}
             <tr>
@@ -73,19 +75,20 @@
     <table class="leaderboard-table">
         <thead>
             <tr>
-                <th class="leaderboard-number">Nummer</th>
-                <th class="leaderboard-name">Team Name</th>
-                <th class="leaderboard-points">{% if game.dependency_type == "time" %}Zeit{% else %}Punkte{% endif %}</th>
                 <th class="leaderboard-rank">Platz</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-points">{% if game.dependency_type == "time" %}Zeit{% else %}Punkte{% endif %}</th>
             </tr>
         </thead>
         <tbody>
             {% for entry in ranking %}
             <tr>
-                <td class="leaderboard-number">{{ entry.team.id }}</td>
-                <td class="leaderboard-name">{{ entry.team.team_name }}</td>
-                <td class="leaderboard-points">{% if game.dependency_type == "time" %}{{ entry.points }} Sekunden{% else %}{{ entry.points }} Punkte{% endif %}</td>
                 <td class="leaderboard-rank">{{ loop.index }}</td>
+                <td class="leaderboard-name">{{ entry.team.team_name }}</td>
+                <td class="leaderboard-number">{{ entry.team.id }}</td>
+                <td class="leaderboard-points">{% if game.dependency_type == "time" %}{{ entry.points }} Sekunden{% else %}{{ entry.points }} Punkte{% endif %}</td>
+                
             </tr>
             {% else %}
             <tr>
@@ -105,19 +108,20 @@
     <table class="leaderboard-table">
         <thead>
             <tr>
-                <th class="leaderboard-number">Nummer</th>
-                <th class="leaderboard-name">Team Name</th>
-                <th class="leaderboard-points">{% if game.dependency_type == "time" %}Zeit{% else %}Punkte{% endif %}</th>
                 <th class="leaderboard-rank">Platz</th>
+                <th class="leaderboard-name">Team Name</th>
+                <th class="leaderboard-number">Nummer</th>
+                <th class="leaderboard-points">{% if game.dependency_type == "time" %}Zeit{% else %}Punkte{% endif %}</th>
             </tr>
         </thead>
         <tbody>
             {% for entry in ranking %}
             <tr>
-                <td class="leaderboard-number">{{ entry.team.id }}</td>
-                <td class="leaderboard-name">{{ entry.team.team_name }}</td>
-                <td class="leaderboard-points">{% if game.dependency_type == "time" %}{{ entry.points }} Sekunden{% else %}{{ entry.points }} Punkte{% endif %}</td>
                 <td class="leaderboard-rank">{{ loop.index }}</td>
+                <td class="leaderboard-name">{{ entry.team.team_name }}</td>
+                <td class="leaderboard-number">{{ entry.team.id }}</td>
+                <td class="leaderboard-points">{% if game.dependency_type == "time" %}{{ entry.points }} Sekunden{% else %}{{ entry.points }} Punkte{% endif %}</td>
+                
             </tr>
             {% else %}
             <tr>
@@ -128,4 +132,11 @@
     </table>
     {% endfor %}
 </div>
+
+<script>
+    function goToDashboard() {
+        window.location.href = "/gog/dashboard";
+    }
+</script>
+
 {% endblock %}
