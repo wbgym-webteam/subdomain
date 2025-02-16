@@ -17,7 +17,7 @@
         </form>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <ul class="error-message">
+                <ul class="flash-messages">
                     {% for category, message in messages %}
                         <li>{{ message }}</li>
                     {% endfor %}

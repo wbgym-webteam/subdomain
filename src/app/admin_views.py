@@ -61,7 +61,7 @@ def login():
             session.permanent = True
             return redirect(url_for('admin.dashboard'))
         
-        flash('Invalid credentials or insufficient permissions')
+        flash('Falscher Benutzername/Passwort')
         return render_template('gog/admin/login.html')
     
     return render_template('gog/admin/login.html')

@@ -98,3 +98,18 @@ h2 {
 ::-webkit-scrollbar-thumb:hover {
     background: #8A2BE2;
 }
+
+.flash-messages {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.flash-messages li {
+    color: #ff4444;
+    font-size: 14px;
+    padding: 10px;
+    margin: 5px 0;
+    text-align: center;
+    border-radius: 4px;
+}
