@@ -39,7 +39,7 @@ def upload_file():
         return redirect(url_for("admin_views.tdw_panel"))
     file.save("app/data/tdw/uploads/workbook.xlsx")
 
-    FileHandler(file)
+    FileHandler()
     return redirect("/admin/tdw/panel")
 
 

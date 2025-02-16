@@ -18,8 +18,11 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///wbgym.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+    db.init_app(app)
+    # migrate = Migrate(app, db)
+
     with app.app_context():
-        from .models import Student, Presentation
+        # from .models import Student, Presentation
 
         # Importing Views
         from .views import views
@@ -34,8 +37,7 @@ def create_app():
         app.register_blueprint(gog, url_prefix="/gog")
         app.register_blueprint(tdw, url_prefix="/tdw")
 
-        db.init_app(app)
+        db.drop_all()
         db.create_all()
-        migrate = Migrate(app, db)
 
-    return app
+        return app

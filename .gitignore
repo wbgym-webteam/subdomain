@@ -9,8 +9,7 @@ wheels
 wbgym.db
 wbgym.db-journal
 
-data
-.htpasswd
+*.xlsx
 
 instance
 migrations
