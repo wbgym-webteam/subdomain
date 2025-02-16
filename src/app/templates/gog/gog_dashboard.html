@@ -9,14 +9,14 @@
     <div class="container dashboard-container">
         <h1>Game of Grapes</h1>
         <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h2>Welcome, {{ current_user.username }}!</h2>
+            <h2>Willkommen, {{ current_user.username }}!</h2>
             <a href="{{ url_for('gog.logout') }}" class="action-button" style="background: #ff4444;">Logout</a>
         </div>
         
         <div class="navigation-buttons" style="display: flex; gap: 15px; margin-bottom: 30px;">
             <a href="{{ url_for('gog.ranking') }}" class="action-button">Rangliste</a>
             <a href="{{ url_for('gog.teamManagement') }}" class="action-button">Punkte Verteilung</a>
-            <a href="{{ url_for('gog.logs') }}" class="action-button">Logs</a>
+            <!--<a href="{{ url_for('gog.logs') }}" class="action-button">Logs</a>-->
             <a href="{{ url_for('gog.setup') }}" class="action-button">Setup</a>
         </div>
 
