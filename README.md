@@ -26,25 +26,30 @@ And run the `main.py`-file!
 
 # Admin User Creation
 
+  - change directory to src
   - type in the terminal
     - flask create-admin
 
 # Admin list Command
   
+  - change directory to src
   - type in the terminal
     - flask list-admins
 
 # Deleate Admin Account
 
+  - change directory to src
   - type in the terminal
     - flask delete-admin
 
 # initialize migration repository, if it has not been initialized yet
 
+  - change directory to src
   - type in the terminal
     - flask db init
 
   # apply migrations
 
+  - change directory to src
   - type in terminal
     - flask db upgrade
