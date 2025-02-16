@@ -70,7 +70,6 @@ def login():
 @admin_required
 def logout():
     session.clear()
-    flash('You have been logged out.')
     return redirect(url_for('admin.login'))
 
 @admin.route('/dashboard')

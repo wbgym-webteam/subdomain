@@ -94,6 +94,7 @@ def login():
             login_user(user)
             return redirect(url_for("gog.dashboard"))
         else:
+            flash('Falscher Benutzername/Passwort')
             return render_template("gog/gog_login.html")
 
     return render_template("gog/gog_login.html")
@@ -213,7 +214,6 @@ def logs():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.')
     return redirect(url_for('gog.login'))
 
 @gog.route('/ranking')
