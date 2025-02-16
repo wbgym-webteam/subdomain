@@ -217,12 +217,12 @@ def delete_game(game_id):
     return redirect(url_for('admin.dashboard'))
 
 @admin.route('/')
-@login_required
 def admin_home():
-    if not current_user.is_administrator:
-        flash('You do not have permission to access this page.', 'error')
-        return redirect(url_for('main_views.home'))
-    return redirect(url_for('admin.dashboard'))
+    # If user is already authenticated and is admin, redirect to dashboard
+    if current_user.is_authenticated and current_user.is_administrator:
+        return redirect(url_for('admin.dashboard'))
+    # If user is not authenticated or is not admin, redirect to login
+    return redirect(url_for('admin.login'))
 
 @admin.route('/logs')
 @login_required
