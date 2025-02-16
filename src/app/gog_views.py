@@ -5,6 +5,7 @@ from sqlalchemy import func
 from flask_login import login_user, logout_user, login_required, current_user
 from functools import wraps
 import sqlite3
+from datetime import datetime
 
 gog = Blueprint("gog", __name__)
 DATABASE = "wbgym.db"
@@ -146,12 +147,15 @@ def teamManagement():
             flash("Please fill in all fields")
             return redirect(url_for("gog.teamManagement"))
 
-        game = Game.query.get(game_id)
-        if not game:
-            flash("Invalid game selected")
-            return redirect(url_for("gog.teamManagement"))
-        
         try:
+            game_id = int(game_id)
+            score = int(score)
+            
+            game = Game.query.get(game_id)
+            if not game:
+                flash("Invalid game selected")
+                return redirect(url_for("gog.teamManagement"))
+            
             # Check if team already has a score for this game
             existing_score = GamePoints.query.filter_by(
                 team_id=team_id,
@@ -159,16 +163,27 @@ def teamManagement():
             ).first()
 
             if existing_score:
-                # Update existing score
                 existing_score.points = score
-                flash('Score updated successfully')
             else:
                 game_point = GamePoints(team_id=team_id, game_id=game_id, points=score)
                 db.session.add(game_point)
+
+            # Create or update log entry
+            log = Log(
+                team_id=team_id,
+                game_id=game_id,
+                points=score,
+                user_id=current_user.id,
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(log)
             
             db.session.commit()
             calculate_ranked_points(game_id)
             flash('Score recorded successfully')
+            
+        except ValueError:
+            flash("Invalid score format")
         except Exception as e:
             db.session.rollback()
             flash(f'Error recording score: {str(e)}')

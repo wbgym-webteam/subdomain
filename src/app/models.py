@@ -90,6 +90,7 @@ class Game(db.Model):
     name = db.Column(db.String(100), nullable=False)
     dependency_type = db.Column(db.String(10), nullable=False)  # 'time' or 'point'
     scoring_preference = db.Column(db.String(10), nullable=False)  # 'higher' or 'lower'
+    logs = db.relationship('Log', back_populates='game', lazy=True)
 
     def __repr__(self):
         return f"{self.name} ({self.dependency_type}, {self.scoring_preference})"
@@ -121,6 +122,9 @@ class Log(db.Model):
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
     points = db.Column(db.Integer, default=0)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-    # Single, clean relationship with Teams
+    # Update these relationship definitions
     team = db.relationship('Teams', back_populates='logs')
+    user = db.relationship('User', backref=db.backref('logs', lazy=True))
+    game = db.relationship('Game', back_populates='logs')

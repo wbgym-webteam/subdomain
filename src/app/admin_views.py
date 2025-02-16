@@ -223,3 +223,10 @@ def admin_home():
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('main_views.home'))
     return redirect(url_for('admin.dashboard'))
+
+@admin.route('/logs')
+@login_required
+@admin_required
+def game_logs():
+    logs = Log.query.order_by(Log.timestamp.desc()).all()
+    return render_template('gog/admin/game_logs.html', logs=logs)
