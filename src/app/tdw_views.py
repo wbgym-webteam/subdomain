@@ -9,17 +9,20 @@ tdw = Blueprint("tdw", __name__)
 
 @tdw.route("/", methods=["GET", "POST"])
 def selection():
-    if session["tdw.student_id"]:
+    if session["tdw_student_id"]:
         if request.method == "POST":
             pass
         else:
             # Get the student
-            current_student = db.session.execute(
-                db.select(Student.first_name, Student.last_name, Student.grade)
-                .filter_by(id=session["tdw.student_id"])
-                .mappings()
-                .one_or_none()
-            )
+            student_id = str(session["tdw_student_id"])
+            db_current_student = db.session.execute(
+                db.select(
+                    Student.first_name, Student.last_name, Student.grade
+                ).filter_by(id=student_id)
+            ).one_or_none()
+
+            current_student = dict(db_current_student._mapping)
+
             full_name = (
                 f'{current_student["first_name"]} {current_student["last_name"]}'
             )
@@ -28,24 +31,16 @@ def selection():
             # Get the presentations
             presentations_list = list()
 
-            db_presentations = db.session.execute(
-                db.select(
-                    Presentation.id,
-                    Presentation.title,
-                    Presentation.presenter,
-                    Presentation.abstract,
-                    Presentation.grades,
-                )
-            )
+            db_presentations = db.session.execute(db.select(Presentation)).all()
 
             for presentation in db_presentations:
-                if grade in db_presentations["grades"]:
+                if str(grade) in presentation[0].grades:
                     presentations_list.append(presentation)
 
             return render_template(
                 "tdw/tdw_selection.html",
                 student=full_name,
-                presentations=presentation_list,
+                presentations=presentations_list,
             )
     else:
         return redirect("/login")

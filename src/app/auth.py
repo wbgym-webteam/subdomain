@@ -9,11 +9,12 @@ from . import db
 
 
 def logincode_exists(c):
-    student_id = db.session.execute(db.select(Student.id).filter_by(logincode=c))
+    student_id = db.session.execute(
+        db.select(Student.id).filter_by(logincode=c)
+    ).one_or_none()
     if student_id == None:
         return False
-    else:
-        return student_id
+    return str(student_id[0])
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -28,9 +29,10 @@ def login():
             and module_status["modules"]["TdW"] == "active"
         ):
             logincode = request.form.get("logincode")
-            student = logincode_exists(logincode)
-            if student:
-                session["tdw.student_id"] = student
+            student_id = logincode_exists(logincode)
+            print(student_id)
+            if student_id:
+                session["tdw_student_id"] = student_id
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
                 return render_template("login.html", error="Invalid login code")

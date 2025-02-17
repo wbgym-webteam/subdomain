@@ -37,7 +37,7 @@ def create_app():
         app.register_blueprint(gog, url_prefix="/gog")
         app.register_blueprint(tdw, url_prefix="/tdw")
 
-        db.drop_all()
+        # db.drop_all()
         db.create_all()
 
         return app
