@@ -28,8 +28,8 @@ body {
     padding: 15px 25px;
     text-align: center;
     width: 50%;
-    margin: 0 auto 15px auto;  /* Changed this line to center the header */
-    display: block;  /* Added this line */
+    margin: 0 auto 15px auto;  
+    display: block;  
 }
 
 .entire-content-excluding-base {
