@@ -67,13 +67,6 @@ def create_student(student_id, last_name, first_name, grade, logincode):
         print(e)
 
 
-# def logincode_exists(c):
-#     # return (
-#     #     db.session.execute(db.select(Student).filter_by(logincode=c)).scalar_one()
-#     #     is not None
-#     # )
-
-
 def generate_login_code():
 
     # Select a random German word
