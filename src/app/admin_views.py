@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash
 from functools import wraps
 from .models import User, Teams, TeamType, Game, DependencyType, ScoringPreference, Admin, GamePoints, Log, db
 import logging
+from sqlalchemy import func
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -229,3 +230,54 @@ def admin_home():
 def game_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template('gog/admin/game_logs.html', logs=logs)
+
+@admin.route('/ranking')
+@login_required
+@admin_required
+def admin_gog_ranking():
+    teams_a = Teams.query.filter_by(team_type=TeamType.A)\
+        .join(GamePoints)\
+        .with_entities(
+            Teams,
+            func.sum(GamePoints.final_points).label('total_points')
+        )\
+        .group_by(Teams.id)\
+        .order_by(func.sum(GamePoints.final_points).asc()).all()
+
+    teams_b = Teams.query.filter_by(team_type=TeamType.B)\
+        .join(GamePoints)\
+        .with_entities(
+            Teams,
+            func.sum(GamePoints.final_points).label('total_points')
+        )\
+        .group_by(Teams.id)\
+        .order_by(func.sum(GamePoints.final_points).asc()).all()
+
+    games = Game.query.all()
+    game_leaderboards = {'A_Teams': [], 'B_Teams': []}
+    
+    for game in games:
+        a_ranking = GamePoints.query.filter_by(game_id=game.id)\
+            .join(Teams)\
+            .filter(Teams.team_type == TeamType.A)\
+            .order_by(
+                GamePoints.points.asc() if game.dependency_type == DependencyType.TIME_DEPENDENT
+                else GamePoints.points.desc()
+            ).all()
+            
+        b_ranking = GamePoints.query.filter_by(game_id=game.id)\
+            .join(Teams)\
+            .filter(Teams.team_type == TeamType.B)\
+            .order_by(
+                GamePoints.points.asc() if game.dependency_type == DependencyType.TIME_DEPENDENT
+                else GamePoints.points.desc()
+            ).all()
+            
+        game_leaderboards['A_Teams'].append((game, a_ranking))
+        game_leaderboards['B_Teams'].append((game, b_ranking))
+    
+    return render_template('gog/admin/gog_ranking.html',
+                         teams_a=teams_a,
+                         teams_b=teams_b,
+                         games=games,
+                         game_leaderboards=game_leaderboards)
