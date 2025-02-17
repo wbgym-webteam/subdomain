@@ -121,15 +121,6 @@ def create_presentation(presentation_id, title, presenter, abstract, grades):
         db.session.rollback()
         print(f"Error creating a new presentation #${presentation_id} ${title}")
 
-    # # Create a new session
-    # Session = sessionmaker(bind=ENGINE)
-    # session = Session()
-
-    # # Add and commit the new student to the database
-    # session.add(new_presentation)
-    # session.commit()
-    # session.close()
-
 
 # ------------------------------------------------------------------------------
 # This is the place where the magic happens ✨✨✨
@@ -150,6 +141,16 @@ def FileHandler():
         first_name = row[2]  # Column C (First Name)
         grade = row[4]  # Column E (Grade)
         logincode = generate_login_code()
+
+        print(f"{student_id} {last_name} {first_name} {grade} {logincode}")
+
+        if (
+            student_id == None
+            or last_name == None
+            or first_name == None
+            or grade == None
+        ):
+            break
 
         create_student(student_id, last_name, first_name, grade, logincode)
 
@@ -174,5 +175,15 @@ def FileHandler():
             g += 1
 
         grades = str(grades)[1:-1]
+
+        print(f"{presentation_id} {title} {presenter} {abstract} {grades}")
+
+        if (
+            presentation_id == None
+            or title == None
+            or presenter == None
+            or abstract == None
+        ):
+            break
 
         create_presentation(presentation_id, title, presenter, abstract, grades)

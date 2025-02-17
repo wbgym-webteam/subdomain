@@ -1,3 +1,4 @@
+-- SQLBook: Code
 CREATE TABLE students (
 	student_id INTEGER NOT NULL PRIMARY KEY,
 	last_name VARCHAR(80) NOT NULL,
