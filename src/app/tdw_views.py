@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, Blueprint, session
 import sqlalchemy
+from sqlalchemy import text
 from .models import Student, Presentation
 
 from . import db
@@ -43,12 +44,25 @@ def selection():
                     presentations_dict[presentation_id] = presentations_list
                     presentations_list = list()
 
-            print(presentations_dict)
+            # Get the chosen presentations
+            chosen_presentations = list()
+            results = db.session.execute(
+                text(
+                    f"SELECT presentation_id FROM selections WHERE student_id = {student_id}"
+                )
+            ).all()
+
+            if results is None:
+                chosen_presentations = []
+            else:
+                for result in results:
+                    chosen_presentations.append(str(result[0]))
 
             return render_template(
                 "tdw/tdw_selection.html",
                 student=full_name,
                 presentations=presentations_dict,
+                chosen_presentations=chosen_presentations,
             )
     else:
         return redirect("/login")
@@ -58,4 +72,36 @@ def selection():
 def submit_selection():
     if request.method == "POST":
         student_id = str(session["tdw_student_id"])
-        chosen_presentation = request.form.getlist("options")
+        chosen_presentations = request.form.getlist("options")
+
+        # Insert new Presentation Selections
+        for presentation_id in chosen_presentations:
+            query_result = db.session.execute(
+                text(
+                    f"SELECT * FROM selections WHERE student_id = {student_id} AND presentation_id = {presentation_id}"
+                )
+            ).one_or_none()
+            if query_result is None:
+                db.session.execute(
+                    text(
+                        f"INSERT INTO selections (student_id, presentation_id) VALUES ({student_id}, {presentation_id})"
+                    )
+                )
+                db.session.commit()
+            else:
+                pass
+
+        query_result = db.session.execute(
+            text(
+                f'SELECT * FROM selections WHERE student_id = {student_id} AND presentation_id NOT IN {str(chosen_presentations).replace("[","(").replace("]",")").replace("\"","")}'
+            )
+        ).all()
+
+        if query_result is not None:
+            for result in query_result:
+                db.session.execute(
+                    text(
+                        f"DELETE FROM selections WHERE student_id = {student_id} AND presentation_id = {result[1]}"
+                    )
+                )
+    return redirect("/tdw")

@@ -18,7 +18,8 @@ TdW Kurswahl
         {% for presentation in presentations %}
         <tr>
             <td>
-                <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}">
+                <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if presentation in
+                    chosen_presentations %}checked{% endif %}>
             </td>
             <td>{{ presentations[presentation][0] }}</td>
             <td>{{ presentations[presentation][1] }}</td>
