@@ -7,6 +7,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+#defines and creates function for creating admin accound
 @click.command('create-admin')
 @with_appcontext
 def create_admin_command():
@@ -43,6 +44,7 @@ def create_admin_command():
         db.session.rollback()
         click.echo(f"Error creating admin user: {str(e)}")
 
+#defines command for listing all admin accound
 @click.command('list-admins')
 @with_appcontext
 def list_admins_command():
@@ -56,6 +58,7 @@ def list_admins_command():
     for admin in admins:
         click.echo(f'Username: {admin.username}')
 
+#defines command and function for deleting admin accound
 @click.command('delete-admin')
 @with_appcontext
 def delete_admin_command():

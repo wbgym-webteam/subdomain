@@ -54,7 +54,7 @@ def regular_user_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def get_rankings():
+def get_rankings(): #detirmes the final ranking of the each team
     """
     Returns a dictionary with game IDs as keys and game data (including A and B team rankings) as values.
     """
@@ -79,33 +79,33 @@ def get_rankings():
     
     return rankings
 
-@gog.route("/")
+@gog.route("/") #redirects user to default page
 def redirectToLogin():
     return redirect("/gog/login")
 
-@gog.route("/login", methods=["GET", "POST"])
+@gog.route("/login", methods=["GET", "POST"]) #default page, if user is not logged in
 def login():
-    if request.method == "POST":
+    if request.method == "POST":    #verifies the user login
         username = request.form.get("username")
         password = request.form.get("password")
         user = User.query.filter_by(username=username, is_admin=False).first()
         
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for("gog.dashboard"))
+            return redirect(url_for("gog.dashboard")) #if true credential, do this
         else:
-            flash('Falscher Benutzername/Passwort')
+            flash('Falscher Benutzername/Passwort') #if false credential, do this
             return render_template("gog/gog_login.html")
 
-    return render_template("gog/gog_login.html")
+    return render_template("gog/gog_login.html")    #default template, when accessing this route
 
-@gog.route("/dashboard")
+@gog.route("/dashboard") #default page, when logged in
 @login_required
 @regular_user_required
 def dashboard():
-    return render_template("gog/gog_dashboard.html")
+    return render_template("gog/gog_dashboard.html")    #default template, when accessing this route
 
-@gog.route("/setup", methods=["GET", "POST"])
+@gog.route("/setup", methods=["GET", "POST"]) #determines page, where you change the team name, by picking the team id, and modifying the team name
 @login_required
 @regular_user_required
 def setup():
@@ -135,7 +135,7 @@ def setup():
     teams = Teams.query.all()
     return render_template("gog/gog_setup.html", teams=teams)
 
-@gog.route("/teamManagement", methods=["GET", "POST"])
+@gog.route("/teamManagement", methods=["GET", "POST"]) #determines page, where you can manage and give the team points
 @login_required
 @regular_user_required
 def teamManagement():
@@ -202,13 +202,18 @@ def teamManagement():
         game_points=game_points
     )
 
-@gog.route("/logs", methods=["GET", "POST"])
-@login_required
-@regular_user_required
-def logs():
-    if request.method == "POST":
-        pass
-    return render_template("gog/gog_logs.html")
+
+#currently not in use (2025)
+#make be used when the gog leader says so
+
+#@gog.route("/logs", methods=["GET", "POST"])
+#@login_required
+#@regular_user_required
+#def logs():
+ #   if request.method == "POST":
+  #      pass
+   # return render_template("gog/gog_logs.html")
+
 
 @gog.route("/logout")
 @login_required

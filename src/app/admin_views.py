@@ -16,7 +16,7 @@ admin = Blueprint('admin', __name__,
                  static_folder='static/gog/admin',
                  static_url_path='/static/admin')
 
-def admin_required(f):
+def admin_required(f):  
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('is_admin'):
@@ -39,6 +39,7 @@ def check_admin():
         session.clear()  # Clear any existing session
         return redirect(url_for('admin.login'))
 
+#defines the login page for the admin, which is the "default page" if not authenticated
 @admin.route('/login', methods=['GET', 'POST'])
 def login():
     # Clear any existing session
@@ -73,6 +74,7 @@ def logout():
     session.clear()
     return redirect(url_for('admin.login'))
 
+#serves as the "default page" for the admin, if authenticated
 @admin.route('/dashboard')
 @login_required
 @admin_required
@@ -86,6 +88,7 @@ def dashboard():
     games = Game.query.all()
     return render_template('gog/admin/dashboard.html', users=users, teams=teams, games=games, admins=admins)
 
+#creates the form for creating a new regular users account
 @admin.route('/users/create', methods=['GET'])
 @admin_required
 def create_user_form():
@@ -109,6 +112,7 @@ def create_user():
     flash('User created successfully!')
     return redirect(url_for('admin.dashboard'))
 
+#setup for deleting a regular users account
 @admin.route('/users/delete/<int:user_id>', methods=['POST'])
 @admin_required
 def delete_user(user_id):
@@ -119,6 +123,7 @@ def delete_user(user_id):
     flash('User deleted successfully!')
     return redirect(url_for('admin.dashboard'))
 
+#page for creating a new team
 @admin.route('/teams/create', methods=['GET'])
 @admin_required
 def create_team_form():
@@ -149,6 +154,7 @@ def create_team():
     flash('Team created successfully!')
     return redirect(url_for('admin.dashboard'))
 
+#page/function for deleting a team
 @admin.route('/teams/delete/<string:team_id>', methods=['POST'])
 @admin_required
 def delete_team(team_id):
@@ -179,6 +185,7 @@ def delete_team(team_id):
         
     return redirect(url_for('admin.dashboard'))
 
+#page for creating a new game
 @admin.route('/games/create', methods=['GET'])
 @admin_required
 def create_game_form():
@@ -206,6 +213,7 @@ def create_game():
     flash('Game created successfully!')
     return redirect(url_for('admin.dashboard'))
 
+#function for deleting a game
 @admin.route('/games/delete/<int:game_id>', methods=['POST'])
 @admin_required
 def delete_game(game_id):
@@ -216,6 +224,9 @@ def delete_game(game_id):
     flash('Game deleted successfully!')
     return redirect(url_for('admin.dashboard'))
 
+#default page for admins
+#if authenticated, redirects to dashboard
+#if not authenticated, redirects to login
 @admin.route('/')
 def admin_home():
     # If user is already authenticated and is admin, redirect to dashboard
@@ -224,6 +235,7 @@ def admin_home():
     # If user is not authenticated or is not admin, redirect to login
     return redirect(url_for('admin.login'))
 
+#page for accessing game logs
 @admin.route('/logs')
 @login_required
 @admin_required
@@ -231,6 +243,7 @@ def game_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template('gog/admin/game_logs.html', logs=logs)
 
+#page for accessing the tournaments ranking
 @admin.route('/ranking')
 @login_required
 @admin_required
