@@ -5,7 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from . import db  # Only import db from __init__.py
 
-class User(UserMixin, db.Model):
+
+class User(UserMixin, db.Model):    #creates the regular users Accound
     __tablename__ = 'users'  # Add explicit table name
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -34,7 +35,7 @@ class User(UserMixin, db.Model):
         user.set_password(password)
         return user
 
-class Admin(User):
+class Admin(User):  #creates the admin/super users Account
     __mapper_args__ = {
         'polymorphic_identity': 'admin',
     }
@@ -43,35 +44,37 @@ class Admin(User):
         super().__init__(**kwargs)
         self.is_admin = True
 
-class TeamType(Enum):
+class TeamType(Enum):   #seperates teams into A and B
     A = 'A'
     B = 'B'
 
-class DependencyType(Enum):
+
+class DependencyType(Enum): #creates the dependency type for the games
     NONE = 'none'
     POINT_DEPENDENT = 'point'
     TIME_DEPENDENT = 'time'
 
-class ScoringPreference(Enum):
+
+class ScoringPreference(Enum):  #creates the scoring preference for the games
     BETTER_HIGHER = 'higher'
     BETTER_LOWER = 'lower'
     HIGHER_BETTER = 'higher'
     LOWER_BETTER = 'lower'
 
-class Teams(db.Model):
+
+class Teams(db.Model):  #creates the model for the teams
     __tablename__ = 'teams'
     id = db.Column(db.String(10), primary_key=True)  # Unique ID like a1, a2, b1, b2
-    team_name = db.Column(db.String(100), nullable=True)  # Can be changed later
+    team_name = db.Column(db.String(100), nullable=True)  
     points = db.Column(db.Integer, default=0)
     team_type = db.Column(db.Enum(TeamType), nullable=False)  # Choice constraint
     
-    # Updated relationship definitions with back_populates
-    game_points = db.relationship('GamePoints', 
+    game_points = db.relationship('GamePoints', #creates the relationship between the teams and the game points
                                 back_populates='team',
                                 cascade='all, delete-orphan',
                                 passive_deletes=True)
     
-    logs = db.relationship('Log',
+    logs = db.relationship('Log',   #creates the relationship between the teams and the logs
                           back_populates='team',
                           cascade='all, delete-orphan',
                           passive_deletes=True)
@@ -84,7 +87,7 @@ class Teams(db.Model):
     def __repr__(self):
         return f"{self.team_name} ({self.team_type.value})"
 
-class Game(db.Model):
+class Game(db.Model):   #creates the model for the games
     __tablename__ = 'games'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
@@ -95,7 +98,8 @@ class Game(db.Model):
     def __repr__(self):
         return f"{self.name} ({self.dependency_type}, {self.scoring_preference})"
 
-class GamePoints(db.Model):
+
+class GamePoints(db.Model): #defines the model for the game points
     __tablename__ = 'game_points'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     team_id = db.Column(db.String(10), 
@@ -113,7 +117,8 @@ class GamePoints(db.Model):
     def __repr__(self):
         return f"{self.team.team_name} - {self.game.name}: {self.points} points"
 
-class Log(db.Model):
+
+class Log(db.Model):    #creates the model for the logs and determines what comes into a Log
     __tablename__ = 'logs'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     team_id = db.Column(db.String(10), 

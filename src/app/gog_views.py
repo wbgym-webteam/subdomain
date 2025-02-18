@@ -10,7 +10,7 @@ from datetime import datetime
 gog = Blueprint("gog", __name__)
 DATABASE = "wbgym.db"
 
-def calculate_ranked_points(game_id):
+def calculate_ranked_points(game_id):   
     game = Game.query.get(game_id)
 
     # Separate rankings for A Teams and B Teams
