@@ -91,9 +91,16 @@ def submit_selection():
             else:
                 pass
 
+        chosen_presentations_str = (
+            str(chosen_presentations)
+            .replace("[", "(")
+            .replace("]", ")")
+            .replace('"', "")
+        )
+
         query_result = db.session.execute(
             text(
-                f'SELECT * FROM selections WHERE student_id = {student_id} AND presentation_id NOT IN {str(chosen_presentations).replace("[","(").replace("]",")").replace("\"","")}'
+                f"SELECT presentation_id FROM selections WHERE student_id = {student_id} AND presentation_id NOT IN {chosen_presentations_str}"
             )
         ).all()
 
@@ -101,7 +108,8 @@ def submit_selection():
             for result in query_result:
                 db.session.execute(
                     text(
-                        f"DELETE FROM selections WHERE student_id = {student_id} AND presentation_id = {result[1]}"
+                        f"DELETE FROM selections WHERE student_id = {student_id} AND presentation_id = {str(result[0])}"
                     )
                 )
+                db.session.commit()
     return redirect("/tdw")
