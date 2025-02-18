@@ -113,3 +113,10 @@ def submit_selection():
                 )
                 db.session.commit()
     return redirect("/tdw")
+
+
+@tdw.route("/logout")
+def logout():
+    # Remove the user's session
+    session.pop("tdw_student_id", None)
+    return redirect("/login")
