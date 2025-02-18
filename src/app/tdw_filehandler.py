@@ -160,7 +160,7 @@ def FileHandler():
 
         grades = []
         g = 5
-        for grade in row[4:11]:
+        for grade in row[4:12]:
             if grade == -1:
                 grades.append(g)
             else:
