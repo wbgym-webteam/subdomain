@@ -60,3 +60,11 @@ class Student(db.Model):
     first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False)
+
+
+class Selection(db.Model):
+    __tablename__ = "selections"
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, nullable=False)
+    presentation_id = db.Column(db.Integer, nullable=False)
