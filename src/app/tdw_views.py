@@ -10,12 +10,15 @@ tdw = Blueprint("tdw", __name__)
 
 @tdw.route("/", methods=["GET", "POST"])
 def selection():
-    if session["tdw_student_id"]:
+    if session.get("logged_in", True) == True:
         if request.method == "POST":
             pass
         else:
             # Get the student
-            student_id = str(session["tdw_student_id"])
+            student_id = session.get("tdw_student_id")
+            if student_id is None:
+                return redirect("/login")
+            student_id = str(student_id)
             db_current_student = db.session.execute(
                 db.select(
                     Student.first_name, Student.last_name, Student.grade

@@ -19,6 +19,8 @@ def logincode_exists(c):
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    session["logged_in"] = False
+
     if request.method == "POST":
         # Get the status of the models
         with open("app/data/module_status.json", "r") as f:
@@ -33,6 +35,7 @@ def login():
             print(student_id)
             if student_id:
                 session["tdw_student_id"] = student_id
+                session["logged_in"] = True
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
                 return render_template("login.html", error="Invalid login code")
