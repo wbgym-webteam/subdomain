@@ -29,18 +29,33 @@ def selection():
             grade = current_student["grade"]
 
             # Get the presentations
+            presentations_dict = dict()
             presentations_list = list()
 
             db_presentations = db.session.execute(db.select(Presentation)).all()
 
             for presentation in db_presentations:
                 if str(grade) in presentation[0].grades:
-                    presentations_list.append(presentation)
+                    presentations_list.append(str(presentation[0].title))
+                    presentations_list.append(str(presentation[0].presenter))
+                    presentations_list.append(str(presentation[0].abstract))
+                    presentation_id = str(presentation[0]).split()[1][0:-1]
+                    presentations_dict[presentation_id] = presentations_list
+                    presentations_list = list()
+
+            print(presentations_dict)
 
             return render_template(
                 "tdw/tdw_selection.html",
                 student=full_name,
-                presentations=presentations_list,
+                presentations=presentations_dict,
             )
     else:
         return redirect("/login")
+
+
+@tdw.route("/submit_selection", methods=["POST"])
+def submit_selection():
+    if request.method == "POST":
+        student_id = str(session["tdw_student_id"])
+        chosen_presentation = request.form.getlist("options")
