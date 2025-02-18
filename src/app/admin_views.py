@@ -50,13 +50,13 @@ def login():
     if current_user.is_authenticated and session.get('is_admin'):
         return redirect(url_for('admin.dashboard'))
     
-    if request.method == 'POST':
+    if request.method == 'POST': #detirmines what has to go in the login page
         username = request.form.get('username')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()  # Check if user exists
         
-        if user and user.check_password(password) and user.is_admin:
+        if user and user.check_password(password) and user.is_admin:    #if user is admin, do this
             login_user(user)
             session['is_admin'] = True
             session['user_id'] = user.id
@@ -79,13 +79,13 @@ def logout():
 @login_required
 @admin_required
 def dashboard():
-    if not current_user.is_authenticated or not session.get('is_admin'):
+    if not current_user.is_authenticated or not session.get('is_admin'):    #if not authenticated, redirect to login
         return redirect(url_for('admin.login'))
     
-    users = User.query.filter_by(is_admin=False).all()
-    admins = Admin.query.all()
-    teams = Teams.query.all()
-    games = Game.query.all()
+    users = User.query.filter_by(is_admin=False).all() #lists all regular users
+    admins = Admin.query.all() #lists all admin users, but currently not integrated into the templates!!! (18.2.2025)
+    teams = Teams.query.all() #lists all teams
+    games = Game.query.all() #lists all games
     return render_template('gog/admin/dashboard.html', users=users, teams=teams, games=games, admins=admins)
 
 #creates the form for creating a new regular users account
@@ -132,13 +132,14 @@ def create_team_form():
 @admin.route('/teams/create', methods=['POST'])
 @admin_required
 def create_team():
+    # this the team consists of
     name = request.form['name']
     type_id = request.form['type']
     number = request.form['number']
     
     team_id = f"{type_id.lower()}{number}"
     
-    if Teams.query.filter_by(id=team_id).first():
+    if Teams.query.filter_by(id=team_id).first(): #checks if team already exists
         flash('Team already exists!')
         return redirect(url_for('admin.dashboard'))
     
