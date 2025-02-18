@@ -18,11 +18,21 @@ This is the repository, where the Weinberg Secondary School develops a subdomain
 
 And run the `main.py`-file!
 
+# initialize migration repository, if it has not been initialized yet
+
+  - change directory to src
+  - type in the terminal
+    - flask db init
+
+  # apply migrations
+
+  - change directory to src
+  - type in terminal
+    - flask db upgrade
+
 # Admin login accessible through
 
 - /gog/admin/login
-
-
 
 # Admin User Creation
 
@@ -41,15 +51,3 @@ And run the `main.py`-file!
   - change directory to src
   - type in the terminal
     - flask delete-admin
-
-# initialize migration repository, if it has not been initialized yet
-
-  - change directory to src
-  - type in the terminal
-    - flask db init
-
-  # apply migrations
-
-  - change directory to src
-  - type in terminal
-    - flask db upgrade
