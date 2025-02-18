@@ -51,19 +51,14 @@ def login():
         return render_template("login.html")
 
 
-@auth.route("/tdw_logout")
-def tdw_logout():
-    session.pop("tdw.student_id", None)
-    return redirect("/login")  # Redirect to a student dashboard or home page
-
-
 @auth.route("/admin_login", methods=["GET", "POST"])
 def adminLogin():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        # FIXME
+        # TODO: Make a DB request here to check the admin credentials
         if username == "admin" and password == "admin":
+            session["admin_logged_in"] = True
             redirect("/admin_dashboard")
 
     return render_template("admin/admin_login.html")
