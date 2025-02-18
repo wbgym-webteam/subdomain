@@ -18,13 +18,13 @@
             if (selectedGame.dataset.type === 'time') {
                 scoreInput.type = 'number';
                 scoreInput.min = '0';
-                scoreInput.placeholder = 'Time in seconds';
-                scoreLabel.textContent = 'Time (seconds):';
+                scoreInput.placeholder = 'Zeit in Sekunden';
+                scoreLabel.textContent = 'Zeit (Sekunden):';
             } else {
                 scoreInput.type = 'number';
                 scoreInput.min = '0';
-                scoreInput.placeholder = 'Points';
-                scoreLabel.textContent = 'Points:';
+                scoreInput.placeholder = 'Punkte';
+                scoreLabel.textContent = 'Punkte:';
             }
         }
     </script>
@@ -56,9 +56,9 @@
                         <option value="{{ game.id }}" data-type="{{ game.dependency_type }}">
                             {{ game.name }}
                             {% if game.dependency_type == 'time' %}
-                                (Time-based)
+                                (Zeit Basierend)
                             {% else %}
-                                (Points-based)
+                                (Punkte Basierend)
                             {% endif %}
                         </option>
                     {% endfor %}
@@ -67,14 +67,14 @@
 
             <div class="form-group">
                 <label id="score_label" for="score_input">Punktzahl:</label>
-                <input id="score_input" name="score" type="number" min="0" required placeholder="Enter score">
+                <input id="score_input" name="score" type="number" min="0" required placeholder="Wert">
             </div>
 
             <button type="submit">Punktzahl einreichen</button>
         </form>
     </div>
 
-    <div class="container">
+    <!--<div class="container">
         <h2>Aktueller Stand</h2>
         {% for game in games %}
             <div class="game-standings">
@@ -93,7 +93,7 @@
                 </ul>
             </div>
         {% endfor %}
-    </div>
+    </div>-->
 
 </body>
 

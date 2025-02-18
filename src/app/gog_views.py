@@ -119,16 +119,16 @@ def setup():
         
         team = Teams.query.get(team_id)
         if not team:
-            flash("Invalid team selected")
+            flash("Ungültiges Team ausgewählt")
             return redirect(url_for("gog.setup"))
         
         try:
             team.team_name = team_name
             db.session.commit()
-            flash('Team name updated successfully')
+            flash('Teamname erfolgreich aktualisiert')
         except Exception as e:
             db.session.rollback()
-            flash(f'Error updating team name: {str(e)}')
+            flash(f'Fehler beim Aktualisieren des Teamnamens: {str(e)}')
         
         return redirect(url_for("gog.setup"))
 
@@ -181,7 +181,7 @@ def teamManagement():
             
             db.session.commit()
             calculate_ranked_points(game_id)
-            flash('Score recorded successfully')
+            flash('Erfolgreich erfasste Punktzahl')
             
         except ValueError:
             flash("Invalid score format")
