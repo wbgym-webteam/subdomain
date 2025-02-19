@@ -68,6 +68,6 @@ def adminLogin():
 
         if username == env_admin_username and password == env_admin_password:
             session["admin_logged_in"] = True
-            return redirect("/admin_dashboard")
+            return redirect("/admin/admin_dashboard")
 
     return render_template("admin/admin_login.html")
