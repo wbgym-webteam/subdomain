@@ -58,11 +58,16 @@ def adminLogin():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        # TODO: Make a DB request here to check the admin credentials
-        if username == os.getenv("ADMIN_USERNAME") and password == os.getenv(
-            "ADMIN_PASSWORD"
-        ):
+        env_admin_username = os.getenv("ADMIN_USERNAME")
+        env_admin_password = os.getenv("ADMIN_PASSWORD")
+
+        print(f"username: {username}, password: {password}")
+        print(
+            f"env_admin_username: {env_admin_username}, env_admin_password: {env_admin_password}"
+        )
+
+        if username == env_admin_username and password == env_admin_password:
             session["admin_logged_in"] = True
-            redirect("/admin_dashboard")
+            return redirect("/admin_dashboard")
 
     return render_template("admin/admin_login.html")
