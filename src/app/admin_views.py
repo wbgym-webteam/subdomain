@@ -13,15 +13,35 @@ from .tdw_filehandler import FileHandler
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
+
+# ------------------------------------------------------------------
+# Decorator
+
+
+def admin_required(f):
+    def decorated_function(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            return redirect(url_for("admin_login"))  # Leite zur Login-Seite weiter
+        return f(*args, **kwargs)
+
+    decorated_function.__name__ = (
+        f.__name__
+    )  # Behalte den ursprünglichen Funktionsnamen
+
+    return decorated_function
+
+
 # ------------------------------------------------------------------
 # Routing
 
 
+@admin_required
 @admin_views.route("/admin_dashboard")
 def adminDashboard():
     return render_template("admin/admin_dashboard.html")
 
 
+@admin_required
 @admin_views.route("/tdw/panel", methods=["GET", "POST"])
 def tdwPanel():
     with open("app/data/module_status.json", "r") as f:
@@ -30,6 +50,7 @@ def tdwPanel():
     return render_template("admin/tdw_panel.html", status=ms)
 
 
+@admin_required
 @admin_views.route("/tdw/upload_file", methods=["POST"])
 def upload_file():
     if "file" not in request.files:
@@ -39,10 +60,11 @@ def upload_file():
         return redirect(url_for("admin_views.tdw_panel"))
     file.save("app/data/tdw/uploads/workbook.xlsx")
 
-    FileHandler(file)
+    FileHandler()
     return redirect("/admin/tdw/panel")
 
 
+@admin_required
 @admin_views.route("/tdw/module_status", methods=["POST"])
 def module_status():
     with open("app/data/module_status.json", "r") as f:
@@ -59,3 +81,10 @@ def module_status():
         json.dump(data, f, indent=4)
 
     return redirect("./panel")
+
+
+@admin_required
+@admin_views.route("/admin_logout")
+def adminLogout():
+    session["admin_logged_in"] = False
+    return redirect(url_for("admin_login"))

@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 import json
+import os
+import dotenv
 
 from .models import Student
 
@@ -9,14 +11,18 @@ from . import db
 
 
 def logincode_exists(c):
-    if db.session.query(Student).filter_by(logincode=c).first != None:
-        return db.session.query(Student).filter_by(logincode=c).first()
-    else:
-        return None
+    student_id = db.session.execute(
+        db.select(Student.id).filter_by(logincode=c)
+    ).one_or_none()
+    if student_id == None:
+        return False
+    return str(student_id[0])
 
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    session["logged_in"] = False
+
     if request.method == "POST":
         # Get the status of the models
         with open("app/data/module_status.json", "r") as f:
@@ -27,9 +33,11 @@ def login():
             and module_status["modules"]["TdW"] == "active"
         ):
             logincode = request.form.get("logincode")
-            student = logincode_exists(logincode)
-            if student:
-                session["tdw.student_id"] = student.student_id
+            student_id = logincode_exists(logincode)
+            print(student_id)
+            if student_id:
+                session["tdw_student_id"] = student_id
+                session["logged_in"] = True
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
                 return render_template("login.html", error="Invalid login code")
@@ -45,19 +53,21 @@ def login():
         return render_template("login.html")
 
 
-@auth.route("/tdw_logout")
-def tdw_logout():
-    session.pop("tdw.student_id", None)
-    return redirect("/login")  # Redirect to a student dashboard or home page
-
-
 @auth.route("/admin_login", methods=["GET", "POST"])
 def adminLogin():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        # FIXME
-        if username == "admin" and password == "admin":
-            redirect("/admin_dashboard")
+        env_admin_username = os.getenv("ADMIN_USERNAME")
+        env_admin_password = os.getenv("ADMIN_PASSWORD")
+
+        print(f"username: {username}, password: {password}")
+        print(
+            f"env_admin_username: {env_admin_username}, env_admin_password: {env_admin_password}"
+        )
+
+        if username == env_admin_username and password == env_admin_password:
+            session["admin_logged_in"] = True
+            return redirect("/admin/admin_dashboard")
 
     return render_template("admin/admin_login.html")

@@ -11,6 +11,26 @@ TdW Kurswahl
     <h2> Kurswahl</h2>
 </header>
 
+<a href="./logout">Logout</a>
+
+<h3>{{ student }}</h3>
+
+<form action="{{ url_for('tdw.submit_selection') }}" method="post">
+    <table>
+        {% for presentation in presentations %}
+        <tr>
+            <td>
+                <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if presentation in
+                    chosen_presentations %}checked{% endif %}>
+            </td>
+            <td>{{ presentations[presentation][0] }}</td>
+            <td>{{ presentations[presentation][1] }}</td>
+            <td>{{ presentations[presentation][2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <input type="submit" value="Submit" class="button">
+</form>
 
 <style>
     body {

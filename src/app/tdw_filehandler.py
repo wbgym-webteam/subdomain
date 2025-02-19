@@ -3,6 +3,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 
 from openpyxl import load_workbook
 
@@ -12,103 +13,113 @@ import string as s
 from .models import Presentation, Student
 
 # CONSTANTS
-DB_URL = "sqlite:///wbgym.db"
 CHARACTERS = s.ascii_letters + s.digits
 
 from . import db
 
+# --------------------------------------------------
+# Helper Functions
+
+
 # Load German words from a separate file
 def load_german_words():
     try:
-        with open("german_words.txt", "r", encoding="utf-8") as file:
+        with open("app/german_words.txt", "r", encoding="utf-8") as file:
             words = [line.strip() for line in file if line.strip()]
             return words
     except FileNotFoundError:
         print("Error: german_words.txt not found!")
         return ["defaultword"]  # Fallback in case file is missing
 
+
 GERMAN_WORDS = load_german_words()
 
-# --------------------------------------------------
-# Helper Functions
+
+def create_student(student_id, last_name, first_name, grade, logincode):
+    # Check if student already exists
+    existing_student = db.session.execute(
+        db.select(Student).filter_by(id=student_id)
+    ).scalar_one_or_none()
+
+    if existing_student:
+        print(existing_student.last_name)
+        print(f"Student with ID {student_id} already exists.")
+        return existing_student  # Avoid duplicate entry
+
+    try:
+        new_student = Student(
+            id=student_id,
+            last_name=last_name,
+            first_name=first_name,
+            grade=grade,
+            logincode=logincode,
+        )
+        print("Student erfolgreich gespeichert!")
+        db.session.add(new_student)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        print(f"IntegrityError: Duplicate ID {student_id}")
+    except Exception as e:
+        print(
+            f"Error while creating a new student #${student_id} {last_name} {first_name}"
+        )
+        print(e)
 
 
-def addStudent(ENGINE, student_id, last_name, first_name, grade, logincode):
-    new_student = Student(
-        student_id=student_id,
-        last_name=last_name,
-        first_name=first_name,
-        grade=grade,
-        logincode=logincode,
-    )
-
-    # Create a new session
-    Session = sessionmaker(bind=ENGINE)
-    session = Session()
-
-    # Add and commit the new student to the database
-    session.add(new_student)
-    session.commit()
-    session.close()
-
-
-def logincode_exists(c):
-    return db.session.query(Student).filter_by(logincode=c).first() is not None
-
-
-def generateLoginCode():
+def generate_login_code():
 
     # Select a random German word
     word = r.choice(GERMAN_WORDS)
-    
+
     # Generate 5 random digits
     numbers = "".join(r.choices(s.digits, k=5))
 
     logincode = f"{word}{numbers}"
 
-    # Ensure uniqueness
-    if logincode_exists(logincode):
-        return generateLoginCode()
-    else:
-        return logincode
+    user_with_logincode = db.session.execute(
+        db.select(Student).filter_by(logincode=logincode)
+    ).scalar_one_or_none()
 
+    # Ensure uniqueness
+    if user_with_logincode is not None:
+        return generate_login_code()
+
+    # print(Student.query().filter_by(logincode=logincode).first())
+
+    return logincode
 
     # if mine is wrong or does not work, use this one
 
-    #logincode = "".join(r.choice(CHARACTERS) for _ in range(8))
+    # logincode = "".join(r.choice(CHARACTERS) for _ in range(8))
 
-    #if logincode_exists(logincode):
-       # return generateLoginCode()
-    #else:
-       # return logincode
+    # if logincode_exists(logincode):
+    # return generateLoginCode()
+    # else:
+    # return logincode
 
 
-def addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades):
-    new_presentation = Presentation(
-        presentation_id=presentation_id,
-        title=title,
-        presenter=presenter,
-        abstract=abstract,
-        grades=grades,
-    )
-
-    # Create a new session
-    Session = sessionmaker(bind=ENGINE)
-    session = Session()
-
-    # Add and commit the new student to the database
-    session.add(new_presentation)
-    session.commit()
-    session.close()
+def create_presentation(presentation_id, title, presenter, abstract, grades):
+    try:
+        new_presentation = Presentation(
+            id=presentation_id,
+            title=title,
+            presenter=presenter,
+            abstract=abstract,
+            grades=grades,
+        )
+        db.session.add(new_presentation)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        print(f"Error creating a new presentation #${presentation_id} ${title}")
 
 
 # ------------------------------------------------------------------------------
 # This is the place where the magic happens ✨✨✨
 
 
-def FileHandler(file):
-    ENGINE = create_engine(DB_URL)
-    db.metadata.create_all(ENGINE)
+def FileHandler():
     workbook = load_workbook(f"app/data/tdw/uploads/workbook.xlsx")
     print("Loaded File...")
 
@@ -122,15 +133,25 @@ def FileHandler(file):
         last_name = row[1]  # Column B (Last Name)
         first_name = row[2]  # Column C (First Name)
         grade = row[4]  # Column E (Grade)
-        logincode = generateLoginCode()
+        logincode = generate_login_code()
 
-        addStudent(ENGINE, student_id, last_name, first_name, grade, logincode)
+        print(f"{student_id} {last_name} {first_name} {grade} {logincode}")
+
+        if (
+            student_id == None
+            or last_name == None
+            or first_name == None
+            or grade == None
+        ):
+            break
+
+        create_student(student_id, last_name, first_name, grade, logincode)
 
     # Get the Presentations
-    sheet2 = workbook.worksheets[2]
+    presentations_sheet = workbook.worksheets[2]
 
     for row_index, row in enumerate(
-        sheet2.iter_rows(min_row=2, values_only=True), start=2
+        presentations_sheet.iter_rows(min_row=2, values_only=True), start=2
     ):
         presentation_id = row[0]
         title = row[1]
@@ -139,7 +160,7 @@ def FileHandler(file):
 
         grades = []
         g = 5
-        for grade in row[4:11]:
+        for grade in row[4:12]:
             if grade == -1:
                 grades.append(g)
             else:
@@ -148,9 +169,14 @@ def FileHandler(file):
 
         grades = str(grades)[1:-1]
 
-        addPresentation(ENGINE, presentation_id, title, presenter, abstract, grades)
+        print(f"{presentation_id} {title} {presenter} {abstract} {grades}")
 
+        if (
+            presentation_id == None
+            or title == None
+            or presenter == None
+            or abstract == None
+        ):
+            break
 
-
-
-
+        create_presentation(presentation_id, title, presenter, abstract, grades)

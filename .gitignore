@@ -3,13 +3,13 @@ __pycache__
 ubuntu
 .vscode
 .env
+*.wheel
 wheels
 
 wbgym.db
 wbgym.db-journal
 
-data
-.htpasswd
+*.xlsx
 
 instance
 migrations

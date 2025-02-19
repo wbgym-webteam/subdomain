@@ -1,55 +1,17 @@
 # Subdomain for _wbgym.de_
 
-This is the repository, where the Weinberg Secondary School develops a subdomain for their website wbgym.de.
+This is the repository, where the Weinberg Secondary School develops a subdomain for their website wbgym.de. It has multiple modules, which are all listen below. The Techstack used here is Python Flask for the backend, SQLite3 for the db and for the frontend plain HTML, CSS and JS.
 
-## Installation Guide
+## Modules
 
-1. Clone the repository using git.
-2. Install the required packages using [command].
-3.1. Create a DB-File called `src/wbgym,.db`.
-3.2. Run the SQL-Commands to create the tables in the DB-File. (temporary solution, there will be a script to run for that)
-4. Add the following folders under `src/`:
+- **TdW** _(v1 Done)_: The module for the "Tag der Wissenschaften" (Day of Science). On this day some experts and grads are coming to the school and talk about a specific topic. The module here is for the students to select their presentation wishes.
+- **SmS** _(Planning)_: The module for the "Schüler machen Schule" (Student teaches School). Here students can offer courses for other students, so it is another module for selection of courses. The specific format is yet to be determined.
+- **GoG** _(v1 Done)_: The module for the "Game of Grapes". This a management module to manage the Game of Grapes, which is a day, where students are playing different games in teams.
 
-```text
----src
- |---data
-   |---tdw
-     |---downloads
-     |---uploads
-```
+## Documentation
 
-5. Create a file called `/app/.env` with the following content:
+Before the main page [wbgym.de](https://wbgym.de) switched to Wordpress as a CMS, there was Contao to manage the content and also these modules. The big issue here was the fact that there was no documentation at all. So the main goal of this rewrite is to document everything, so that the next generation of the webteam can easily understand and maintain the code.
 
-```.env
-SECRET_KEY = 'yoursecretkey'
-```
+The documentation is found in the `/docs` folder. It is written in Markdown and is generated with MkDocs. The documentation is hosted on [GitHub Pages](https://wbgym.github.io/subdomain/).
 
-6. Create the file `/app/data/module_status.json` with the following content:
-
-```json
-{
-    "modules": {
-        "TdW": "Inactive",
-        "SmS": "Inactive"
-    }
-}
-```
-
-Now run the script `main.py` to start the server.
-
-## DB Guide
-
-1. Move to `/src` in your terminal.
-2. [only once] Run `flask db init`.
-3. Run `flask db migrate`.
-4. Run `flask db upgrade`.
-
-## Deployment Guide
-
-- Pull the latest commits from the repository.
-- Run `flask db upgrade` to update the database.
-- Make the following changes to `main.py`:
-  - Set debug to False
-  - Set host to '0.0.0.0'
-
-And run the `main.py`-file!
+On these pages you will find all the information you need 💻.
