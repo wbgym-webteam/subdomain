@@ -84,6 +84,17 @@ def module_status():
 
 
 @admin_required
+@admin_views.route("/export_logincodes", methods=["POST"])
+def export_logincodes():
+    if request.method == "POST":
+        db_query = db.session.execute(
+            text(
+                "SELECT first_name, last_name, grade, grade_selector FROM students GROUP BY grade AND grade_selector"
+            )
+        ).all()
+
+
+@admin_required
 @admin_views.route("/admin_logout")
 def adminLogout():
     session["admin_logged_in"] = False
