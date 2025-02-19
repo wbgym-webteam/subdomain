@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 import json
+import os
+import dotenv
 
 from .models import Student
 
@@ -57,7 +59,9 @@ def adminLogin():
         username = request.form.get("username")
         password = request.form.get("password")
         # TODO: Make a DB request here to check the admin credentials
-        if username == "admin" and password == "admin":
+        if username == os.getenv("ADMIN_USERNAME") and password == os.getenv(
+            "ADMIN_PASSWORD"
+        ):
             session["admin_logged_in"] = True
             redirect("/admin_dashboard")
 
