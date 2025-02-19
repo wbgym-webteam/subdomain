@@ -5,6 +5,10 @@ Login - Admin
 {% endblock %}
 
 {% block content %}
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin_login.css') }}">
+</head>
 <form method="post" class="login-container">
     <h1>Admin Login</h1>
     <input type="text" name="username" id="username" placeholder="Username">
@@ -14,83 +18,6 @@ Login - Admin
 </form>
 
 
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 0;
-        background: linear-gradient(135deg, #560d4f, #8846a4);
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #fff;
-    }
 
-    .login-container {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 12px;
-        padding: 40px 30px;
-        width: 100%;
-        max-width: 400px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        text-align: center;
-    }
-
-    .login-container h1 {
-        font-size: 28px;
-        margin-bottom: 20px;
-        color: #333;
-    }
-
-    .login-container p {
-        font-size: 14px;
-        margin-bottom: 30px;
-        color: #555;
-    }
-
-    .login-container input {
-        width: 100%;
-        padding: 12px 15px;
-        margin-bottom: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 16px;
-        box-sizing: border-box;
-    }
-
-    .login-container input:focus {
-        outline: none;
-        border-color: #4a90e2;
-        box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
-    }
-
-    .login-container button {
-        width: 100%;
-        padding: 12px 15px;
-        background-color: #560d4f;
-        border: none;
-        color: white;
-        font-size: 18px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-
-    .login-container button:hover {
-        background-color: #8846a4;
-        transform: translateY(-3px);
-    }
-
-    .login-container button:active {
-        transform: translateY(0);
-    }
-
-    .login-container .error-message {
-        color: red;
-        font-size: 14px;
-        margin-top: 10px;
-    }
-</style>
 
 {% endblock %}

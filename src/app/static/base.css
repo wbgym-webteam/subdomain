@@ -1,0 +1,21 @@
+html,
+body {
+    margin: 0;
+    font-family: 'Arial';
+}
+
+header {
+    background: #560d4f;
+    color: white;
+    text-align: center;
+    padding: 0.5%;
+    margin-top: 1.5%;
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+}
+
+h1,
+h2 {
+    margin: 0;
+    padding: 1%;
+}
