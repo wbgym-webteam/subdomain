@@ -2,11 +2,13 @@ html,
 body {
     margin: 0;
     font-family: 'Arial';
+    background: linear-gradient(135deg, #560d4f, #8846a4);
+
 }
 
 header {
-    background: #560d4f;
-    color: white;
+    background: linear-gradient(135deg, #560d4f, #8846a4);
+    color: #fff;
     text-align: center;
     padding: 0.5%;
     margin-top: 1.5%;
