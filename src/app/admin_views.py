@@ -34,11 +34,11 @@ def admin_required(f):
 # ------------------------------------------------------------------
 # Routing
 
-
-@admin_required
-@admin_views.route("/admin_dashboard")
-def adminDashboard():
-    return render_template("admin/admin_dashboard.html")
+# Reinstate when needed
+# @admin_required
+# @admin_views.route("/admin_dashboard")
+# def adminDashboard():
+#     return render_template("admin/admin_dashboard.html")
 
 
 @admin_required
@@ -87,4 +87,4 @@ def module_status():
 @admin_views.route("/admin_logout")
 def adminLogout():
     session["admin_logged_in"] = False
-    return redirect(url_for("admin_login"))
+    return redirect("/admin_login")

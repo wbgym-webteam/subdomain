@@ -10,23 +10,22 @@ load_dotenv()
 
 db = SQLAlchemy()
 
+
 def create_app():
     app = Flask(__name__)
 
-
     # this is how it was before
-    #app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+    # app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
     # Use environment variable if set, otherwise generate a secure random key #### remove this if you want to use how it was before
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or secrets.token_hex(32)
     ####
 
-
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///wbgym.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
-    # migrate = Migrate(app, db)
+    migrate = Migrate(app, db)
 
     with app.app_context():
         # from .models import Student, Presentation
