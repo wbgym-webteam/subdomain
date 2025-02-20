@@ -35,7 +35,7 @@ def load_german_words():
 GERMAN_WORDS = load_german_words()
 
 
-def create_student(student_id, last_name, first_name, grade, logincode):
+def create_student(student_id, last_name, first_name, grade, grade_selector, logincode):
     # Check if student already exists
     existing_student = db.session.execute(
         db.select(Student).filter_by(id=student_id)
@@ -52,6 +52,7 @@ def create_student(student_id, last_name, first_name, grade, logincode):
             last_name=last_name,
             first_name=first_name,
             grade=grade,
+            grade_selector=grade_selector,
             logincode=logincode,
         )
         print("Student erfolgreich gespeichert!")
@@ -133,9 +134,12 @@ def FileHandler():
         last_name = row[1]  # Column B (Last Name)
         first_name = row[2]  # Column C (First Name)
         grade = row[4]  # Column E (Grade)
+        grade_selector = row[5]  # Column F (Grade Selector)
         logincode = generate_login_code()
 
-        print(f"{student_id} {last_name} {first_name} {grade} {logincode}")
+        print(
+            f"{student_id} {last_name} {first_name} {grade}/{grade_selector} {logincode}"
+        )
 
         if (
             student_id == None
@@ -145,7 +149,9 @@ def FileHandler():
         ):
             break
 
-        create_student(student_id, last_name, first_name, grade, logincode)
+        create_student(
+            student_id, last_name, first_name, grade, grade_selector, logincode
+        )
 
     # Get the Presentations
     presentations_sheet = workbook.worksheets[2]

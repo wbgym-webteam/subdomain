@@ -41,6 +41,7 @@ class Student(db.Model):
     last_name = db.Column(db.String(80), nullable=False)
     first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
+    grade_selector = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False)
 
 

@@ -7,9 +7,12 @@ from flask import (
     session,
 )
 
+from sqlalchemy import text
+
 import json
 
 from .tdw_filehandler import FileHandler
+from . import db
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
@@ -34,11 +37,11 @@ def admin_required(f):
 # ------------------------------------------------------------------
 # Routing
 
-
-@admin_required
-@admin_views.route("/admin_dashboard")
-def adminDashboard():
-    return render_template("admin/admin_dashboard.html")
+# Reinstate when needed
+# @admin_required
+# @admin_views.route("/admin_dashboard")
+# def adminDashboard():
+#     return render_template("admin/admin_dashboard.html")
 
 
 @admin_required
@@ -84,7 +87,14 @@ def module_status():
 
 
 @admin_required
+@admin_views.route("/tdw/export_logincodes", methods=["POST"])
+def export_logincodes():
+    if request.method == "POST":
+        return redirect("./panel")
+
+
+@admin_required
 @admin_views.route("/admin_logout")
 def adminLogout():
     session["admin_logged_in"] = False
-    return redirect(url_for("admin_login"))
+    return redirect("/admin_login")

@@ -68,6 +68,9 @@ def adminLogin():
 
         if username == env_admin_username and password == env_admin_password:
             session["admin_logged_in"] = True
-            return redirect("/admin/admin_dashboard")
+            return redirect("/admin/tdw/panel")
 
     return render_template("admin/admin_login.html")
+
+
+# When the SmS module comes, we need a normal admin panel which links to the sms admin panel and the tdw admin panel
