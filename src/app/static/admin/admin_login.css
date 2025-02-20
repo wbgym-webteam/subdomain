@@ -48,7 +48,7 @@ body {
     box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
 }
 
-.login-container button {
+.login-container input[type="submit"] {
     width: 100%;
     padding: 12px 15px;
     background-color: #560d4f;
@@ -60,12 +60,12 @@ body {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.login-container button:hover {
-    background-color: #8846a4;
+.login-container input[type="submit"]:hover {
+    background-color: #9b4dca;
     transform: translateY(-3px);
 }
 
-.login-container button:active {
+.login-container input[type="submit"]:active {
     transform: translateY(0);
 }
 
