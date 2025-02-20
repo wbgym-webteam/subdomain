@@ -21,6 +21,12 @@ TdW - Admin Panel
         <button type="submit">Upload</button>
     </form>
 
+    <!-- Login Code Export -->
+    <form action="{{ url_for('admin_views.export_logincodes') }}" method="post">
+        <label for="export_login_codes">Export Login Codes:</label>
+        <button type="submit">Export</button>
+    </form>
+
     <!-- Acticate / Deactivate the module -->
     <form action="{{ url_for('admin_views.module_status') }}" method="post">
         <label for="module_status">Module Status:</label>

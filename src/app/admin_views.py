@@ -7,9 +7,12 @@ from flask import (
     session,
 )
 
+from sqlalchemy import text
+
 import json
 
 from .tdw_filehandler import FileHandler
+from . import db
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
@@ -84,14 +87,10 @@ def module_status():
 
 
 @admin_required
-@admin_views.route("/export_logincodes", methods=["POST"])
+@admin_views.route("/tdw/export_logincodes", methods=["POST"])
 def export_logincodes():
     if request.method == "POST":
-        db_query = db.session.execute(
-            text(
-                "SELECT first_name, last_name, grade, grade_selector FROM students GROUP BY grade AND grade_selector"
-            )
-        ).all()
+        return redirect("./panel")
 
 
 @admin_required
