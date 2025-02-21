@@ -12,6 +12,7 @@ from sqlalchemy import text
 import json
 
 from .tdw_filehandler import FileHandler
+from .tdw_logincode_export import export_logincodes
 from . import db
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
@@ -90,6 +91,7 @@ def module_status():
 @admin_views.route("/tdw/export_logincodes", methods=["POST"])
 def export_logincodes():
     if request.method == "POST":
+        export_logincodes()
         return redirect("./panel")
 
 
