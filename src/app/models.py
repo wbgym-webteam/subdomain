@@ -4,7 +4,7 @@ from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from . import db  # Only import db from __init__.py
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(UserMixin, db.Model):    #creates the regular users Accound
     __tablename__ = 'users'  # Add explicit table name
@@ -20,7 +20,7 @@ class User(UserMixin, db.Model):    #creates the regular users Accound
     }
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method="scrypt")
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
