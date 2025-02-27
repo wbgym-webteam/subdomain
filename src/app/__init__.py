@@ -22,7 +22,7 @@ def create_app(config_class=Config):
 
     # Update session configuration
     app.config['SESSION_COOKIE_NAME'] = 'admin_session'
-    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_SECURE'] = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
     app.config['SESSION_PROTECTION'] = 'strong'
