@@ -1,92 +1,262 @@
 {% extends './base.html' %}
 
 {% block title %}
-TdW Kurswahl
+    Präsentationsauswahl
 {% endblock %}
 
 {% block content %}
 
-<header>
-    <h1>Tag der Wissenschaften</h1>
-    <h2> Kurswahl</h2>
-</header>
+    <title>Präsentationsauswahl</title>
+    <style>
+        /* Grundlegende Stile */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding-bottom: 40px; /* Platz für die Nachricht */
+        }
 
-<a href="./logout">Logout</a>
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
 
-<h3>{{ student }}</h3>
+        h1 {
+            text-align: center;
+            color: #333;
+        }
 
-<form action="{{ url_for('tdw.submit_selection') }}" method="post">
-    <table>
-        {% for presentation in presentations %}
-        <tr>
-            <td>
-                <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if presentation in
-                    chosen_presentations %}checked{% endif %}>
-            </td>
-            <td>{{ presentations[presentation][0] }}</td>
-            <td>{{ presentations[presentation][1] }}</td>
-            <td>{{ presentations[presentation][2] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <input type="submit" value="Submit" class="button">
-</form>
+        .presentation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f3f4f6;
-        color: #333;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        text-align: center;
-    }
+        .presentation {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #fafafa;
+            position: relative;
+        }
 
-    .dashboard {
-        background: #fff;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        width: 400px;
-    }
+        .presentation.selected {
+            border-color: #28a745;
+            background-color: #e9f7ef;
+        }
 
-    .dashboard h1 {
-        font-size: 32px;
-        color: #4a4e69;
-        margin-bottom: 10px;
-    }
+        .presentation h2 {
+            margin-top: 0;
+        }
 
-    .dashboard h2 {
-        font-size: 20px;
-        color: #7b8794;
-        margin-bottom: 20px;
-    }
+        .select-btn {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-    .button {
-        display: block;
-        background-color: #560d4f;
-        color: white;
-        text-decoration: none;
-        font-size: 18px;
-        padding: 15px 20px;
-        margin: 10px auto;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        width: 80%;
-        text-align: center;
-    }
+        .select-btn:hover {
+            background-color: #0056b3;
+        }
 
-    .button:hover {
-        background-color: #8846a4;
-        transform: translateY(-3px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-</style>
+        .select-btn.selected {
+            background-color: #dc3545;
+        }
 
+        #selected-presentation {
+            margin-top: 30px;
+            padding: 15px;
+            border: 2px solid #28a745;
+            border-radius: 5px;
+            background-color: #e9f7ef;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .limit-message {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #dc3545;
+            font-size: 24px;
+            display: none;
+        }
+
+        .selection-counter {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #555;
+        }
+    </style>
+<body>
+    <div class="container">
+        <h1>Präsentationsauswahl</h1>
+
+        <div class="selection-counter">
+            Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit"></span>
+        </div>
+
+        <div class="presentation-list">
+            <!-- Präsentation 1 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 1</h2>
+                <p><strong>Präsentator:</strong> Max Mustermann</p>
+                <p><strong>Beschreibung:</strong> Einführung in die Webentwicklung.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+            <!-- Präsentation 2 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 2</h2>
+                <p><strong>Präsentator:</strong> Erika Musterfrau</p>
+                <p><strong>Beschreibung:</strong> Best Practices für UI/UX Design.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+            <!-- Präsentation 3 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 3</h2>
+                <p><strong>Präsentator:</strong> John Doe</p>
+                <p><strong>Beschreibung:</strong> Einführung in künstliche Intelligenz.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+            <!-- Präsentation 4 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 4</h2>
+                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
+                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+                        <!-- Präsentation 5 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 5</h2>
+                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
+                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+                        <!-- Präsentation 6 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 6</h2>
+                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
+                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+                        <!-- Präsentation 7 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 7</h2>
+                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
+                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+
+                        <!-- Präsentation 8 -->
+            <div class="presentation">
+                <h2>Präsentationstitel 8</h2>
+                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
+                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
+                <button class="select-btn">Auswählen</button>
+            </div>
+        </div>
+
+        <div id="selected-presentation" class="hidden">
+            <h2>Ausgewählte Präsentationen:</h2>
+            <ul id="selected-list"></ul>
+        </div>
+    </div>
+
+    <!-- red error message -->
+    <div id="limit-message" class="limit-message">
+        Du kannst maximal <span id="limit-text"></span> Präsentationen anwählen!
+    </div>
+
+    <script>
+        const selectionLimit = 7; // limit of prerentations that can be selected by each student
+        const buttons = document.querySelectorAll('.select-btn');
+        const selectedList = document.getElementById('selected-list');
+        const selectedSection = document.getElementById('selected-presentation');
+        const limitMessage = document.getElementById('limit-message');
+        const selectionCount = document.getElementById('selection-count');
+        const selectionLimitDisplay = document.getElementById('selection-limit');
+        const limitText = document.getElementById('limit-text');
+
+        let selectedPresentations = [];
+
+
+        selectionLimitDisplay.innerText = selectionLimit;
+        limitText.innerText = selectionLimit;
+
+        buttons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const presentation = e.target.parentElement;
+                const title = presentation.querySelector('h2').innerText;
+
+                const index = selectedPresentations.indexOf(title);
+
+                if (index > -1) {
+                    selectedPresentations.splice(index, 1);
+                    presentation.classList.remove('selected');
+                    button.classList.remove('selected');
+                    button.innerText = 'Auswählen';
+                } else {
+                    if (selectedPresentations.length < selectionLimit) {
+                        selectedPresentations.push(title);
+                        presentation.classList.add('selected');
+                        button.classList.add('selected');
+                        button.innerText = 'Abwählen';
+                    } else {
+                        showLimitMessage();
+                    }
+                }
+
+                updateSelectedList();
+                updateSelectionCount();
+            });
+        });
+
+        function updateSelectedList() {
+            selectedList.innerHTML = '';
+
+            if (selectedPresentations.length === 0) {
+                selectedSection.classList.add('hidden');
+                return;
+            }
+
+            selectedPresentations.forEach(title => {
+                const li = document.createElement('li');
+                li.innerText = title;
+                selectedList.appendChild(li);
+            });
+
+            selectedSection.classList.remove('hidden');
+        }
+
+        function updateSelectionCount() {
+            selectionCount.innerText = selectedPresentations.length;
+        }
+
+        function showLimitMessage() {
+            limitMessage.style.display = 'block';
+            setTimeout(() => {
+                limitMessage.style.display = 'none';
+            }, 4000); // How long error message should be displayed
+        }
+    </script>
 </body>
+
 {% endblock %}
