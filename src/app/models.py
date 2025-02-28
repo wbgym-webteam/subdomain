@@ -35,6 +35,11 @@ class User(UserMixin, db.Model):    #creates the regular users Accound
         user.set_password(password)
         return user
 
+    logs = db.relationship('Log', 
+                          back_populates='user',
+                          cascade='all, delete-orphan',
+                          passive_deletes=True)
+
 class Admin(User):  #creates the admin/super users Account
     __mapper_args__ = {
         'polymorphic_identity': 'admin',
@@ -127,9 +132,11 @@ class Log(db.Model):    #creates the model for the logs and determines what come
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
     points = db.Column(db.Integer, default=0)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, 
+                       db.ForeignKey('users.id', ondelete='CASCADE'),
+                       nullable=False)
 
     # Update these relationship definitions
     team = db.relationship('Teams', back_populates='logs')
-    user = db.relationship('User', backref=db.backref('logs', lazy=True))
+    user = db.relationship('User', back_populates='logs')
     game = db.relationship('Game', back_populates='logs')
