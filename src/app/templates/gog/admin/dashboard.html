@@ -52,7 +52,7 @@
             <ul class="user-list">
             {% for game in games %}
                 <li style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>{{ game.name }} ({{ game.dependency_type }}, {{ game.scoring_preference }})</span>
+                    <span>{{ game.name }} ({{ game.get_german_dependency_type() }}, {{ game.get_german_scoring_preference() }})</span>
                     <form method="POST" action="{{ url_for('admin.delete_game', game_id=game.id) }}" style="display: inline;" 
                           onsubmit="return confirm('Sicher das sie Spiel {{ game.name }} löschen möchten?');">
                         <button type="submit" class="action-button delete-button">L&ouml;schen</button>

@@ -59,12 +59,25 @@ class DependencyType(Enum): #creates the dependency type for the games
     POINT_DEPENDENT = 'point'
     TIME_DEPENDENT = 'time'
 
+    def get_german_text(self):
+        translations = {
+            'none': 'Keine',
+            'point': 'Punkteabhängig',
+            'time': 'Zeitabhängig'
+        }
+        return translations[self.value]
+
 
 class ScoringPreference(Enum):  #creates the scoring preference for the games
     BETTER_HIGHER = 'higher'
     BETTER_LOWER = 'lower'
-    HIGHER_BETTER = 'higher'
-    LOWER_BETTER = 'lower'
+
+    def get_german_text(self):
+        translations = {
+            'higher': 'Höhere Punktzahl ist besser',
+            'lower': 'Niedrigere Punktzahl ist besser'
+        }
+        return translations[self.value]
 
 
 class Teams(db.Model):  #creates the model for the teams
@@ -100,8 +113,14 @@ class Game(db.Model):   #creates the model for the games
     scoring_preference = db.Column(db.String(10), nullable=False)  # 'higher' or 'lower'
     logs = db.relationship('Log', back_populates='game', lazy=True)
 
+    def get_german_dependency_type(self):
+        return DependencyType(self.dependency_type).get_german_text()
+    
+    def get_german_scoring_preference(self):
+        return ScoringPreference(self.scoring_preference).get_german_text()
+
     def __repr__(self):
-        return f"{self.name} ({self.dependency_type}, {self.scoring_preference})"
+        return f"{self.name} ({self.get_german_dependency_type()}, {self.get_german_scoring_preference()})"
 
 
 class GamePoints(db.Model): #defines the model for the game points
