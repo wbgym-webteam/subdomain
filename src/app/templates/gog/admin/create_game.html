@@ -34,7 +34,14 @@
             
             <button type="submit">Spiel erstellen</button>
         </form>
-        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;">Zur&uuml;ck zum Dashboard</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="action-button" style="margin-top: 20px;" onclick="clearFlashMessages()">Zur&uuml;ck zum Dashboard</a>
     </div>
+
+    <script>
+        function clearFlashMessages() {
+            const messages = document.querySelectorAll('.error-message');
+            messages.forEach(msg => msg.remove());
+        }
+    </script>
 </body>
 </html>

@@ -37,10 +37,10 @@ Setup for GoG
             </div>
         </form>
 
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="messages">
-                    {% for message in messages %}
+                    {% for category, message in messages %}
                         <p>{{ message }}</p>
                     {% endfor %}
                 </div>
