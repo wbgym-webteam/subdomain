@@ -125,12 +125,12 @@ def setup():
         try:
             team.team_name = team_name
             db.session.commit()
-            flash('Teamname erfolgreich aktualisiert')
         except Exception as e:
             db.session.rollback()
             flash(f'Fehler beim Aktualisieren des Teamnamens: {str(e)}')
+            return redirect(url_for("gog.setup"))
         
-        return redirect(url_for("gog.setup"))
+        return redirect(url_for("gog.dashboard"))
 
     teams = Teams.query.all()
     return render_template("gog/gog_setup.html", teams=teams)
@@ -181,7 +181,7 @@ def teamManagement():
             
             db.session.commit()
             calculate_ranked_points(game_id)
-            flash('Erfolgreich erfasste Punktzahl')
+            return redirect(url_for("gog.dashboard"))  # Changed to redirect to dashboard
             
         except ValueError:
             flash("Invalid score format")
@@ -201,19 +201,6 @@ def teamManagement():
         games=games,
         game_points=game_points
     )
-
-
-#currently not in use (2025)
-#make be used when the gog leader says so
-
-#@gog.route("/logs", methods=["GET", "POST"])
-#@login_required
-#@regular_user_required
-#def logs():
- #   if request.method == "POST":
-  #      pass
-   # return render_template("gog/gog_logs.html")
-
 
 @gog.route("/logout")
 @login_required
