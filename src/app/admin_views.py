@@ -190,28 +190,45 @@ def delete_team(team_id):
 @admin.route('/games/create', methods=['GET'])
 @admin_required
 def create_game_form():
+    # Clear any existing flash messages when loading the form
+    session.pop('_flashes', None)
     return render_template('gog/admin/create_game.html')
 
 @admin.route('/games/create', methods=['POST'])
 @admin_required
 def create_game():
     name = request.form['name']
-    dependency_type = request.form.get('dependency_type', DependencyType.NONE)
-    scoring_pref = request.form.get('scoring_preference', ScoringPreference.HIGHER_BETTER)
+    dependency_type = request.form.get('dependency_type')  # This will get the raw value from form
+    scoring_pref = request.form.get('scoring_preference')  # This will get the raw value from form
     
     if Game.query.filter_by(name=name).first():
         flash('Game already exists!')
         return redirect(url_for('admin.dashboard'))
     
+    # Validate the values
+    if not dependency_type in ['point', 'time']:
+        flash('Invalid dependency type!', 'admin')
+        return redirect(url_for('admin.create_game_form'))
+        
+    if not scoring_pref in ['higher', 'lower']:
+        flash('Invalid scoring preference!', 'admin')
+        return redirect(url_for('admin.create_game_form'))
+    
     game = Game(
         name=name,
         dependency_type=dependency_type,
-        scoring_preference=scoring_pref  # Use scoring_pref directly
+        scoring_preference=scoring_pref
     )
-    db.session.add(game)
-    db.session.commit()
     
-    flash('Game created successfully!')
+    try:
+        db.session.add(game)
+        db.session.commit()
+        flash('Game created successfully!', 'admin')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error creating game: {str(e)}', 'admin')
+        return redirect(url_for('admin.create_game_form'))
+    
     return redirect(url_for('admin.dashboard'))
 
 #function for deleting a game

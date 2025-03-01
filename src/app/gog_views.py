@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, Blueprint, current_app, flash
+from flask import Flask, render_template, request, redirect, url_for, Blueprint, current_app, flash, session
 from . import db
 from .models import Game, Teams, GamePoints, Log, TeamType, User, DependencyType
 from sqlalchemy import func
@@ -85,6 +85,9 @@ def redirectToLogin():
 
 @gog.route("/login", methods=["GET", "POST"]) #default page, if user is not logged in
 def login():
+    # Clear any existing flash messages when arriving at login page
+    session.pop('_flashes', None)
+    
     if request.method == "POST":    #verifies the user login
         username = request.form.get("username")
         password = request.form.get("password")
