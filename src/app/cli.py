@@ -123,9 +123,23 @@ def reset_all_command():
         db.session.rollback()
         click.echo(f'Error resetting data: {str(e)}')
 
+
+
+@click.command('help')
+@with_appcontext
+def help_command():
+    """Show available Flask commands"""
+    click.echo('Available Flask commands:')
+    click.echo('  flask create-admin    Create a new admin user')
+    click.echo('  flask list-admins     List all admin accounts')
+    click.echo('  flask delete-admin    Delete an admin account')
+    click.echo('  flask reset-all       Reset all data except admin accounts')
+    click.echo('  flask help            Show this help message')
+
 def init_app(app):
     """Register CLI commands"""
     app.cli.add_command(create_admin_command)
     app.cli.add_command(list_admins_command)
     app.cli.add_command(delete_admin_command)
     app.cli.add_command(reset_all_command)
+    app.cli.add_command(help_command)
