@@ -84,8 +84,48 @@ def delete_admin_command():
         db.session.rollback()
         click.echo(f'Error deleting admin user: {str(e)}')
 
+@click.command('reset-all')
+@with_appcontext
+def reset_all_command():
+    """Reset all data except admin accounts"""
+    if not click.confirm('WARNING: This will delete all regular users, games, logs, teams, and reset rankings.\nAre you sure?'):
+        click.echo('Operation cancelled')
+        return
+    
+    try:
+        # Delete all logs first due to foreign key constraints
+        from .models import Log
+        Log.query.delete()
+        click.echo('Deleted all logs')
+
+        # Delete all game points
+        from .models import GamePoints
+        GamePoints.query.delete()
+        click.echo('Deleted all game points')
+
+        # Delete all games
+        from .models import Game
+        Game.query.delete()
+        click.echo('Deleted all games')
+
+        # Delete all teams
+        from .models import Teams
+        Teams.query.delete()
+        click.echo('Deleted all teams')
+
+        # Delete all regular users (non-admin)
+        User.query.filter_by(is_admin=False).delete()
+        click.echo('Deleted all regular users')
+
+        db.session.commit()
+        click.echo('All data has been reset successfully!')
+    except Exception as e:
+        db.session.rollback()
+        click.echo(f'Error resetting data: {str(e)}')
+
 def init_app(app):
     """Register CLI commands"""
     app.cli.add_command(create_admin_command)
     app.cli.add_command(list_admins_command)
     app.cli.add_command(delete_admin_command)
+    app.cli.add_command(reset_all_command)

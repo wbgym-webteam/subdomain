@@ -51,3 +51,9 @@ And run the `main.py`-file!
   - change directory to src
   - type in the terminal
     - flask delete-admin
+
+  # Reset all Data (except delete Admin Accounts)
+
+  - change directory to src
+  - type in the terminal
+    - flask reset-all 
