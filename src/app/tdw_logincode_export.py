@@ -26,6 +26,7 @@ def zip_files():
 def export_logincodes():
     for grade in range(5, 12, 1):
         for grade_selector in range(1, 5, 1):
+            print(f"Exporting grade {grade}/{grade_selector}")
             query = getClass(grade, grade_selector)
             if len(query) > 0 or query is not None:
                 doc = Document()
@@ -42,7 +43,7 @@ def export_logincodes():
                         row_cells[1].text = row.last_name
                         row_cells[2].text = row.logincode
                 doc.save(
-                    f"data/tdw/doiwnloads/TdW_Logincodes_{grade}_{grade_selector}.docx"
+                    f"/app/data/tdw/downloads/TdW_Logincodes_{grade}_{grade_selector}.docx"
                 )
                 print(f"Finished grade {grade}/{grade_selector}")
 

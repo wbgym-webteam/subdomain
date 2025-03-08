@@ -22,15 +22,15 @@ admin_views = Blueprint("admin_views", __name__, static_folder="static")
 # Decorator
 
 
+from functools import wraps
+
+
 def admin_required(f):
+    @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get("admin_logged_in"):
-            return redirect(url_for("admin_login"))  # Leite zur Login-Seite weiter
+            return redirect(url_for("auth.admin_login"))  # Leite zur Login-Seite weiter
         return f(*args, **kwargs)
-
-    decorated_function.__name__ = (
-        f.__name__
-    )  # Behalte den ursprünglichen Funktionsnamen
 
     return decorated_function
 
@@ -89,7 +89,7 @@ def module_status():
 
 @admin_required
 @admin_views.route("/tdw/export_logincodes", methods=["POST"])
-def export_logincodes():
+def export_logincodes_route():
     if request.method == "POST":
         export_logincodes()
         return redirect("./panel")
