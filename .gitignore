@@ -10,6 +10,8 @@ wbgym.db
 wbgym.db-journal
 
 *.xlsx
+*.docx
+*.zip
 
 instance
 migrations
