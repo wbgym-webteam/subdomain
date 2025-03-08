@@ -1,106 +1,109 @@
 {% extends './base.html' %}
 
 {% block title %}
-    Präsentationsauswahl
+Präsentationsauswahl
 {% endblock %}
 
 {% block content %}
 
-    <title>Präsentationsauswahl</title>
-    <style>
-        /* Grundlegende Stile */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding-bottom: 40px; /* Platz für die Nachricht */
-        }
+<title>Präsentationsauswahl</title>
+<style>
+    /* Grundlegende Stile */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding-bottom: 40px;
+        /* Platz für die Nachricht */
+    }
 
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+    .container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-        h1 {
-            text-align: center;
-            color: #333;
-        }
+    h1 {
+        text-align: center;
+        color: #333;
+    }
 
-        .presentation-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+    .presentation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-        .presentation {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            background-color: #fafafa;
-            position: relative;
-        }
+    .presentation {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        background-color: #fafafa;
+        position: relative;
+    }
 
-        .presentation.selected {
-            border-color: #28a745;
-            background-color: #e9f7ef;
-        }
+    .presentation.selected {
+        border-color: #28a745;
+        background-color: #e9f7ef;
+    }
 
-        .presentation h2 {
-            margin-top: 0;
-        }
+    .presentation h2 {
+        margin-top: 0;
+    }
 
-        .select-btn {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    .select-btn {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
 
-        .select-btn:hover {
-            background-color: #0056b3;
-        }
+    .select-btn:hover {
+        background-color: #0056b3;
+    }
 
-        .select-btn.selected {
-            background-color: #dc3545;
-        }
+    .select-btn.selected {
+        background-color: #dc3545;
+    }
 
-        #selected-presentation {
-            margin-top: 30px;
-            padding: 15px;
-            border: 2px solid #28a745;
-            border-radius: 5px;
-            background-color: #e9f7ef;
-        }
+    #selected-presentation {
+        margin-top: 30px;
+        padding: 15px;
+        border: 2px solid #28a745;
+        border-radius: 5px;
+        background-color: #e9f7ef;
+    }
 
-        .hidden {
-            display: none;
-        }
+    .hidden {
+        display: none;
+    }
 
-        .limit-message {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #dc3545;
-            font-size: 24px;
-            display: none;
-        }
+    .limit-message {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #dc3545;
+        font-size: 24px;
+        display: none;
+    }
 
-        .selection-counter {
-            text-align: center;
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #555;
-        }
-    </style>
+    .selection-counter {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #555;
+    }
+</style>
+
 <body>
+    <!-- Pls do not change the form, bc it is generated yk-->
     <div class="container">
         <h1>Präsentationsauswahl</h1>
 
@@ -108,76 +111,22 @@
             Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit"></span>
         </div>
 
-        <div class="presentation-list">
-            <!-- Präsentation 1 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 1</h2>
-                <p><strong>Präsentator:</strong> Max Mustermann</p>
-                <p><strong>Beschreibung:</strong> Einführung in die Webentwicklung.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-            <!-- Präsentation 2 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 2</h2>
-                <p><strong>Präsentator:</strong> Erika Musterfrau</p>
-                <p><strong>Beschreibung:</strong> Best Practices für UI/UX Design.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-            <!-- Präsentation 3 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 3</h2>
-                <p><strong>Präsentator:</strong> John Doe</p>
-                <p><strong>Beschreibung:</strong> Einführung in künstliche Intelligenz.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-            <!-- Präsentation 4 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 4</h2>
-                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
-                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-                        <!-- Präsentation 5 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 5</h2>
-                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
-                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-                        <!-- Präsentation 6 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 6</h2>
-                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
-                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-                        <!-- Präsentation 7 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 7</h2>
-                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
-                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-
-                        <!-- Präsentation 8 -->
-            <div class="presentation">
-                <h2>Präsentationstitel 8</h2>
-                <p><strong>Präsentator:</strong> Lisa Beispiel</p>
-                <p><strong>Beschreibung:</strong> Deep Dive in Cloud-Technologien.</p>
-                <button class="select-btn">Auswählen</button>
-            </div>
-        </div>
-
-        <div id="selected-presentation" class="hidden">
-            <h2>Ausgewählte Präsentationen:</h2>
-            <ul id="selected-list"></ul>
-        </div>
+        <form action="{{ url_for('tdw.submit_selection') }}" method="post">
+            <table>
+                {% for presentation in presentations %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if
+                            presentation in chosen_presentations %}checked{% endif %}>
+                    </td>
+                    <td>{{ presentations[presentation][0] }}</td>
+                    <td>{{ presentations[presentation][1] }}</td>
+                    <td>{{ presentations[presentation][2] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <input type="submit" value="Submit" class="button">
+        </form>
     </div>
 
     <!-- red error message -->

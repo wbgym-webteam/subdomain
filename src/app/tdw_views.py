@@ -93,10 +93,17 @@ def selection():
         return redirect("/login")
 
 
+#
+# This view will never be displayed, because the only accepted method is POST (not to confuse w/ the classic GET Method)
+# But it does the magic behind the selection :o
+
+
 @tdw.route("/submit_selection", methods=["POST"])
 def submit_selection():
     if request.method == "POST":
+        # first thing it needs to work is the student_id and the chosen presentations by the students
         student_id = str(session["tdw_student_id"])
+        # it gets the chosen presentations from the form in the html template.
         chosen_presentations = request.form.getlist("options")
 
         # Insert new Presentation Selections
