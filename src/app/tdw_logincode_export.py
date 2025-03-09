@@ -57,7 +57,12 @@ def export_logincodes():
                 table = doc.add_table(rows=1, cols=3)
                 table.style = "Table Grid"
 
-                headers = ["Header 1", "Header 2", "Header 3"]
+                hdr_cells = table.rows[0].cells
+                hdr_cells[0].text = "First Name"
+                hdr_cells[1].text = "Last Name"
+                hdr_cells[2].text = "Login Code"
+
+                headers = ["First Name", "Last Name", "Login Code"]
                 for i, header in enumerate(headers):
                     cell = table.cell(0, i)
                     cell.text = header
@@ -68,11 +73,6 @@ def export_logincodes():
                         run = paragraph.runs[0]
                         run.bold = True
                         run.font.size = Pt(14)
-
-                hdr_cells = table.rows[0].cells
-                hdr_cells[0].text = "First Name"
-                hdr_cells[1].text = "Last Name"
-                hdr_cells[2].text = "Login Code"
                 for row in query:
                     row_cells = table.add_row().cells
                     row_cells[0].text = row.first_name
