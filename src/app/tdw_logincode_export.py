@@ -49,11 +49,15 @@ def export_logincodes():
 
             if len(query) > 0 or query is not None:
                 doc = Document()
+                # ----------------------------------------------------------------
+                # Add a title
                 if grade == 11 or grade == 12 or grade == 5 or grade == 6:
                     doc.add_heading(f"TDW Login Codes {grade}", 0)
                 else:
                     doc.add_heading(f"TDW Login Codes {grade}/{grade_selector}", 0)
 
+                # ----------------------------------------------------------------
+                # Add a table
                 table = doc.add_table(rows=1, cols=3)
                 table.style = "Table Grid"
 
@@ -73,6 +77,7 @@ def export_logincodes():
                         run = paragraph.runs[0]
                         run.bold = True
                         run.font.size = Pt(14)
+
                 for row in query:
                     row_cells = table.add_row().cells
                     row_cells[0].text = row.first_name

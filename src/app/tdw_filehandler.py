@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text
 
 from openpyxl import load_workbook
 
@@ -66,6 +67,20 @@ def create_student(student_id, last_name, first_name, grade, grade_selector, log
             f"Error while creating a new student #${student_id} {last_name} {first_name}"
         )
         print(e)
+
+
+def add_blocked_presentation(student_id, presentation_id):
+    try:
+        new_blocked_presentation = BlockedPresentation(
+            student_id=student_id, presentation_id=presentation_id
+        )
+        db.session.add(new_blocked_presentation)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        print(
+            f"Error creating a new blocked presentation #${student_id} ${presentation_id}"
+        )
 
 
 def generate_login_code():
@@ -186,3 +201,21 @@ def FileHandler():
             break
 
         create_presentation(presentation_id, title, presenter, abstract, grades)
+
+    # Get the blocked / already last year chosen presentations
+    blocked_presentations_sheet = workbook.worksheets[3]
+
+    db.session.execute(text("DELETE FROM blocked_presentations"))
+
+    for row_index, row in enumerate(
+        blocked_presentations_sheet.iter_rows(min_row=2, values_only=True), start=2
+    ):
+        student_id = row[0]
+        presentation_id = row[1]
+
+        print(f"{student_id} {presentation_id}")
+
+        if student_id == None or presentation_id == None:
+            break
+
+        add_blocked_presentation(student_id, presentation_id)

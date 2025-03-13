@@ -51,3 +51,11 @@ class Selection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, nullable=False)
     presentation_id = db.Column(db.Integer, nullable=False)
+
+
+class BlockedPresentation(db.Model):
+    __tablename__ = "blocked_presentations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, nullable=False)
+    presentation_id = db.Column(db.Integer, nullable=False)
