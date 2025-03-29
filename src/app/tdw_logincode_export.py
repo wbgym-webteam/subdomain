@@ -59,8 +59,10 @@ def export_logincodes():
                 # ----------------------------------------------------------------
                 # Add a table
                 table = doc.add_table(rows=1, cols=3)
-                table.style = "Table Grid"
 
+                # Add spacing between rows for data rows only
+                table.style = "Table Grid"
+                
                 hdr_cells = table.rows[0].cells
                 hdr_cells[0].text = "First Name"
                 hdr_cells[1].text = "Last Name"
@@ -83,6 +85,14 @@ def export_logincodes():
                     row_cells[0].text = row.first_name
                     row_cells[1].text = row.last_name
                     row_cells[2].text = row.logincode
+
+                for row in table.rows[1:]:  # Skip the header row
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            paragraph.paragraph_format.space_after = Pt(12)
+                            paragraph.paragraph_format.space_before = Pt(12)
+                            paragraph.paragraph_format.line_spacing = Pt(12)
+
 
                 if grade == 11 or grade == 12 or grade == 5 or grade == 6:
                     doc.save(os.path.join(output_dir, f"TdW_Logincodes_{grade}.docx"))
