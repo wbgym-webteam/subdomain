@@ -5,14 +5,17 @@ from flask import (
     redirect,
     url_for,
     session,
+    send_from_directory
 )
 
 from sqlalchemy import text
 
 import json
+import os
 
 from .tdw_filehandler import FileHandler
 from .tdw_logincode_export import export_logincodes
+from .tdw_selection_export import SelectionExporter
 from . import db
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
@@ -93,10 +96,25 @@ def export_logincodes_route():
     if request.method == "POST":
         export_logincodes()
         return redirect("./panel")
+    
+@admin_required
+@admin_views.route("/tdw/export_selections", methods=["POST"])
+def export_selections():
+    if request.method == "POST":
+        SelectionExporter(db, "app/data/tdw/uploads/workbook.xlsx")
+        return redirect("./panel")
+    else:
+        return redirect("./panel")
+
+@admin_required
+@admin_views.route("/tdw/download_selections")
+def download_selections():
+    uploads_dir = "./data/tdw/uploads"
+    return send_from_directory(uploads_dir, "workbook.xlsx", as_attachment=True)
 
 
 @admin_required
 @admin_views.route("/admin_logout")
-def adminLogout():
+def admin_logout():
     session["admin_logged_in"] = False
     return redirect("/admin_login")

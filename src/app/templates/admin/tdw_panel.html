@@ -16,7 +16,6 @@ TdW - Admin Panel
     <!-- Upload -->
     <form action="{{ url_for('admin_views.upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="file">Upload File:</label>
-        <!-- IDEA: Maybe include .csv as a file type ?-->
         <input type="file" name="file" id="file" accept=".xlsx, .xls" required>
         <button type="submit">Upload</button>
     </form>
@@ -27,14 +26,21 @@ TdW - Admin Panel
         <button type="submit">Export</button>
     </form>
 
-    <!-- Acticate / Deactivate the module -->
+    <form action="{{ url_for('admin_views.export_selections') }}" method="post">
+        <label for="export_login_codes">Export Selections:</label>
+        <button type="submit">Export</button>
+    </form>
+
+    <a href="{{ url_for('admin_views.download_selections') }}" download>
+        <button>Download Selections</button>
+    </a>
+
+    <!-- Activate / Deactivate the module -->
     <form action="{{ url_for('admin_views.module_status') }}" method="post">
         <label for="module_status">Module Status:</label>
         <p class="status">{{ status }}</p>
         <input type="submit" value="Activate / Deactivate">
     </form>
-
-    <!-- Generate CSV-file after selection process -->
 
 </main>
 {% endblock %}
