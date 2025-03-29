@@ -23,21 +23,7 @@ Login
     </select>
     <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
     <input type="submit" value="Login" class="submit">
-    <p class="error" id="error">{{ error }}</p>
 </form>
 
-<script>
-    const message = document.getElementById('error');
-
-    // Event listener for input changes
-    message.addEventListener('p', function () {
-        message.textContent = inputField.value;
-        if (inputField.value.trim() === '') {
-            message.style.display = 'none'; // Hide if empty
-        } else {
-            message.style.display = 'block'; // Show if not empty
-        }
-    });
-</script>
 
 {% endblock %}

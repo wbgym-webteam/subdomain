@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
-import dotenv
 
 from .models import Student
 
@@ -40,7 +39,7 @@ def login():
                 session["logged_in"] = True
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
-                return render_template("login.html", error="Invalid login code")
+                return render_template("login.html")
         elif (
             request.form.get("event") == "sms"
             and module_status["modules"]["SmS"] == "active"
@@ -48,7 +47,7 @@ def login():
             pass
         # TODO: add the logic here, when the module is in dev
         else:
-            return render_template("login.html", error="Module not available for login")
+            return render_template("login.html")
     else:
         return render_template("login.html")
 
@@ -60,6 +59,7 @@ def adminLogin():
         password = request.form.get("password")
         env_admin_username = os.getenv("ADMIN_USERNAME")
         env_admin_password = os.getenv("ADMIN_PASSWORD")
+
 
         if username == env_admin_username and password == env_admin_password:
             session["admin_logged_in"] = True

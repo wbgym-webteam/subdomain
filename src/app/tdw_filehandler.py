@@ -11,7 +11,7 @@ from openpyxl import load_workbook
 import random as r
 import string as s
 
-from .models import Presentation, Student
+from .models import Presentation, Student, BlockedPresentation
 
 # CONSTANTS
 CHARACTERS = s.ascii_letters + s.digits
@@ -138,6 +138,12 @@ def create_presentation(presentation_id, title, presenter, abstract, grades):
 def FileHandler():
     workbook = load_workbook(f"app/data/tdw/uploads/workbook.xlsx")
     print("Loaded File...")
+
+    # Clear the database
+    db.session.execute(text("DELETE FROM students"))
+    db.session.execute(text("DELETE FROM presentations"))
+    db.session.execute(text("DELETE FROM selections"))
+    db.session.execute(text("DELETE FROM blocked_presentations"))
 
     # Get the Students
     sheet1 = workbook.worksheets[0]

@@ -55,9 +55,14 @@ def selection():
             presentations_list = list()
 
             db_presentations = db.session.execute(db.select(Presentation)).all()
+            blocked_presentations = db.session.execute(
+                text(
+                    f"SELECT presentation_id FROM blocked_presentations WHERE student_id = {student_id}"
+                )
+            ).all()
 
             for presentation in db_presentations:
-                if str(grade) in presentation[0].grades:
+                if str(grade) in presentation[0].grades and presentation[0].id not in [x[0] for x in blocked_presentations]:
                     presentations_list.append(str(presentation[0].title))
                     presentations_list.append(str(presentation[0].presenter))
                     presentations_list.append(str(presentation[0].abstract))
