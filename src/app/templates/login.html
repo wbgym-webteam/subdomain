@@ -9,9 +9,6 @@ Login
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
-<div class="admin-panel">
-    <a href="/admin_login">Admin</a>
-</div>
 
 <form method="post" class="login-container">
     <h1>Willkommen zurück!</h1>
@@ -25,5 +22,23 @@ Login
     <input type="submit" value="Login" class="submit">
 </form>
 
+<div class="admin-panel">
+    <a href="/admin_login">Admin</a>
+</div>
 
+<style>
+    div.admin-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #7b598d;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    div.admin-panel a {
+        text-decoration: none;
+        color: #4c0275;
+        font-size: 14px;
+    }
+</style>
 {% endblock %}

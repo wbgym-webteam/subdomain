@@ -135,76 +135,7 @@ Präsentationsauswahl
     </div>
 
     <script>
-        const selectionLimit = 7; // limit of prerentations that can be selected by each student
-        const buttons = document.querySelectorAll('.select-btn');
-        const selectedList = document.getElementById('selected-list');
-        const selectedSection = document.getElementById('selected-presentation');
-        const limitMessage = document.getElementById('limit-message');
-        const selectionCount = document.getElementById('selection-count');
-        const selectionLimitDisplay = document.getElementById('selection-limit');
-        const limitText = document.getElementById('limit-text');
-
-        let selectedPresentations = [];
-
-
-        selectionLimitDisplay.innerText = selectionLimit;
-        limitText.innerText = selectionLimit;
-
-        buttons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const presentation = e.target.parentElement;
-                const title = presentation.querySelector('h2').innerText;
-
-                const index = selectedPresentations.indexOf(title);
-
-                if (index > -1) {
-                    selectedPresentations.splice(index, 1);
-                    presentation.classList.remove('selected');
-                    button.classList.remove('selected');
-                    button.innerText = 'Auswählen';
-                } else {
-                    if (selectedPresentations.length < selectionLimit) {
-                        selectedPresentations.push(title);
-                        presentation.classList.add('selected');
-                        button.classList.add('selected');
-                        button.innerText = 'Abwählen';
-                    } else {
-                        showLimitMessage();
-                    }
-                }
-
-                updateSelectedList();
-                updateSelectionCount();
-            });
-        });
-
-        function updateSelectedList() {
-            selectedList.innerHTML = '';
-
-            if (selectedPresentations.length === 0) {
-                selectedSection.classList.add('hidden');
-                return;
-            }
-
-            selectedPresentations.forEach(title => {
-                const li = document.createElement('li');
-                li.innerText = title;
-                selectedList.appendChild(li);
-            });
-
-            selectedSection.classList.remove('hidden');
-        }
-
-        function updateSelectionCount() {
-            selectionCount.innerText = selectedPresentations.length;
-        }
-
-        function showLimitMessage() {
-            limitMessage.style.display = 'block';
-            setTimeout(() => {
-                limitMessage.style.display = 'none';
-            }, 4000); // How long error message should be displayed
-        }
+        
     </script>
 </body>
 
