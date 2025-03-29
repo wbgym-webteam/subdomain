@@ -5,3 +5,4 @@ description = "WBGYM subdomain"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["flask", "gunicorn", "flask-sqlalchemy", "flask-mgirate", "openpyxl", "dotenv", "python-docx", "zipfile"]
+
