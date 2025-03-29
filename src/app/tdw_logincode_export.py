@@ -27,11 +27,19 @@ def get_sek2(grade):
 
 
 def zip_files():
-    directory = "./app/data/tdw/downloads"
-    with zipfile.ZipFile("data/tdw/downloads/TdW_Logincodes.zip", "w") as zipf:
+    directory = os.getenv("OUTPUT_DIR", "./app/data/tdw/downloads")
+    zip_file_path = os.path.join(directory, "TdW_Logincodes.zip")
+
+    if not os.path.exists(directory):
+        print(f"Directory {directory} does not exist.")
+        return
+
+    with zipfile.ZipFile(zip_file_path, "w") as zipf:
         for file in os.listdir(directory):
             if file.endswith(".docx"):
                 zipf.write(os.path.join(directory, file), file)
+
+    print("Zipped files successfully.")
 
 
 def export_logincodes():
@@ -89,9 +97,9 @@ def export_logincodes():
                 for row in table.rows[1:]:  # Skip the header row
                     for cell in row.cells:
                         for paragraph in cell.paragraphs:
-                            paragraph.paragraph_format.space_after = Pt(12)
-                            paragraph.paragraph_format.space_before = Pt(12)
-                            paragraph.paragraph_format.line_spacing = Pt(12)
+                            paragraph.paragraph_format.space_after = Pt(14)
+                            paragraph.paragraph_format.space_before = Pt(14)
+                            paragraph.paragraph_format.line_spacing = Pt(14)
 
 
                 if grade == 11 or grade == 12 or grade == 5 or grade == 6:
@@ -105,4 +113,4 @@ def export_logincodes():
                     )
                     print(f"Finished grade {grade}/{grade_selector}")
 
-    # zip_files()
+    zip_files()

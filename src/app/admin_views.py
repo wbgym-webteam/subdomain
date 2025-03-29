@@ -98,6 +98,12 @@ def export_logincodes_route():
         return redirect("./panel")
     
 @admin_required
+@admin_views.route("/tdw/download_logincodes")
+def download_logincodes():
+    download_dir = "./data/tdw/downloads"
+    return send_from_directory(download_dir, "TdW_Logincodes.zip", as_attachment=True)
+    
+@admin_required
 @admin_views.route("/tdw/export_selections", methods=["POST"])
 def export_selections():
     if request.method == "POST":
