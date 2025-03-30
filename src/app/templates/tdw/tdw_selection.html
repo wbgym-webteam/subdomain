@@ -6,101 +6,6 @@ Präsentationsauswahl
 
 {% block content %}
 
-<title>Präsentationsauswahl</title>
-<style>
-    /* Grundlegende Stile */
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        padding-bottom: 40px;
-        /* Platz für die Nachricht */
-    }
-
-    .container {
-        max-width: 800px;
-        margin: auto;
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-        text-align: center;
-        color: #333;
-    }
-
-    .presentation-list {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .presentation {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
-        background-color: #fafafa;
-        position: relative;
-    }
-
-    .presentation.selected {
-        border-color: #28a745;
-        background-color: #e9f7ef;
-    }
-
-    .presentation h2 {
-        margin-top: 0;
-    }
-
-    .select-btn {
-        background-color: #007BFF;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .select-btn:hover {
-        background-color: #0056b3;
-    }
-
-    .select-btn.selected {
-        background-color: #dc3545;
-    }
-
-    #selected-presentation {
-        margin-top: 30px;
-        padding: 15px;
-        border: 2px solid #28a745;
-        border-radius: 5px;
-        background-color: #e9f7ef;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .limit-message {
-        position: fixed;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: #dc3545;
-        font-size: 24px;
-        display: none;
-    }
-
-    .selection-counter {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 20px;
-        color: #555;
-    }
-</style>
 
 <body>
     <!-- Pls do not change the form, bc it is generated yk-->
@@ -108,7 +13,7 @@ Präsentationsauswahl
         <h1>Präsentationsauswahl für {{ student }}</h1>
 
         <div class="selection-counter">
-            Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit"></span>
+            Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit">7</span>
         </div>
 
         <form action="{{ url_for('tdw.submit_selection') }}" method="post">
@@ -130,13 +35,56 @@ Präsentationsauswahl
     </div>
 
     <!-- red error message -->
-    <div id="limit-message" class="limit-message">
-        Du kannst maximal <span id="limit-text"></span> Präsentationen anwählen!
+    <div id="limit-message" class="limit-message" style="display: none;">
+        Du kannst maximal <span id="limit-text">7</span> Präsentationen anwählen!
+    </div>
+
+    <div id="logout">
+        <form action="{{ url_for('tdw.logout') }}" method="post">
+            <input type="submit" value="Logout" class="button">
+        </form>
     </div>
 
     <script>
-        
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const selectionCount = document.getElementById('selection-count');
+        const limitMessage = document.getElementById('limit-message');
+        const limitText = document.getElementById('limit-text');
+        const selectionLimit = 7;
+
+        // Function to update the count of checked checkboxes
+        const updateSelectionCount = () => {
+            const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            selectionCount.textContent = checkedCount;
+            if (checkedCount > selectionLimit) {
+            limitMessage.style.display = 'block';
+            } else {
+            limitMessage.style.display = 'none';
+            }
+        };
+
+        // Initialize the count on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSelectionCount();
+        });
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+            const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
+
+            if (checkedCount <= selectionLimit) {
+                updateSelectionCount();
+            } else {
+                checkbox.checked = false; // Prevent checking the checkbox
+                limitMessage.style.display = 'block'; // Show the limit message
+            }
+            });
+        });
     </script>
+
+    <style>
+
+    </style>
 </body>
 
 {% endblock %}
