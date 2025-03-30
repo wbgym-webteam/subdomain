@@ -6,6 +6,10 @@ TdW - Admin Panel
 
 {% block content %}
 
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tdw/tdw_selection.css') }}">
+</head>
+
 <header>
     <h1>TdW - Control Panel</h1>
 </header>
@@ -48,4 +52,10 @@ TdW - Admin Panel
     </form>
 
 </main>
+
+<style>
+    html, body {
+        background-color: #7b598d;
+    }
+</style>
 {% endblock %}
