@@ -1,6 +1,6 @@
 {
     "modules": {
-        "TdW": "active",
-        "SmS": "active"
+        "TdW": "inactive",
+        "SmS": "inactive"
     }
 }

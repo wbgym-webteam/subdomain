@@ -6,7 +6,7 @@ This module is for an event called "Tag der Wissenschaften" (Day of Science) at 
 
 The Login is happening at `auth.py`, where you can choose to login either to the TdW or the [SmS](sms.md) Module. When the students logged in successfully, they will be redirected to `/tdw`. This is where the presentation selection process happens.
 
-There the students can select mulitple presentations from a list of the available ones which are for his grade. When ready, the student submits the selected presentations and afterwards he can logout.
+There the students can select mulitple presentations from a list of the available ones. When ready, the student submits the selected presentations and afterwards he can logout.
 
 The administration of the TdW module is done in the admin panel. There you can import the presentations and student lists from an `.xlsx`-file. The admin panel automatically creates the necessary database entries and generates the logincodes for the students. The logincodes can be exported to a zip file which contains a `.docx`-file for each class. When you have done all the necessary preperation, you can now activate the module for the students.
 
@@ -20,7 +20,7 @@ _Templates:_
 - `login.html`
 - `/admin/`
 
-_The models for the DB are found in `models.py`._
+_The models for the DB are found in `models.py`. The DB is in app/instance/_
 
 **List of module files**:
 
@@ -29,3 +29,13 @@ _The models for the DB are found in `models.py`._
 - `tdw_logincode_export.py`
 
 _The templates are found in `/templates/tdw/`._
+
+## Administration of the TdW-Module
+
+The login data for the admin panel is hidden in the `.env`-file. There you can set the login data. But be careful with it! 
+
+Once you have logged yourself in, you can see the admin panel for this module. First you have to import all the necessary data from an `.xlsx`-file. This should be sent to the admins of the website module by the organisation team. In return, you can export the logincodes and send the _zip_-file to the organisation team.
+
+To unlock the selection process you have the `Activate/Deactivate`-Button at the bottom of the panel.
+
+When the selection phase concludes, you deactivate the module and you export the selection (--> Button). The `.xlsx`-file has now to be send to the organization team.
