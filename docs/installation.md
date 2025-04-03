@@ -16,7 +16,6 @@ pip install openpyxl
 pip install python-docx
 pip install gunicorn
 pip install dotenv
-pip install zipfile
 ```
 
 Or the more simple (but rarely working) variant is to use the command `pip install .` .
