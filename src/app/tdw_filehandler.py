@@ -136,7 +136,7 @@ def create_presentation(presentation_id, title, presenter, abstract, grades):
 
 
 def FileHandler():
-    workbook = load_workbook(f"app/data/tdw/uploads/workbook.xlsx")
+    workbook = load_workbook(f"src/app/data/tdw/uploads/workbook.xlsx")
     print("Loaded File...")
 
     # Clear the database
