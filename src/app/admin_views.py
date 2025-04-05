@@ -51,7 +51,7 @@ def admin_required(f):
 @admin_required
 @admin_views.route("/tdw/panel", methods=["GET", "POST"])
 def tdwPanel():
-    with open("app/data/module_status.json", "r") as f:
+    with open("src/app/data/module_status.json", "r") as f:
         module_status = json.load(f)
         ms = module_status["modules"]["TdW"]
     return render_template("admin/tdw_panel.html", status=ms)
