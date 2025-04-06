@@ -24,7 +24,7 @@ def login():
 
     if request.method == "POST":
         # Get the status of the models
-        with open("src/app/data/module_status.json", "r") as f:
+        with open("app/data/module_status.json", "r") as f:
             module_status = json.load(f)
 
         if (

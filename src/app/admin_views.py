@@ -51,7 +51,7 @@ def admin_required(f):
 @admin_required
 @admin_views.route("/tdw/panel", methods=["GET", "POST"])
 def tdwPanel():
-    with open("src/app/data/module_status.json", "r") as f:
+    with open("app/data/module_status.json", "r") as f:
         module_status = json.load(f)
         ms = module_status["modules"]["TdW"]
     return render_template("admin/tdw_panel.html", status=ms)
@@ -65,7 +65,7 @@ def upload_file():
     file = request.files["file"]
     if file.filename == "":
         return redirect(url_for("admin_views.tdw_panel"))
-    file.save("src/app/data/tdw/uploads/workbook.xlsx")
+    file.save("app/data/tdw/uploads/workbook.xlsx")
 
     FileHandler()
     return redirect("/admin/tdw/panel")
@@ -74,7 +74,7 @@ def upload_file():
 @admin_required
 @admin_views.route("/tdw/module_status", methods=["POST"])
 def module_status():
-    with open("src/app/data/module_status.json", "r") as f:
+    with open("app/data/module_status.json", "r") as f:
         data = json.load(f)
 
     current_status = data["modules"]["TdW"]
@@ -84,7 +84,7 @@ def module_status():
     else:
         data["modules"]["TdW"] = "active"
 
-    with open("src/app/data/module_status.json", "w") as f:
+    with open("app/data/module_status.json", "w") as f:
         json.dump(data, f, indent=4)
 
     return redirect("./panel")
