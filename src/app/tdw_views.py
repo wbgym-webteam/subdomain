@@ -152,7 +152,7 @@ def submit_selection():
     return redirect("/tdw")
 
 
-@tdw.route("/logout")
+@tdw.route("/logout", methods=["POST"])
 def logout():
     # Remove the user's session
     session.pop("tdw_student_id", None)
