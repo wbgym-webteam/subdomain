@@ -26,11 +26,10 @@ def login():
         # Get the status of the models
         with open("app/data/module_status.json", "r") as f:
             module_status = json.load(f)
+            tdw_module_status = module_status["modules"]["TdW"]
+            sms_module_status = module_status["modules"]["SmS"]
 
-        if (
-            request.form.get("event") == "tdw"
-            and module_status["modules"]["TdW"] == "active"
-        ):
+        if request.form.get("event") == "tdw" and tdw_module_status == "active":
             logincode = request.form.get("logincode")
             student_id = logincode_exists(logincode)
             print(student_id)
@@ -40,16 +39,21 @@ def login():
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
                 return render_template("login.html")
-        elif (
-            request.form.get("event") == "sms"
-            and module_status["modules"]["SmS"] == "active"
-        ):
+        elif request.form.get("event") == "sms" and sms_module_status == "active":
             pass
         # TODO: add the logic here, when the module is in dev
         else:
-            return render_template("login.html")
+            return render_template(
+                "login.html",
+                tdw_module_status=tdw_module_status,
+                sms_module_status=sms_module_status,
+            )
     else:
-        return render_template("login.html")
+        return render_template(
+            "login.html",
+            tdw_module_status=tdw_module_status,
+            sms_module_status=sms_module_status,
+        )
 
 
 @auth.route("/admin_login", methods=["GET", "POST"])
@@ -59,7 +63,6 @@ def adminLogin():
         password = request.form.get("password")
         env_admin_username = os.getenv("ADMIN_USERNAME")
         env_admin_password = os.getenv("ADMIN_PASSWORD")
-
 
         if username == env_admin_username and password == env_admin_password:
             session["admin_logged_in"] = True
