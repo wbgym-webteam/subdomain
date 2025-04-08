@@ -7,14 +7,14 @@ TdW - Admin Panel
 {% block content %}
 
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='tdw/tdw_selection.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/tdw_panel.css') }}">
 </head>
 
-<header>
-    <h1>TdW - Control Panel</h1>
-</header>
+<div class="container">
+    <h1>Tdw - Control Panel</h1>
 
-<a href="../admin_logout">Logout</a>
+
+   <!-- <a href="../admin_logout">Logout</a> -->
 
 <main>
     <!-- Upload -->
@@ -50,7 +50,8 @@ TdW - Admin Panel
         <p class="status">{{ status }}</p>
         <input type="submit" value="Activate / Deactivate">
     </form>
-
+<a href="{{ url_for('admin_views.admin_logout') }}" class="action-button" style="background: #ff4444;">Logout</a>
+</div>
 </main>
 
 <style>
