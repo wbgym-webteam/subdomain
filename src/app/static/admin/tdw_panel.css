@@ -27,7 +27,6 @@ h1 {
 }
 
 .action-button {
-    display: inline-block;
     background-color: #560d4f;
     color: white;
     text-decoration: none;
