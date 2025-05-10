@@ -14,8 +14,8 @@ Login
     <h1>Willkommen zurück!</h1>
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     <select name="event" id="event-selector">
-        <option value="tdw" {{ if tdw_module_status == "inactive" }} disabled {{ endif }}>TdW</option>
-        <option value="sms" {{ if sms_module_status == "inactive" }} disabled {{ endif }}>SmS</option>
+        <option value="tdw" {% if tdw_module_status == "inactive" %} disabled {% endif %}>TdW</option>
+        <option value="sms" {% if sms_module_status == "inactive" %} disabled {% endif %}>SmS</option>
         <!-- enable this option when the SmS module is available -->
     </select>
     <input type="password" name="logincode" id="logincode" placeholder="Login-Code">

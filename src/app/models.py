@@ -69,7 +69,7 @@ class StudentSMS(db.Model):
 
 
 class Student_course(db.Model):
-    __tablename__ = "tudent_course"
+    __tablename__ = "student_course"
 
     Student_id = db.Column(db.Integer, db.ForeignKey("students_sms.Student_id"), primary_key=True)
     Course_id = db.Column(db.Integer, db.ForeignKey("courses.course_id"), primary_key=True)

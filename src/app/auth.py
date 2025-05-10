@@ -21,14 +21,13 @@ def logincode_exists(c):
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     session["logged_in"] = False
+    # Load module status for both POST and GET requests
+    with open("app/data/module_status.json", "r") as f:
+        module_status = json.load(f)
+        tdw_module_status = module_status["modules"]["TdW"]
+        sms_module_status = module_status["modules"]["SmS"]
 
     if request.method == "POST":
-        # Get the status of the models
-        with open("app/data/module_status.json", "r") as f:
-            module_status = json.load(f)
-            tdw_module_status = module_status["modules"]["TdW"]
-            sms_module_status = module_status["modules"]["SmS"]
-
         if request.form.get("event") == "tdw" and tdw_module_status == "active":
             logincode = request.form.get("logincode")
             student_id = logincode_exists(logincode)
@@ -38,7 +37,11 @@ def login():
                 session["logged_in"] = True
                 return redirect("/tdw")  # Redirect to a student dashboard or home page
             else:
-                return render_template("login.html")
+                return render_template(
+                    "login.html",
+                    tdw_module_status=tdw_module_status,
+                    sms_module_status=sms_module_status,
+                )
         elif request.form.get("event") == "sms" and sms_module_status == "active":
             pass
         # TODO: add the logic here, when the module is in dev
