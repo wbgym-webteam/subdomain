@@ -45,6 +45,7 @@ def zip_files():
 def export_logincodes():
     print(os.getcwd())
     output_dir = os.getenv("OUTPUT_DIR", "./app/data/tdw/downloads")
+    os.makedirs(output_dir, exist_ok=True)
 
     for grade in range(5, 13, 1):
         for grade_selector in range(1, 5, 1):

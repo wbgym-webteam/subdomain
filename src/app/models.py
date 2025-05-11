@@ -61,11 +61,14 @@ class StudentSMS(db.Model):
     logincode = db.Column(db.String(20), nullable=False)
     
     #relationship for the Student_course table
-    courses_in_Student_course = db.relationship("Course", secondary="Student_course", backref="students_in_Student_course")
+    courses_in_Student_course = db.relationship("Course", 
+                                               secondary="student_course",  # Use the actual table name
+                                               backref="students_in_Student_course")
 
     #relationship for the Host table
-    courses_in_Host = db.relationship("Course", secondary="Hosts", backref="students_in_Hosts")
-
+    courses_in_Host = db.relationship("Course", 
+                                     secondary="hosts",  # Use the actual table name 
+                                     backref="students_in_Hosts")
 
 
 class Student_course(db.Model):
@@ -74,7 +77,6 @@ class Student_course(db.Model):
     Student_id = db.Column(db.Integer, db.ForeignKey("students_sms.Student_id"), primary_key=True)
     Course_id = db.Column(db.Integer, db.ForeignKey("courses.course_id"), primary_key=True)
     weight = db.Column(db.Integer, nullable=False)
-
 
 
 class Hosts(db.Model):
