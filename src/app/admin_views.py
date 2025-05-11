@@ -39,7 +39,7 @@ def admin_required(f):
 
 
 # ------------------------------------------------------------------
-# Routing
+# Routing for TDW admin views
 
 # Reinstate when needed
 # @admin_required
@@ -124,3 +124,21 @@ def download_selections():
 def admin_logout():
     session["admin_logged_in"] = False
     return redirect("/admin_login")
+
+
+
+
+# ------------------------------------------------------------------
+# Routing for SMS admin views
+
+# Reinstate when needed
+# @admin_required
+# @admin_views.route("/admin_dashboard")
+# def adminDashboard():
+#     return render_template("admin/admin_dashboard.html")
+
+
+@admin_required
+@admin_views.route("/sms/panel", methods=["GET", "POST"])
+def smsPanel():
+    pass
