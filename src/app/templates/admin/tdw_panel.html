@@ -20,34 +20,34 @@ TdW - Admin Panel
 
 <main>
     <!-- Upload -->
-    <form action="{{ url_for('admin_views.upload_file') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ url_for('admin_views.tdw_upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="file">Upload File:</label>
         <input type="file" name="file" id="file" accept=".xlsx, .xls" required>
         <button type="submit">Upload</button>
     </form>
 
     <!-- Login Code Export -->
-    <form action="{{ url_for('admin_views.export_logincodes_route') }}" method="post">
+    <form action="{{ url_for('admin_views.tdw_export_logincodes_route') }}" method="post">
         <label for="export_login_codes">Export Login Codes:</label>
         <button type="submit">Export</button>
     </form>
 
-    <a href="{{ url_for('admin_views.download_logincodes') }}" download>
+    <a href="{{ url_for('admin_views.tdw_download_logincodes') }}" download>
         <button>Download Logincodes</button>
     </a>
 
     <!-- Selection Export -->
-    <form action="{{ url_for('admin_views.export_selections') }}" method="post">
+    <form action="{{ url_for('admin_views.tdw_export_selections') }}" method="post">
         <label for="export_login_codes">Export Selections:</label>
         <button type="submit">Export</button>
     </form>
 
-    <a href="{{ url_for('admin_views.download_selections') }}" download>
+    <a href="{{ url_for('admin_views.tdw_download_selections') }}" download>
         <button>Download Selections</button>
     </a>
 
     <!-- Activate / Deactivate the module -->
-    <form action="{{ url_for('admin_views.module_status') }}" method="post">
+    <form action="{{ url_for('admin_views.tdw_module_status') }}" method="post">
         <label for="module_status">Module Status:</label>
         <p class="status">{{ status }}</p>
         <input type="submit" value="Activate / Deactivate">

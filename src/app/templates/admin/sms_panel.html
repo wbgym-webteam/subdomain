@@ -1,1 +1,56 @@
-I like Pizza
+{% extends 'base.html' %}
+
+{% block title %}
+SmS - Admin Panel
+{% endblock %}
+
+{% block content %}
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sms/sms_admin_panel.css') }}">
+</head>
+
+<header>
+    <h1>SmS - Control Panel</h1>
+</header>
+
+<div id="logout">
+    <a href="../admin_logout">Logout</a>
+</div>
+
+<main>
+    <!-- Upload -->
+    <form action="{{ url_for('admin_views.sms_upload_file') }}" method="post" enctype="multipart/form-data">
+        <label for="file">Upload File:</label>
+        <input type="file" name="file" id="file" accept=".xlsx, .xls" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <!-- Login Code Export -->
+    <form action="{{ url_for('admin_views.sms_export_logincodes_route') }}" method="post">
+        <label for="export_login_codes">Export Login Codes:</label>
+        <button type="submit">Export</button>
+    </form>
+
+    <a href="{{ url_for('admin_views.sms_download_logincodes') }}" download>
+        <button>Download Logincodes</button>
+    </a>
+
+    <!-- Selection Export -->
+    <form action="{{ url_for('admin_views.sms_export_selections') }}" method="post">
+        <label for="export_login_codes">Export Selections:</label>
+        <button type="submit">Export</button>
+    </form>
+
+    <a href="{{ url_for('admin_views.sms_download_selections') }}" download>
+        <button>Download Selections</button>
+    </a>
+
+    <!-- Activate / Deactivate the module -->
+    <form action="{{ url_for('admin_views.sms_module_status') }}" method="post">
+        <label for="module_status">Module Status:</label>
+        <p class="status">{{ status }}</p>
+        <input type="submit" value="Activate / Deactivate">
+    </form>
+</main>
+{% endblock %}
