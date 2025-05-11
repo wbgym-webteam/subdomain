@@ -50,7 +50,7 @@ def admin_required(f):
 
 @admin_required
 @admin_views.route("/tdw/panel", methods=["GET", "POST"])
-def tdwPanel():
+def tdw_Panel():
     with open("app/data/module_status.json", "r") as f:
         module_status = json.load(f)
         ms = module_status["modules"]["TdW"]
@@ -59,7 +59,7 @@ def tdwPanel():
 
 @admin_required
 @admin_views.route("/tdw/upload_file", methods=["POST"])
-def upload_file():
+def tdw_upload_file():
     if "file" not in request.files:
         return redirect(url_for("admin_views.tdw_panel"))
     file = request.files["file"]
@@ -73,7 +73,7 @@ def upload_file():
 
 @admin_required
 @admin_views.route("/tdw/module_status", methods=["POST"])
-def module_status():
+def tdw_module_status():
     with open("app/data/module_status.json", "r") as f:
         data = json.load(f)
 
@@ -92,20 +92,20 @@ def module_status():
 
 @admin_required
 @admin_views.route("/tdw/export_logincodes", methods=["POST"])
-def export_logincodes_route():
+def tdw_export_logincodes_route():
     if request.method == "POST":
         export_logincodes()
         return redirect("./panel")
     
 @admin_required
 @admin_views.route("/tdw/download_logincodes")
-def download_logincodes():
+def twd_download_logincodes():
     download_dir = "./data/tdw/downloads"
     return send_from_directory(download_dir, "TdW_Logincodes.zip", as_attachment=True)
     
 @admin_required
 @admin_views.route("/tdw/export_selections", methods=["POST"])
-def export_selections():
+def tdw_export_selections():
     if request.method == "POST":
         SelectionExporter(db, "app/data/tdw/uploads/workbook.xlsx")
         return redirect("./panel")
@@ -114,7 +114,7 @@ def export_selections():
 
 @admin_required
 @admin_views.route("/tdw/download_selections")
-def download_selections():
+def tdw_download_selections():
     uploads_dir = "./data/tdw/uploads"
     return send_from_directory(uploads_dir, "workbook.xlsx", as_attachment=True)
 
@@ -140,5 +140,73 @@ def admin_logout():
 
 @admin_required
 @admin_views.route("/sms/panel", methods=["GET", "POST"])
-def smsPanel():
-    pass
+def sms_Panel():
+    with open("app/data/module_status.json", "r") as f:
+        module_status = json.load(f)
+        ms = module_status["modules"]["SmS"]
+    return render_template("admin/sms_panel.html", status=ms)
+
+
+@admin_required
+@admin_views.route("/sms/upload_file", methods=["POST"])
+def sms_upload_file():
+    if "file" not in request.files:
+        return redirect(url_for("admin_views.sms_panel"))
+    file = request.files["file"]
+    if file.filename == "":
+        return redirect(url_for("admin_views.sms_panel"))
+    file.save("app/data/sms/uploads/workbook.xlsx")
+
+    FileHandler()
+    return redirect("/admin/sms/panel")
+
+
+@admin_required
+@admin_views.route("/sms/module_status", methods=["POST"])
+def sms_module_status():
+    with open("app/data/module_status.json", "r") as f:
+        data = json.load(f)
+
+    current_status = data["modules"]["SmS"]
+
+    if current_status == "active":
+        data["modules"]["SmS"] = "inactive"
+    else:
+        data["modules"]["SmS"] = "active"
+
+    with open("app/data/module_status.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+    return redirect("./panel")
+
+
+@admin_required
+@admin_views.route("/sms/export_logincodes", methods=["POST"])
+def sms_export_logincodes_route():
+    if request.method == "POST":
+        export_logincodes()
+        return redirect("./panel")
+
+
+@admin_required
+@admin_views.route("/sms/download_logincodes")
+def sms_download_logincodes():
+    download_dir = "./data/sms/downloads"
+    return send_from_directory(download_dir, "SmS_Logincodes.zip", as_attachment=True)
+
+
+@admin_required
+@admin_views.route("/sms/export_selections", methods=["POST"])
+def sms_export_selections():
+    if request.method == "POST":
+        SelectionExporter(db, "app/data/sms/uploads/workbook.xlsx")
+        return redirect("./panel")
+    else:
+        return redirect("./panel")
+    
+
+@admin_required
+@admin_views.route("/sms/download_selections")
+def sms_download_selections():
+    uploads_dir = "./data/sms/uploads"
+    return send_from_directory(uploads_dir, "workbook.xlsx", as_attachment=True)
