@@ -59,6 +59,7 @@ class StudentSMS(db.Model):
     grade = db.Column(db.Integer, nullable=False)
     grade_selector = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False)
+    # no Gender specification in the database needed
     
     #relationship for the Student_course table
     courses_in_Student_course = db.relationship("Course", 
@@ -80,6 +81,7 @@ class Student_course(db.Model):
     weight = db.Column(db.Integer, nullable=False)
 
 
+
 class Hosts(db.Model):
     __tablename__ = "hosts"
 
@@ -95,6 +97,8 @@ class Course(db.Model):
     course_private = db.Column(db.Boolean, nullable=False)
     couse_description = db.Column(db.String, nullable=False)
     course_teacher = db.Column(db.String, nullable=False)
+    course_minimum_grade = db.Column(db.Integer, nullable=False)
+    course_maximum_grade = db.Column(db.Integer, nullable=False)
 
 
 
