@@ -66,12 +66,6 @@ class StudentSMS(db.Model):
                                                secondary="student_course",  # Use the actual table name
                                                backref="students_in_Student_course")
 
-    #relationship for the Host table
-    courses_in_Host = db.relationship("Course", 
-                                     secondary="hosts",  # Use the actual table name 
-                                     backref="students_in_Hosts")
-
-
 class Student_course(db.Model):
     __tablename__ = "student_course"
 
