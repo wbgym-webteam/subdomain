@@ -90,6 +90,6 @@ class Course(db.Model):
     course_Overseers = db.Column(db.String, nullable=False)
     course_minimum_grade = db.Column(db.Integer, nullable=False)
     course_maximum_grade = db.Column(db.Integer, nullable=False)
-    course_maximum_people = db.Collumn(db.Integer, nullable=False)
+    course_maximum_people = db.Column(db.Integer, nullable=False)
 
 
