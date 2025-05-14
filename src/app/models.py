@@ -79,7 +79,7 @@ class Student_course(db.Model):
     Student_id = db.Column(db.Integer, db.ForeignKey("students_sms.Student_id"), primary_key=True)
     Course_id = db.Column(db.Integer, db.ForeignKey("courses.course_id"), primary_key=True)
     weight = db.Column(db.Integer, nullable=False)
-
+    
 
 
 class Hosts(db.Model):
@@ -99,7 +99,6 @@ class Course(db.Model):
     course_teacher = db.Column(db.String, nullable=False)
     course_minimum_grade = db.Column(db.Integer, nullable=False)
     course_maximum_grade = db.Column(db.Integer, nullable=False)
-
-
+    course_maximum_people = db.Collumn(db.Integer, nullable=False)
 
 
