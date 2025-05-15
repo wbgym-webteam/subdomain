@@ -71,3 +71,29 @@ def create_student(student_id, last_name, first_name, grade, grade_selector, log
         print(e)
 
 
+
+def create_course(Course_id, Course_title, Course_description, Course_teacher, Course_min_grade, Course_max_grade, Course_max_people, Course_hosts):
+    try:
+        new_Course = Course(
+            course_id = Course_id,
+            course_title = Course_title,
+            course_discripton = Course_description,
+            course_Overseers = Course_teacher,
+            course_minimum_grade = Course_min_grade,
+            course_maximum_grade = Course_max_grade,
+            course_maximum_people = Course_max_people,
+            course_hosts = Course_hosts,
+        )
+        db.session.add(new_Course)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        print(f"Error creating a new Course #${Course_id} ${Course_title}")
+
+
+# ------------------------------------------------------------------------------
+# This is the place where the magic happens ✨✨✨
+
+
+
+
