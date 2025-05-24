@@ -6,31 +6,51 @@ Präsentationsauswahl
 
 {% block content %}
 
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tdw/tdw_selection.css') }}">
+</head>
 
 <body>
+
+
     <!-- Pls do not change the form, bc it is generated yk-->
     <div class="container">
+
+    <div id="logout">
+        <form action="{{ url_for('tdw.logout') }}" method="post">
+            <input type="submit" value="Logout" class="logout_button">
+        </form>
+    </div>
         <h1>Präsentationsauswahl für {{ student }}</h1>
 
-        <div class="selection-counter">
-            Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit">7</span>
-        </div>
+
 
         <form action="{{ url_for('tdw.submit_selection') }}" method="post">
             <table>
+                <tr>
+                    <th>Titel</th>
+                    <th>Dozent</th>
+                    <th>Abstract</th>
+                    <th>Auswahl</th>
+                </tr>
                 {% for presentation in presentations %}
                 <tr>
-                    <td>
-                        <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if
-                            presentation in chosen_presentations %}checked{% endif %}>
-                    </td>
                     <td>{{ presentations[presentation][0] }}</td>
                     <td>{{ presentations[presentation][1] }}</td>
                     <td>{{ presentations[presentation][2] }}</td>
+                    <td class="checkbox-cell">
+                        <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if
+                            presentation in chosen_presentations %}checked{% endif %}>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
-            <input type="submit" value="Submit" class="button">
+            <div class="submit-selection-container">
+                <div class="selection-counter">
+                    Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit">7</span>
+                </div>
+                <input type="submit" value="Submit" class="button" class="submit-button">
+            </div>
         </form>
     </div>
 
@@ -39,11 +59,8 @@ Präsentationsauswahl
         Du kannst maximal <span id="limit-text">7</span> Präsentationen anwählen!
     </div>
 
-    <div id="logout">
-        <form action="{{ url_for('tdw.logout') }}" method="post">
-            <input type="submit" value="Logout" class="button">
-        </form>
-    </div>
+  
+
 
     <script>
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -83,11 +100,13 @@ Präsentationsauswahl
     </script>
 
     <style>
-        h1 {
-            text-align: center;
-            margin-top: 20px;
-            background: #4729a9;
-            color: white;
+        .left-align {
+            float: left;
+            margin-right: auto;
+        }
+        
+        .checkbox-cell {
+            text-align: right;
         }
     </style>
 </body>
