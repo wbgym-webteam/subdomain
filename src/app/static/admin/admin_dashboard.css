@@ -18,7 +18,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
+            /*backdrop-filter: blur(10px);
             margin-top: 60px;  /* Changed from 20px to 50px */
             text-align: center;
         }
