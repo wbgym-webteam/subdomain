@@ -12,11 +12,17 @@ from sqlalchemy import text
 
 import json
 import os
+import zipfile
 
 from .tdw_filehandler import FileHandler
 from .tdw_logincode_export import export_logincodes
 from .tdw_selection_export import SelectionExporter
+
+from .sms_filehandler import FileHandler as FileHandlerSMS
+from .sms_logincode_export import export_logincodes as export_logincodesSMS
+from .sms_selection_export import SelectionExporter as SelectionExporterSMS
 from . import db
+from .models import StudentSMS, Student_course, Course  
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
@@ -157,7 +163,7 @@ def sms_upload_file():
         return redirect(url_for("admin_views.sms_panel"))
     file.save("app/data/sms/uploads/workbook.xlsx")
 
-    FileHandler()
+    FileHandlerSMS()
     return redirect("/admin/sms/panel")
 
 
@@ -184,22 +190,25 @@ def sms_module_status():
 @admin_views.route("/sms/export_logincodes", methods=["POST"])
 def sms_export_logincodes_route():
     if request.method == "POST":
-        export_logincodes()
+        export_logincodesSMS()
         return redirect("./panel")
 
 
 @admin_required
-@admin_views.route("/sms/download_logincodes")
-def sms_download_logincodes():
+@admin_views.route("/sms/download_logincodes", methods=["GET"])
+def sms_download_logincodes():  # Ensure this function is used for the SMS route
     download_dir = "./data/sms/downloads"
     return send_from_directory(download_dir, "SmS_Logincodes.zip", as_attachment=True)
+
+    
+        
 
 
 @admin_required
 @admin_views.route("/sms/export_selections", methods=["POST"])
 def sms_export_selections():
     if request.method == "POST":
-        SelectionExporter(db, "app/data/sms/uploads/workbook.xlsx")
+        SelectionExporterSMS(db, "app/data/sms/uploads/workbook.xlsx")
         return redirect("./panel")
     else:
         return redirect("./panel")
