@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 import os
 
-from .models import Student
+from .models import Student, StudentSMS
 
 auth = Blueprint("auth", __name__)
 from . import db
@@ -12,6 +12,15 @@ from . import db
 def logincode_exists(c):
     student_id = db.session.execute(
         db.select(Student.id).filter_by(logincode=c)
+    ).one_or_none()
+    if student_id == None:
+        return False
+    return str(student_id[0])
+
+
+def sms_logincode_exists(c):
+    student_id = db.session.execute(
+        db.select(StudentSMS.Student_id).filter_by(logincode=c)
     ).one_or_none()
     if student_id == None:
         return False
@@ -43,8 +52,19 @@ def login():
                     sms_module_status=sms_module_status,
                 )
         elif request.form.get("event") == "sms" and sms_module_status == "active":
-            pass
-        # TODO: add the logic here, when the module is in dev
+            logincode = request.form.get("logincode")
+            student_id = sms_logincode_exists(logincode)
+            print(student_id)
+            if student_id:
+                session["sms_student_id"] = student_id
+                session["logged_in"] = True
+                return redirect("/sms")
+            else:
+                return render_template(
+                    "login.html",
+                    tdw_module_status=tdw_module_status,
+                    sms_module_status=sms_module_status,
+                )
         else:
             return render_template(
                 "login.html",
