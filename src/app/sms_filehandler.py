@@ -77,7 +77,7 @@ def create_course(Course_id, Course_title, Course_description, Course_teacher, C
         new_Course = Course(
             course_id = Course_id,
             course_title = Course_title,
-            course_discripton = Course_description,
+            course_description = Course_description,
             course_Overseers = Course_teacher,
             course_minimum_grade = Course_min_grade,
             course_maximum_grade = Course_max_grade,
@@ -156,10 +156,10 @@ def FileHandler():
         )
 
     # Get the Presentations
-    presentations_sheet = workbook.worksheets[1]
+    Course_sheet = workbook.worksheets[1]
 
     for row_index, row in enumerate(
-        presentations_sheet.iter_rows(min_row=2, values_only=True), start=2
+        Course_sheet.iter_rows(min_row=2, values_only=True), start=2
     ):
         course_id = row[0]
         course_title = row[1]
@@ -197,7 +197,7 @@ def FileHandler():
         ):
             break
 
-        create_course(course_id, course_title, course_discription, course_teacher, course_min_grade, course_min_grade, course_max_people, course_hosts)
+        create_course(course_id, course_title, course_discription, course_teacher, course_min_grade, course_max_grade, course_max_people, course_hosts)
 
 
         print(f"{student_id} {course_id}")

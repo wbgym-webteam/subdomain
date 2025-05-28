@@ -34,16 +34,16 @@ class Selection(db.Model):
     __tablename__ = "selections"
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, nullable=False)
-    presentation_id = db.Column(db.Integer, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id", name="fk_selection_student_id"), nullable=False)
+    presentation_id = db.Column(db.Integer, db.ForeignKey("presentations.id", name="fk_selection_presentation_id"), nullable=False)
 
 
 class BlockedPresentation(db.Model):
     __tablename__ = "blocked_presentations"
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, nullable=False)
-    presentation_id = db.Column(db.Integer, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id", name="fk_blocked_presentation_student_id"), nullable=False)
+    presentation_id = db.Column(db.Integer, db.ForeignKey("presentations.id", name="fk_blocked_presentation_presentation_id"), nullable=False)
 
 
 
@@ -69,8 +69,8 @@ class StudentSMS(db.Model):
 class Student_course(db.Model):
     __tablename__ = "student_course"
 
-    Student_id = db.Column(db.Integer, db.ForeignKey("students_sms.Student_id"), primary_key=True)
-    Course_id = db.Column(db.Integer, db.ForeignKey("courses.course_id"), primary_key=True)
+    Student_id = db.Column(db.Integer, db.ForeignKey("students_sms.Student_id", name="fk_student_course_student_id"), primary_key=True)
+    Course_id = db.Column(db.Integer, db.ForeignKey("courses.course_id", name="fk_student_course_course_id"), primary_key=True)
     weight = db.Column(db.Integer, nullable=False)
 
 
@@ -79,7 +79,7 @@ class Course(db.Model):
 
     course_id = db.Column(db.Integer, primary_key=True)
     course_title = db.Column(db.String, nullable=False)
-    couse_description = db.Column(db.String, nullable=False)
+    course_description = db.Column(db.String, nullable=False)
     course_hosts = db.Column(db.String, nullable=False)
     course_Overseers = db.Column(db.String, nullable=False)
     course_minimum_grade = db.Column(db.Integer, nullable=False)
