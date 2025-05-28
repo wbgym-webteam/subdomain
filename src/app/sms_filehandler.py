@@ -170,20 +170,7 @@ def FileHandler():
         course_max_people = row[6]
         course_hosts = row[7]
 
-
-        #not sure if this is needed
-        #grades = []
-        #g = 5
-        #for grade in row[4:12]:
-         #   if grade == -1:
-          #      grades.append(g)
-           # else:
-            #    pass
-            #g += 1
-
-        #grades = str(grades)[1:-1]
-
-        print(f"{course_id} {course_title} {course_hosts} {course_title}")
+        print(f"{course_id} {course_title} {course_hosts} {course_discription}")
 
         if (
             course_id == None
@@ -195,15 +182,12 @@ def FileHandler():
             or course_max_people == None
             or course_hosts == None
         ):
+            print(f"Skipping row {row_index} due to missing data")
             break
 
         create_course(course_id, course_title, course_discription, course_teacher, course_min_grade, course_max_grade, course_max_people, course_hosts)
 
-
-        print(f"{student_id} {course_id}")
-
-        if student_id == None or course_id == None:
-            break
+    print("Finished processing courses")
 
 
 

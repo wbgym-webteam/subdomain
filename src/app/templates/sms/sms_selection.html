@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Kurswahl - {{ student }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+    <!-- Course selection form matching login structure -->
+    <div class="login-container sms-container">
+        <h1>SMS Kurswahl</h1>
+        <h2 class="welcome-message">Willkommen, {{ student }}!</h2>
+        <p>Bitte wählen Sie Ihre Kurswünsche aus (1. Wunsch = höchste Priorität, max. 6 Wünsche)</p>
+
+        <div class="selection-counter">
+            Ausgewählte Kurswünsche: <span id="selection-count">0</span>/<span id="selection-limit">6</span>
+            <!-- Debug info -->
+            <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                Verfügbare Kurse: {{ courses|length }}
+            </div>
+        </div>
+
+        <form action="{{ url_for('sms.submit_selection') }}" method="post">
+            <div class="courses-container">
+                {% if courses %}
+                    {% for course in courses %}
+                    <div class="course-card">
+                        <div class="course-header" onclick="toggleCourse('{{ course.id }}')">
+                            <div class="course-title-section">
+                                <h3 class="course-title">{{ course.name }}</h3>
+                                <div class="expand-icon" id="icon_{{ course.id }}">▼</div>
+                            </div>
+                            <div class="wish-dropdown-section">
+                                <select name="wish_{{ course.id }}" 
+                                        id="wish_{{ course.id }}" 
+                                        class="wish-select" 
+                                        title="Wunschpriorität für {{ course.name }}"
+                                        aria-label="Wunschpriorität für {{ course.name }}"
+                                        onchange="updateWishes()"
+                                        onclick="event.stopPropagation()">
+                                    <option value="">Nicht gewählt</option>
+                                    {% set selected_priority = chosen_courses.get(course.id|string) %}
+                                    <option value="1" {% if selected_priority == 1 %}selected{% endif %}>1. Wunsch</option>
+                                    <option value="2" {% if selected_priority == 2 %}selected{% endif %}>2. Wunsch</option>
+                                    <option value="3" {% if selected_priority == 3 %}selected{% endif %}>3. Wunsch</option>
+                                    <option value="4" {% if selected_priority == 4 %}selected{% endif %}>4. Wunsch</option>
+                                    <option value="5" {% if selected_priority == 5 %}selected{% endif %}>5. Wunsch</option>
+                                    <option value="6" {% if selected_priority == 6 %}selected{% endif %}>6. Wunsch</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="course-details" id="details_{{ course.id }}" style="display: none;">
+
+                            <div class="detail-row">
+                                <span class="detail-label">Beschreibung:</span>
+                                <span class="detail-value">{{ course.description }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Hosts:</span>
+                                <span class="detail-value">{{ course.hosts }}</span>
+                            </div>
+                           <div class="detail-row">
+                                <span class="detail-label">Lehrer:</span>
+                                <span class="detail-value">{{ course.teacher }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Verfügbare Plätze:</span>
+                                <span class="detail-value">{{ course.available_spots }} Plätze</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div style="text-align: center; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                    <p><strong>Keine Kurse verfügbar</strong></p>
+                    <p>Es wurden keine Kurse für Ihre Klassenstufe gefunden.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <input type="submit" value="Auswahl bestätigen" class="submit" id="submitBtn">
+        </form>
+
+        <!-- Error message for conflicts -->
+        <div id="limit-message" class="error-message error-hidden">
+            <span id="limit-text">Bitte beachten Sie: Jede Priorität kann nur einmal vergeben werden!</span>
+        </div>
+
+        <!-- Wishes summary -->
+        <div id="wishes-summary" class="wishes-container">
+            <h3>Ihre Kurswünsche im Überblick:</h3>
+            <div id="wishesDisplay">
+                <p>Noch keine Wünsche ausgewählt</p>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <a href="{{ url_for('sms.logout') }}" class="logout-btn">Abmelden</a>
+        </div>
+    </div>
+
+    <!-- Admin panel similar to login -->
+    <div class="admin-panel">
+        <a href="/admin_login">Admin</a>
+    </div>
+
+    <script>
+        function toggleCourse(courseId) {
+            const details = document.getElementById('details_' + courseId);
+            const icon = document.getElementById('icon_' + courseId);
+            
+            if (details.style.display === 'none' || details.style.display === '') {
+                details.style.display = 'block';
+                icon.textContent = '▲';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                details.style.display = 'none';
+                icon.textContent = '▼';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function updateWishes() {
+            const wishSelects = document.querySelectorAll('select[name^="wish_"]');
+            const selectionCount = document.getElementById('selection-count');
+            const limitMessage = document.getElementById('limit-message');
+            const wishesDisplay = document.getElementById('wishesDisplay');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Collect all selected wishes
+            const wishes = [];
+            const usedPriorities = new Set();
+            let hasConflict = false;
+            
+            wishSelects.forEach(select => {
+                const courseId = select.name.replace('wish_', '');
+                const priority = select.value;
+                const courseName = select.closest('.course-card').querySelector('.course-title').textContent;
+                
+                if (priority) {
+                    if (usedPriorities.has(priority)) {
+                        hasConflict = true;
+                    }
+                    usedPriorities.add(priority);
+                    wishes.push({
+                        courseId: courseId,
+                        courseName: courseName,
+                        priority: parseInt(priority)
+                    });
+                }
+            });
+            
+            // Update selection count
+            selectionCount.textContent = wishes.length;
+            
+            // Sort wishes by priority
+            wishes.sort((a, b) => a.priority - b.priority);
+            
+            // Update wishes display
+            if (wishes.length === 0) {
+                wishesDisplay.innerHTML = '<p>Noch keine Wünsche ausgewählt</p>';
+            } else {
+                let html = '<ol>';
+                wishes.forEach(wish => {
+                    html += `<li><strong>${wish.courseName}</strong></li>`;
+                });
+                html += '</ol>';
+                wishesDisplay.innerHTML = html;
+            }
+            
+            // Show/hide error message and enable/disable submit
+            if (hasConflict) {
+                limitMessage.style.display = 'block';
+                submitBtn.disabled = true;
+            } else if (wishes.length > 6) {
+                limitMessage.querySelector('#limit-text').textContent = 'Maximal 6 Wünsche erlaubt!';
+                limitMessage.style.display = 'block';
+                submitBtn.disabled = true;
+            } else {
+                limitMessage.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', updateWishes);
+    </script>
+
+    <style>
+        /* SMS-specific overrides */
+        .sms-container {
+            max-width: 1200px;
+            width: 90%;
+        }
+
+        .welcome-message {
+            color: #560d4f;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .error-hidden {
+            display: none;
+        }
+
+        /* Admin panel from login */
+        div.admin-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #7b598d;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        div.admin-panel a {
+            text-decoration: none;
+            color: #4c0275;
+            font-size: 14px;
+        }
+
+        .selection-counter {
+            text-align: center;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #560d4f;
+        }
+
+        .courses-container {
+            margin-bottom: 20px;
+        }
+
+        .course-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .course-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: background-color 0.3s ease;
+            position: relative;
+            border-bottom: 1px solid #eee;
+        }
+
+        .course-header:hover {
+            background: #e9ecef;
+        }
+
+        .course-title-section {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .course-title {
+            margin: 0;
+            color: #560d4f;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .expand-icon {
+            margin-left: 15px;
+            color: #560d4f;
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .wish-dropdown-section {
+            margin-left: 20px;
+        }
+
+        .course-details {
+            padding: 20px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #560d4f;
+            min-width: 120px;
+            margin-right: 15px;
+        }
+
+        .detail-value {
+            color: #333;
+            flex: 1;
+        }
+
+        /* Styled dropdown matching login select */
+        .wish-select {
+            padding: 10px;
+            background-color: #560d4f;
+            color: white;
+            border-radius: 15px;
+            border: 1px solid white;
+            margin-bottom: 5px;
+            width: 130px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wish-select:focus {
+            outline: none;
+            background-color: #8846a4;
+            box-shadow: 0 0 8px rgba(134, 70, 164, 0.4);
+        }
+
+        .wish-select:hover {
+            background-color: #8846a4;
+            transform: translateY(-1px);
+        }
+
+        .wish-select option {
+            padding: 8px;
+            background: #560d4f;
+            color: white;
+        }
+
+        .error-message {
+            background: #e67272;
+            border: 1px solid #c53d3d;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            color: rgb(170, 5, 5);
+            text-align: center;
+        }
+
+        .wishes-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .wishes-container h3 {
+            margin-top: 0;
+            color: #560d4f;
+        }
+
+        .wishes-container ol {
+            text-align: left;
+            margin: 10px 0;
+            color: black;
+        }
+
+        .wishes-container li {
+            margin: 5px 0;
+        }
+
+        .logout-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .logout-btn {
+            background-color: #560d4f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #8846a4;
+            transform: translateY(-2px);
+        }
+    </style>
+</body>
+</html>

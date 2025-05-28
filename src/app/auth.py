@@ -44,12 +44,13 @@ def login():
             if student_id:
                 session["tdw_student_id"] = student_id
                 session["logged_in"] = True
-                return redirect("/tdw")  # Redirect to a student dashboard or home page
+                return redirect("/tdw")
             else:
                 return render_template(
                     "login.html",
                     tdw_module_status=tdw_module_status,
                     sms_module_status=sms_module_status,
+                    error="Ungültiger Login-Code für TdW",
                 )
         elif request.form.get("event") == "sms" and sms_module_status == "active":
             logincode = request.form.get("logincode")
@@ -64,12 +65,14 @@ def login():
                     "login.html",
                     tdw_module_status=tdw_module_status,
                     sms_module_status=sms_module_status,
+                    error="Ungültiger Login-Code für SmS",
                 )
         else:
             return render_template(
                 "login.html",
                 tdw_module_status=tdw_module_status,
                 sms_module_status=sms_module_status,
+                error="Bitte wählen Sie ein aktives Modul",
             )
     else:
         return render_template(
