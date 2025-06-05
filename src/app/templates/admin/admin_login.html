@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Login - Admin
+{% endblock %}
+
+{% block content %}
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin_login.css') }}">
+</head>
+<form method="post" class="login-container">
+    <h1>Admin Login</h1>
+    <input type="text" name="username" id="username" placeholder="Username">
+    <input type="password" name="password" id="password" placeholder="Password">
+    <input type="submit" value="Login" id="submit">
+    <p id="errorMessage" class="error-message"></p>
+</form>
+
+
+
+
+{% endblock %}

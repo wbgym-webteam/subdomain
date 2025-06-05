@@ -1,5 +1,19 @@
 __pycache__
 .venv
+ubuntu
+.vscode
+.env
+*.wheel
+wheels
+
 wbgym.db
+wbgym.db-journal
+
+*.xlsx
+*.docx
+*.zip
+
+instance
+migrations
 
 uv.lock

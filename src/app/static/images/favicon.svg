@@ -1,0 +1,28 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="180px" height="180px" viewBox="0 0 1800 1800" preserveAspectRatio="xMidYMid meet">
+<style>
+    g#outerLayer{
+        fill: #560d50;
+    }
+    g#innerLayer {
+        fill: #ffffff;
+    }
+
+   @media (prefers-color-scheme: dark) 
+   {
+        g#outerLayer{
+            fill: #ffffff;
+        }
+        g#innerLayer {
+            fill: #560d50;
+        }
+    }
+</style>
+<g id="outerLayer" stroke="none">
+ <path d="M230 898 l0 -898 680 0 680 0 0 680 0 680 -466 0 -466 0 -214 218 -213 217 -1 -897z"/>
+ </g>
+<g id="innerLayer" stroke="none">
+ <path d="M540 685 l0 -375 375 0 375 0 0 375 0 375 -375 0 -375 0 0 -375z"/>
+ </g>
+
+</svg>

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}
+TdW - Admin Panel
+{% endblock %}
+
+{% block content %}
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/tdw_panel.css') }}">
+</head>
+
+<div class="container">
+    <h1>TdW - Control Panel</h1>
+
+
+   <!-- <a href="../admin_logout">Logout</a> -->
+
+<main>
+    <!-- Upload -->
+    <form action="{{ url_for('admin_views.upload_file') }}" method="post" enctype="multipart/form-data">
+        <label id="label" for="file" >Upload File:</label>
+        <input type="file" name="file" id="file" accept=".xlsx, .xls" required>
+        <button type="submit" class="admin_button" >Upload</button>
+    </form>
+
+    <!-- Login Code Export -->
+    <form action="{{ url_for('admin_views.export_logincodes_route') }}" method="post">
+        <label id="label" for="export_login_codes">Export Login Codes:</label>
+        <button type="submit" class="admin_button">Export</button>
+    </form>
+
+    <a href="{{ url_for('admin_views.download_logincodes') }}" download>
+        <button class="admin_button"w>Download Logincodes</button>
+    </a>
+
+    <!-- Selection Export -->
+    <form action="{{ url_for('admin_views.export_selections') }}" method="post">
+        <label id="label" for="export_login_codes">Export Selections:</label>
+        <button type="submit" class="admin_button">Export</button>
+    </form>
+
+    <a href="{{ url_for('admin_views.download_selections') }}" download>
+        <button class="admin_button">Download Selections</button>
+    </a>
+
+    <!-- Activate / Deactivate the module -->
+    <form action="{{ url_for('admin_views.module_status') }}" method="post">
+        <label id="label" for="module_status">Module Status:</label>
+        <p class="status" >{{ status }}</p>
+        <input type="submit" value="Activate / Deactivate" class="admin_input">
+    </form>
+    <a href="{{ url_for('admin_views.admin_logout') }}" class="action-button" style="background: #ff4444;">Logout</a>
+</div>
+</main>
+
+{% endblock %}

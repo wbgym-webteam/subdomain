@@ -1,0 +1,114 @@
+{% extends './base.html' %}
+
+{% block title %}
+Präsentationsauswahl
+{% endblock %}
+
+{% block content %}
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tdw/tdw_selection.css') }}">
+</head>
+
+<body>
+
+
+    <!-- Pls do not change the form, bc it is generated yk-->
+    <div class="container">
+
+    <div id="logout">
+        <form action="{{ url_for('tdw.logout') }}" method="post">
+            <input type="submit" value="Logout" class="logout_button">
+        </form>
+    </div>
+        <h1>Präsentationsauswahl für {{ student }}</h1>
+
+
+
+        <form action="{{ url_for('tdw.submit_selection') }}" method="post">
+            <table>
+                <tr>
+                    <th>Titel</th>
+                    <th>Dozent</th>
+                    <th>Abstract</th>
+                    <th>Auswahl</th>
+                </tr>
+                {% for presentation in presentations %}
+                <tr>
+                    <td>{{ presentations[presentation][0] }}</td>
+                    <td>{{ presentations[presentation][1] }}</td>
+                    <td>{{ presentations[presentation][2] }}</td>
+                    <td class="checkbox-cell">
+                        <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if
+                            presentation in chosen_presentations %}checked{% endif %}>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            <div class="submit-selection-container">
+                <div class="selection-counter">
+                    Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit">7</span>
+                </div>
+                <input type="submit" value="Submit" class="button" class="submit-button">
+            </div>
+        </form>
+    </div>
+
+    <!-- red error message -->
+    <div id="limit-message" class="limit-message" style="display: none;">
+        Du kannst maximal <span id="limit-text">7</span> Präsentationen anwählen!
+    </div>
+
+  
+
+
+    <script>
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const selectionCount = document.getElementById('selection-count');
+        const limitMessage = document.getElementById('limit-message');
+        const limitText = document.getElementById('limit-text');
+        const selectionLimit = 7;
+
+        // Function to update the count of checked checkboxes
+        const updateSelectionCount = () => {
+            const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            selectionCount.textContent = checkedCount;
+            if (checkedCount > selectionLimit) {
+            limitMessage.style.display = 'block';
+            } else {
+            limitMessage.style.display = 'none';
+            }
+        };
+
+        // Initialize the count on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSelectionCount();
+        });
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+            const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
+
+            if (checkedCount <= selectionLimit) {
+                updateSelectionCount();
+            } else {
+                checkbox.checked = false; // Prevent checking the checkbox
+                limitMessage.style.display = 'block'; // Show the limit message
+            }
+            });
+        });
+    </script>
+
+    <style>
+        .left-align {
+            float: left;
+            margin-right: auto;
+        }
+        
+        .checkbox-cell {
+            text-align: right;
+        }
+    </style>
+</body>
+
+{% endblock %}

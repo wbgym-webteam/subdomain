@@ -6,13 +6,48 @@ Login
 
 {% block content %}
 
-<h1>Login</h1>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
 
-<form method="post">
-    {% csrf_token %}
-    <label for="logincode">Login-Code</label>
-    <input type="text" id="logincode">
-    <button>Login</button>
+<form method="post" class="login-container">
+    <h1>Willkommen zurück!</h1>
+    <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
+    <select name="event" id="event-selector">
+        <option value="tdw">TdW</option>
+        <option value="sms" disabled>SmS</option>
+        <!-- enable this option when the SmS module is available -->
+    </select>
+    <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
+    <input type="submit" value="Login" class="submit">
 </form>
 
+<div class="admin-panel">
+    <a href="/admin_login">Admin</a>
+</div>
+
+<style>
+    div.admin-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #7b598d;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    div.admin-panel a {
+        text-decoration: none;
+        color: #4c0275;
+        font-size: 14px;
+    }
+
+    select {
+        padding: 10px;
+        background-color: #560d4f;
+        color: white;
+        border-radius: 15px;
+        border: 1px solid white;
+        margin-bottom: 5px;
+    }
+</style>
 {% endblock %}

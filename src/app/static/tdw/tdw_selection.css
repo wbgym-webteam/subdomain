@@ -1,0 +1,59 @@
+:root {
+    --checkbox: 10px;
+}
+
+.container {
+    background-color: white;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    background: white;
+    color: purple;
+    font-size: 50px;
+
+}
+
+input#checkbox {
+    transform: scale(2);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+tr {
+    border-bottom: 3px solid #000080;
+}
+
+td, th {
+    padding: 8px;
+}
+
+.logout_button {
+    background-color: red;
+    border: none;
+    color: white;
+    opacity: 0.8;
+    padding: 10px 20px;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 2%;
+    margin-left: 2%;
+        float: left;
+}
+
+.submit-selection-container {
+    display: flex;
+    justify-content: flex-end; /* Aligns content to the right */
+    margin-top: 15px;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.submit-button {
+
+}

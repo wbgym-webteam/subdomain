@@ -1,0 +1,74 @@
+:root {
+    --form-fontsize: 16px;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #560d4f, #8846a4);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000000;
+    line-height: 250%;
+}
+
+
+.container {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 40px 35px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+
+h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+
+label#label {
+    font-size: var(--form-fontsize);
+}
+
+.action-button {
+    background-color: #560d4f;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 2px 6px;
+    margin: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    float: right;
+}
+
+.action-button:hover {
+    background-color: #8846a4;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.admin_button {
+    font-size: var(--form-fontsize);
+    background-color: #8846a4;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 6px 12px;
+}
+
+.admin_input {
+    background-color: #1DA1F2;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 6px 12px;
+}
+
+
