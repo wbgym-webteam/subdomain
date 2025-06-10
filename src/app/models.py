@@ -54,17 +54,17 @@ class StudentSMS(db.Model):
     __tablename__ = "students_sms"
 
     Student_id = db.Column(db.Integer, primary_key=True)
-    last_name = db.Column(db.String(80), nullable=False)
-    first_name = db.Column(db.String(80), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
     grade_selector = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False)
-    # no Gender specification in the database needed
+    gender = db.Column(db.String(10), nullable=True)  # Made nullable
     
     #relationship for the Student_course table
-    courses_in_Student_course = db.relationship("Course", 
-                                               secondary="student_course",  # Use the actual table name
-                                               backref="students_in_Student_course")
+    courses_in_Student_course = db.relationship(
+        "Course", 
+        secondary="student_course",  # Use the actual table name
+        backref="students_in_Student_course"
+    )
 
 class Student_course(db.Model):
     __tablename__ = "student_course"

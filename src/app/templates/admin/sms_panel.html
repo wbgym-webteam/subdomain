@@ -19,11 +19,20 @@ SmS - Admin Panel
 </div>
 
 <main>
-    <!-- Upload -->
+    <!-- Upload Initial Data -->
     <form action="{{ url_for('admin_views.sms_upload_file') }}" method="post" enctype="multipart/form-data">
-        <label for="file">Upload File:</label>
-        <input type="file" name="file" id="file" accept=".xlsx, .xls" required>
-        <button type="submit">Upload</button>
+        <label for="data_file">Upload Initial Data File (Classes, IDs, etc.):</label>
+        <input type="file" name="file" id="data_file" accept=".xlsx, .xls" required>
+        <input type="hidden" name="file_type" value="data">
+        <button type="submit">Upload Initial Data</button>
+    </form>
+
+    <!-- Upload Names File -->
+    <form action="{{ url_for('admin_views.sms_upload_file') }}" method="post" enctype="multipart/form-data">
+        <label for="names_file">Upload Names File (for Login Code Export):</label>
+        <input type="file" name="file" id="names_file" accept=".xlsx, .xls" required>
+        <input type="hidden" name="file_type" value="names">
+        <button type="submit">Upload Names File</button>
     </form>
 
     <!-- Login Code Export -->

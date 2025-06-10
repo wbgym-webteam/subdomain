@@ -30,11 +30,11 @@ def selection():
                 return redirect("/login")
             student_id = str(student_id)
 
-            # DB Query to get the student's name and grade
+            # DB Query to get the student's grade (no names stored)
             try:
                 db_current_student = db.session.execute(
                     db.select(
-                        StudentSMS.first_name, StudentSMS.last_name, StudentSMS.grade
+                        StudentSMS.grade
                     ).filter_by(Student_id=student_id)
                 ).one_or_none()
 
@@ -45,10 +45,8 @@ def selection():
                 # It creates a dictionary from the query result to access the values by key
                 current_student = dict(db_current_student._mapping)
 
-                # Extraction of the student's name for display on the template
-                full_name = (
-                    f'{current_student["first_name"]} {current_student["last_name"]}'
-                )
+                # Use student ID as display name since no names are stored
+                full_name = f"Student {student_id}"
 
                 # The grade is relevant for the options that will be displayed
                 grade = current_student["grade"]
@@ -127,9 +125,14 @@ def selection():
 
 @sms.route("/submit_selection", methods=["POST"])
 def submit_selection():
-    if request.method == "POST":
+    try:
+        # Ensure 'sms_student_id' exists in the session
+        if "sms_student_id" not in session:
+            print("Error: 'sms_student_id' not found in session.")
+            return redirect("/login")  # Redirect to login if not set
+
         student_id = str(session["sms_student_id"])
-        
+
         # Collect wish selections from form
         wish_selections = {}
         for key, value in request.form.items():
@@ -143,7 +146,7 @@ def submit_selection():
             db.session.execute(
                 db.delete(Student_course).filter_by(Student_id=int(student_id))
             )
-            
+
             # Insert new wish-based selections using ORM
             for course_id, priority in wish_selections.items():
                 new_selection = Student_course(
@@ -152,15 +155,19 @@ def submit_selection():
                     weight=priority
                 )
                 db.session.add(new_selection)
-            
+
             db.session.commit()
             print(f"Successfully saved {len(wish_selections)} selections for student {student_id}")
-            
+
         except Exception as e:
             print(f"Error saving selections: {e}")
             db.session.rollback()
-            
-    return redirect("/sms")
+
+        return redirect(url_for('sms.selection', success='true'))
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return redirect("/login")
 
 
 @sms.route("/logout")

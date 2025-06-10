@@ -7,10 +7,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
+    <!-- Success Popup -->
+    <div id="success-popup" class="popup-overlay" style="display: none;">
+        <div class="popup-content">
+            <div class="popup-icon">✓</div>
+            <h3>Erfolgreich abgespeichert!</h3>
+            <p>Ihre Kurswünsche wurden erfolgreich übermittelt.</p>
+            <button onclick="closeSuccessPopup()" class="popup-btn">OK</button>
+        </div>
+    </div>
+
     <!-- Course selection form matching login structure -->
     <div class="login-container sms-container">
         <h1>SMS Kurswahl</h1>
-        <h2 class="welcome-message">Willkommen, {{ student }}!</h2>
+        <!--<h2 class="welcome-message">Willkommen, {{ student }}!</h2>-->
         <p>Bitte wählen Sie Ihre Kurswünsche aus (1. Wunsch = höchste Priorität, max. 6 Wünsche)</p>
 
         <div class="selection-counter">
@@ -97,7 +107,7 @@
         </div>
 
         <div class="logout-container">
-            <a href="{{ url_for('sms.logout') }}" class="logout-btn">Abmelden</a>
+            <a href="#" onclick="handleLogout(); return false;" class="logout-btn">Abmelden</a>
         </div>
     </div>
 
@@ -184,8 +194,89 @@
             }
         }
         
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', updateWishes);
+        function showSuccessPopup() {
+            document.getElementById('success-popup').style.display = 'flex';
+        }
+
+        function closeSuccessPopup() {
+            document.getElementById('success-popup').style.display = 'none';
+        }
+
+        function handleLogout() {
+            const wishSelects = document.querySelectorAll('select[name^="wish_"]');
+            const wishes = [];
+            
+            // Check if there are any selected wishes
+            wishSelects.forEach(select => {
+                if (select.value) {
+                    wishes.push({
+                        courseId: select.name.replace('wish_', ''),
+                        priority: select.value
+                    });
+                }
+            });
+
+            if (wishes.length === 6) {
+                // Auto-submit if exactly 6 wishes are selected
+                const form = document.querySelector('form');
+                const formData = new FormData(form);
+                
+                fetch('{{ url_for("sms.submit_selection") }}', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.href = '{{ url_for("sms.logout") }}';
+                    } else {
+                        console.error('Failed to submit selections');
+                        window.location.href = '{{ url_for("sms.logout") }}';
+                    }
+                }).catch(error => {
+                    console.error('Error submitting selections:', error);
+                    window.location.href = '{{ url_for("sms.logout") }}';
+                });
+            } else if (wishes.length > 0) {
+                if (confirm('Sie haben Kurswünsche ausgewählt, die noch nicht gespeichert wurden. Sollen diese automatisch gespeichert werden?')) {
+                    // Auto-submit the form data
+                    const form = document.querySelector('form');
+                    const formData = new FormData(form);
+                    
+                    fetch('{{ url_for("sms.submit_selection") }}', {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => {
+                        if (response.ok) {
+                            window.location.href = '{{ url_for("sms.logout") }}';
+                        } else {
+                            console.error('Failed to submit selections');
+                            window.location.href = '{{ url_for("sms.logout") }}';
+                        }
+                    }).catch(error => {
+                        console.error('Error submitting selections:', error);
+                        window.location.href = '{{ url_for("sms.logout") }}';
+                    });
+                } else {
+                    // User chose not to save, just logout
+                    window.location.href = '{{ url_for("sms.logout") }}';
+                }
+            } else {
+                // No wishes selected, just logout
+                window.location.href = '{{ url_for("sms.logout") }}';
+            }
+        }
+
+        // Check for success parameter in URL to show popup
+        document.addEventListener('DOMContentLoaded', function() {
+            updateWishes();
+            
+            // Check if we came back from a successful submission
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                showSuccessPopup();
+                // Clean up the URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
     </script>
 
     <style>
@@ -398,6 +489,61 @@
         .logout-btn:hover {
             background-color: #8846a4;
             transform: translateY(-2px);
+        }
+
+        /* Popup styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .popup-icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+
+        .popup-content h3 {
+            color: #560d4f;
+            margin-bottom: 10px;
+        }
+
+        .popup-content p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .popup-btn {
+            background-color: #560d4f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .popup-btn:hover {
+            background-color: #8846a4;
         }
     </style>
 </body>

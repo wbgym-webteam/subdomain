@@ -1,29 +1,103 @@
 from docx import Document
 from docx.shared import Pt
 from sqlalchemy import text
+from openpyxl import load_workbook
 import zipfile
-import os
 import os
 
 from . import db
 
 
-def get_class(grade, grade_selector):
-    query = db.session.execute(
+def get_class_with_names(grade, grade_selector):
+    # Get student data from database (without names)
+    db_students = db.session.execute(
         text(
-            f"SELECT first_name, last_name, logincode FROM students_sms WHERE grade = {grade} AND grade_selector = {grade_selector} ORDER BY last_name, first_name"
+            f"SELECT Student_id, logincode FROM students_sms WHERE grade = {grade} AND grade_selector = {grade_selector} ORDER BY Student_id"
         )
     ).fetchall()
-    return query
+    
+    # Load names from Excel file
+    try:
+        workbook = load_workbook("app/data/sms/uploads/workbook.xlsx")
+        sheet = workbook.worksheets[0]
+        
+        # Create mapping of student_id to names
+        student_names = {}
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            if row[0] is None:
+                break
+            student_id = row[0]
+            first_name = row[2] or ""  # Column C
+            last_name = row[1] or ""   # Column B
+            student_names[student_id] = (first_name, last_name)
+        
+        # Combine database data with Excel names
+        result = []
+        for db_student in db_students:
+            student_id = db_student[0]
+            logincode = db_student[1]
+            if student_id in student_names:
+                first_name, last_name = student_names[student_id]
+                # Create a mock object with attributes
+                class StudentRecord:
+                    def __init__(self, first_name, last_name, logincode):
+                        self.first_name = first_name
+                        self.last_name = last_name
+                        self.logincode = logincode
+                
+                result.append(StudentRecord(first_name, last_name, logincode))
+        
+        return sorted(result, key=lambda x: (x.last_name, x.first_name))
+        
+    except Exception as e:
+        print(f"Error reading Excel file: {e}")
+        return []
 
 
-def get_sek2(grade):
-    query = db.session.execute(
+def get_sek2_with_names(grade):
+    # Get student data from database (without names)
+    db_students = db.session.execute(
         text(
-            f"SELECT first_name, last_name, logincode FROM students_sms WHERE grade = {grade} ORDER BY last_name, first_name"
+            f"SELECT Student_id, logincode FROM students_sms WHERE grade = {grade} ORDER BY Student_id"
         )
     ).fetchall()
-    return query
+    
+    # Load names from Excel file
+    try:
+        workbook = load_workbook("app/data/sms/uploads/workbook.xlsx")
+        sheet = workbook.worksheets[0]
+        
+        # Create mapping of student_id to names
+        student_names = {}
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            if row[0] is None:
+                break
+            student_id = row[0]
+            first_name = row[2] or ""  # Column C
+            last_name = row[1] or ""   # Column B
+            student_names[student_id] = (first_name, last_name)
+        
+        # Combine database data with Excel names
+        result = []
+        for db_student in db_students:
+            student_id = db_student[0]
+            logincode = db_student[1]
+            if student_id in student_names:
+                first_name, last_name = student_names[student_id]
+                # Create a mock object with attributes
+                class StudentRecord:
+                    def __init__(self, first_name, last_name, logincode):
+                        self.first_name = first_name
+                        self.last_name = last_name
+                        self.logincode = logincode
+                
+                result.append(StudentRecord(first_name, last_name, logincode))
+        
+        return sorted(result, key=lambda x: (x.last_name, x.first_name))
+        
+    except Exception as e:
+        print(f"Error reading Excel file: {e}")
+        return []
 
 
 def zip_files():
@@ -51,12 +125,12 @@ def export_logincodes():
         for grade_selector in range(1, 5, 1):
             if grade == 11 or grade == 12 or grade == 5 or grade == 6:
                 print(f"Exporting grade {grade}")
-                query = get_sek2(grade)
+                query = get_sek2_with_names(grade)
             else:
                 print(f"Exporting grade {grade}/{grade_selector}")
-                query = get_class(grade, grade_selector)
+                query = get_class_with_names(grade, grade_selector)
 
-            if len(query) > 0 or query is not None:
+            if len(query) > 0:
                 doc = Document()
                 # ----------------------------------------------------------------
                 # Add a title
@@ -83,7 +157,6 @@ def export_logincodes():
                     cell.text = header
 
                     # Set font size and make it bold
-
                     for paragraph in cell.paragraphs:
                         run = paragraph.runs[0]
                         run.bold = True
@@ -101,7 +174,6 @@ def export_logincodes():
                             paragraph.paragraph_format.space_after = Pt(14)
                             paragraph.paragraph_format.space_before = Pt(14)
                             paragraph.paragraph_format.line_spacing = Pt(14)
-
 
                 if grade == 11 or grade == 12 or grade == 5 or grade == 6:
                     doc.save(os.path.join(output_dir, f"SmS_Logincodes_{grade}.docx"))

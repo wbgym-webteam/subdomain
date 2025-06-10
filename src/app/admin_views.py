@@ -5,7 +5,8 @@ from flask import (
     redirect,
     url_for,
     session,
-    send_from_directory
+    send_from_directory,
+    send_file
 )
 
 from sqlalchemy import text
@@ -157,13 +158,24 @@ def sms_Panel():
 @admin_views.route("/sms/upload_file", methods=["POST"])
 def sms_upload_file():
     if "file" not in request.files:
-        return redirect(url_for("admin_views.sms_panel"))
+        return redirect(url_for("admin_views.sms_Panel"))
     file = request.files["file"]
     if file.filename == "":
-        return redirect(url_for("admin_views.sms_panel"))
-    file.save("app/data/sms/uploads/workbook.xlsx")
+        return redirect(url_for("admin_views.sms_Panel"))
+    
+    # Check if this is a names file upload
+    file_type = request.form.get("file_type", "data")
+    
+    if file_type == "names":
+        # Save as names file
+        file.save("app/data/sms/uploads/names_workbook.xlsx")
+        print("Names file uploaded successfully")
+    else:
+        # Save as regular data file
+        file.save("app/data/sms/uploads/workbook.xlsx")
+        FileHandlerSMS()
+        print("Data file uploaded and processed successfully")
 
-    FileHandlerSMS()
     return redirect("/admin/sms/panel")
 
 
@@ -207,15 +219,54 @@ def sms_download_logincodes():  # Ensure this function is used for the SMS route
 @admin_required
 @admin_views.route("/sms/export_selections", methods=["POST"])
 def sms_export_selections():
-    if request.method == "POST":
-        SelectionExporterSMS(db, "app/data/sms/uploads/workbook.xlsx")
-        return redirect("./panel")
-    else:
-        return redirect("./panel")
-    
+    try:
+        print("Starting SMS selection export...")
+        # Use the SelectionExporter with relative path (it will create the path automatically)
+        result_file_path = SelectionExporterSMS(db)
+        
+        if result_file_path and os.path.exists(result_file_path):
+            print(f"Export successful, file created at: {result_file_path}")
+            # Redirect to panel instead of download to avoid immediate download
+            return redirect(url_for("admin_views.sms_Panel"))
+        else:
+            print("Export failed - no file created")
+            return redirect(url_for("admin_views.sms_Panel"))
+    except Exception as e:
+        print(f"Error exporting selections: {e}")
+        import traceback
+        traceback.print_exc()
+        return redirect(url_for("admin_views.sms_Panel"))
+
 
 @admin_required
-@admin_views.route("/sms/download_selections")
+@admin_views.route("/sms/download_selections", methods=["GET"])
 def sms_download_selections():
-    uploads_dir = "./data/sms/uploads"
-    return send_from_directory(uploads_dir, "workbook.xlsx", as_attachment=True)
+    try:
+        # Use relative path from the current file location
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        download_dir = os.path.join(current_dir, 'data', 'sms', 'downloads')
+        file_name = "Kurs_Wuensche.xlsx"
+        file_path = os.path.join(download_dir, file_name)
+        
+        print(f"Looking for file at: {file_path}")
+        print(f"File exists: {os.path.exists(file_path)}")
+        
+        if not os.path.exists(file_path):
+            print("File not found, creating export first...")
+            # Try to create the file first
+            result_file_path = SelectionExporterSMS(db)
+            if not result_file_path or not os.path.exists(result_file_path):
+                print("Could not create export file")
+                return redirect(url_for("admin_views.sms_Panel"))
+        
+        return send_from_directory(
+            download_dir,
+            file_name,
+            as_attachment=True,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        print(f"Error downloading selections: {e}")
+        import traceback
+        traceback.print_exc()
+        return redirect(url_for("admin_views.sms_Panel"))
