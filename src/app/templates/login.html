@@ -11,15 +11,18 @@ Login
 </head>
 
 <form method="post" class="login-container">
+    {% if tdw_module_status != "inactive" or sms_module_status != "inactive" %}
     <h1>Willkommen zurück!</h1>
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     <select name="event" id="event-selector">
-        <option value="tdw" {% if tdw_module_status == "inactive" %} disabled {% endif %}>TdW</option>
-        <option value="sms" {% if sms_module_status == "inactive" %} disabled {% endif %}>SmS</option>
+        {% if tdw_module_status != "inactive" %} <option value="tdw">TdW</option>  {% endif %}
+        {% if sms_module_status != "inactive" %} <option value="sms">SmS</option>  {% endif %}
         <!-- enable this option when the SmS module is available -->
     </select>
     <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
     <input type="submit" value="Login" class="submit">
+    {% endif %}
+    {% if tdw_module_status == "inactive" and sms_module_status == "inactive" %} <h1>Derzeit kann man sich nicht für SmS oder Tdw anmelden.</h1>  {% endif %}
 </form>
 
 <!--<div class="admin-panel">
