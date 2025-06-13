@@ -20,15 +20,15 @@ On these pages you will find all the information you need 💻.
 
     Clone the Game of Grapes repo: • Create new file called gog
 
-    mkdir gog
+    mkdir Subdomain
 
 • Clone the GitHub repository
 
-    Git Clone link/to/the/gameofgrapes/repo
+    Git Clone link/to/the/subdomain/repo
 
     Create the Virtual Environment: • Change directory to src
 
-    Cd gog/gog/src
+    Cd Subdomain/subdomain/src
 
 • Create the Virtual Environment  Python3 -m venv .venv
 
@@ -38,19 +38,19 @@ On these pages you will find all the information you need 💻.
 
     Install necessary Dependencies: • Create the service file
 
-    Sudo nano /etc/systemd/system/flaskapp.service
+    Sudo nano /etc/systemd/system/subdomain.service
 
 • Add the following configuration to the file and if necessary adapt some of the Statements:
 
 [Unit] Description=Gunicorn instance to serve Flask app After=network.target
 
-[Service] User=webteam Group=www-data WorkingDirectory=/gog/gog/src Environment="PATH=/gog/gog/src/.venv/bin" ExecStart=/gog/gog/src/.venv/bin/python -m gunicorn -w 4 -b 0.0.0.0:8000 main:app Restart=always
+[Service] User=webteam Group=www-data WorkingDirectory=/Subdomain/subdomain/src Environment="PATH=/Subdomain/venv/bin" ExecStart=/Subdomain/subdomain/src/.venv/bin/python -m gunicorn -w 4 -b 0.0.0.0:8000 main:app Restart=always
 
 [Install] WantedBy=multi-user.target
 
-    Start and Enable the Service: • Reload system and start the Flask service  Sudo systemctl daemon-reload  Sudo systemctl start flaskapp  Sudo systemctl enable flaskapp
+    Start and Enable the Service: • Reload system and start the Flask service  Sudo systemctl daemon-reload  Sudo systemctl start subdomain  Sudo systemctl enable subdomain
 
-• Check Status • Sudo systemctl status flaskapp
+• Check Status • Sudo systemctl status subdomain
 
     Customize the Firewalls inside the Serverhosters terminal (copied from Digital ocean hosting platform) • Add these specific inbound firewall settings
 
