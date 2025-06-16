@@ -15,3 +15,55 @@ The documentation is found in the `/docs` folder. It is written in Markdown and 
 
 
 On these pages you will find all the information you need 💻.
+
+
+#Deployment Guide:
+
+    Clone the Game of Grapes repo: • Create new file called gog
+
+    mkdir Subdomain
+
+• Clone the GitHub repository
+
+    Git Clone link/to/the/subdomain/repo
+
+    Create the Virtual Environment: • Change directory to src
+
+    Cd Subdomain/subdomain/src
+
+• Create the Virtual Environment  Python3 -m venv .venv
+
+• Activate the Virtual Environment
+
+    Source .venv/bin/activate
+
+    Install necessary Dependencies: • Create the service file
+
+    Sudo nano /etc/systemd/system/subdomain.service
+
+• Add the following configuration to the file and if necessary adapt some of the Statements:
+
+[Unit] Description=Gunicorn instance to serve Flask app After=network.target
+
+[Service] User=webteam Group=www-data WorkingDirectory=/Subdomain/subdomain/src Environment="PATH=/Subdomain/venv/bin" ExecStart=/Subdomain/subdomain/src/.venv/bin/python -m gunicorn -w 4 -b 0.0.0.0:8000 main:app Restart=always
+
+[Install] WantedBy=multi-user.target
+
+    Start and Enable the Service: • Reload system and start the Flask service  Sudo systemctl daemon-reload  Sudo systemctl start subdomain  Sudo systemctl enable subdomain
+
+• Check Status • Sudo systemctl status subdomain
+
+    Customize the Firewalls inside the Serverhosters terminal (copied from Digital ocean hosting platform) • Add these specific inbound firewall settings
+
+    Type: SSH; Protocol: TCP; Port Range: 22; Sources: All IPv4 and All IPv6
+    Type: Custom; Protocol: TCP; Port Range: 8000; Sources: All IPv4 and All IPv6
+
+• Add these specific outbound firewall setting:
+
+    Type: ICMP; Protocol: ICMP; Destinations: All IPv4 and All IPv6
+    Type: All TCP; Protocol: TCP; Port Range: All ports; Destinations: All IPv4 and All IPv6
+    Type: All UDP; Protocol: TCT; Port Range: All ports; Destinations: All IPv4 and All IPv6
+
+    Test the deployment: • Verify that the application if running (adapt the local host to the servers ipv4)
+
+    Curl http://localhost:8000
