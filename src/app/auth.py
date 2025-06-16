@@ -89,10 +89,26 @@ def adminLogin():
         password = request.form.get("password")
         env_admin_username = os.getenv("ADMIN_USERNAME")
         env_admin_password = os.getenv("ADMIN_PASSWORD")
+        
+        # Debug prints - remove these in production
+        print(f"Form username: '{username}'")
+        print(f"Form password: '{password}'")
+        print(f"Env username: '{env_admin_username}'")
+        print(f"Env password: '{env_admin_password}'")
+        print(f"Username match: {username == env_admin_username}")
+        print(f"Password match: {password == env_admin_password}")
 
         if username == env_admin_username and password == env_admin_password:
             session["admin_logged_in"] = True
-            return redirect("/admin/tdw/panel")
+            session.permanent = True  # Make session permanent
+            # Check if there's a next parameter for redirect
+            next_page = request.args.get('next')
+            if next_page and next_page.startswith('/admin/'):
+                return redirect(next_page)
+            # Default redirect to SMS panel since that's what's being accessed
+            return redirect("/admin/sms/panel")
+        else:
+            return render_template("admin/admin_login.html", error="Invalid credentials")
 
     return render_template("admin/admin_login.html")
 

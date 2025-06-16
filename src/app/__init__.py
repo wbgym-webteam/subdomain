@@ -39,7 +39,7 @@ def create_app():
 
         app.register_blueprint(views, url_prefix="/")
         app.register_blueprint(auth, url_prefix="/")
-        app.register_blueprint(admin_views, url_prefix="/admin")
+        app.register_blueprint(admin_views, url_prefix="/")
         app.register_blueprint(tdw, url_prefix="/tdw")
         app.register_blueprint(sms, url_prefix="/sms")  # Add this registration
 

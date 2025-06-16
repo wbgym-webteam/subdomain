@@ -39,7 +39,8 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get("admin_logged_in"):
-            return redirect(url_for("auth.admin_login"))  # Leite zur Login-Seite weiter
+            # Preserve the original URL for redirect after login
+            return redirect(f"/admin_login?next={request.url}")
         return f(*args, **kwargs)
 
     return decorated_function
@@ -48,15 +49,10 @@ def admin_required(f):
 # ------------------------------------------------------------------
 # Routing for TDW admin views
 
-# Reinstate when needed
-# @admin_required
-# @admin_views.route("/admin_dashboard")
-# def adminDashboard():
-#     return render_template("admin/admin_dashboard.html")
+# Dashboard functionality removed - using panel structure instead
 
-
+@admin_views.route("/admin/tdw/panel", methods=["GET", "POST"])  # Added /admin prefix
 @admin_required
-@admin_views.route("/tdw/panel", methods=["GET", "POST"])
 def tdw_Panel():
     with open("app/data/module_status.json", "r") as f:
         module_status = json.load(f)
@@ -64,22 +60,22 @@ def tdw_Panel():
     return render_template("admin/tdw_panel.html", status=ms)
 
 
+@admin_views.route("/admin/tdw/upload_file", methods=["POST"])
 @admin_required
-@admin_views.route("/tdw/upload_file", methods=["POST"])
 def tdw_upload_file():
     if "file" not in request.files:
-        return redirect(url_for("admin_views.tdw_panel"))
+        return redirect("/admin/tdw/panel")  # Use absolute path
     file = request.files["file"]
     if file.filename == "":
-        return redirect(url_for("admin_views.tdw_panel"))
+        return redirect("/admin/tdw/panel")  # Use absolute path
     file.save("app/data/tdw/uploads/workbook.xlsx")
 
     FileHandler()
-    return redirect("/admin/tdw/panel")
+    return redirect("/admin/tdw/panel")  # Use absolute path
 
 
+@admin_views.route("/admin/tdw/module_status", methods=["POST"])
 @admin_required
-@admin_views.route("/tdw/module_status", methods=["POST"])
 def tdw_module_status():
     with open("app/data/module_status.json", "r") as f:
         data = json.load(f)
@@ -94,43 +90,43 @@ def tdw_module_status():
     with open("app/data/module_status.json", "w") as f:
         json.dump(data, f, indent=4)
 
-    return redirect("./panel")
+    return redirect("/admin/tdw/panel")  # Use absolute path
 
 
+@admin_views.route("/admin/tdw/export_logincodes", methods=["POST"])
 @admin_required
-@admin_views.route("/tdw/export_logincodes", methods=["POST"])
 def tdw_export_logincodes_route():
     if request.method == "POST":
         export_logincodes()
-        return redirect("./panel")
+        return redirect("/admin/tdw/panel")  # Use absolute path
     
+@admin_views.route("/admin/tdw/download_logincodes", methods=["GET"])  # Added /admin prefix
 @admin_required
-@admin_views.route("/tdw/download_logincodes", methods=["GET"])
 def tdw_download_logincodes():
     download_dir = "./data/tdw/downloads"
     return send_from_directory(download_dir, "TdW_Logincodes.zip", as_attachment=True)
     
+@admin_views.route("/admin/tdw/export_selections", methods=["POST"])
 @admin_required
-@admin_views.route("/tdw/export_selections", methods=["POST"])
 def tdw_export_selections():
     if request.method == "POST":
         SelectionExporter(db, "app/data/tdw/uploads/workbook.xlsx")
-        return redirect("./panel")
+        return redirect("/admin/tdw/panel")  # Use absolute path
     else:
-        return redirect("./panel")
+        return redirect("/admin/tdw/panel")  # Use absolute path
 
+@admin_views.route("/admin/tdw/download_selections")  # Added /admin prefix
 @admin_required
-@admin_views.route("/tdw/download_selections")
 def tdw_download_selections():
     uploads_dir = "./data/tdw/uploads"
     return send_from_directory(uploads_dir, "workbook.xlsx", as_attachment=True)
 
 
+@admin_views.route("/admin/admin_logout")  # Added /admin prefix
 @admin_required
-@admin_views.route("/admin_logout")
 def admin_logout():
     session["admin_logged_in"] = False
-    return redirect("/admin_login")
+    return redirect("/admin_login")  # Use absolute path
 
 
 
@@ -145,8 +141,8 @@ def admin_logout():
 #     return render_template("admin/admin_dashboard.html")
 
 
+@admin_views.route("/admin/sms/panel", methods=["GET", "POST"])  # Added /admin prefix
 @admin_required
-@admin_views.route("/sms/panel", methods=["GET", "POST"])
 def sms_Panel():
     with open("app/data/module_status.json", "r") as f:
         module_status = json.load(f)
@@ -154,14 +150,14 @@ def sms_Panel():
     return render_template("admin/sms_panel.html", status=ms)
 
 
+@admin_views.route("/admin/sms/upload_file", methods=["POST"])
 @admin_required
-@admin_views.route("/sms/upload_file", methods=["POST"])
 def sms_upload_file():
     if "file" not in request.files:
-        return redirect(url_for("admin_views.sms_Panel"))
+        return redirect("/admin/sms/panel")  # Use absolute path
     file = request.files["file"]
     if file.filename == "":
-        return redirect(url_for("admin_views.sms_Panel"))
+        return redirect("/admin/sms/panel")  # Use absolute path
     
     # Check if this is a names file upload
     file_type = request.form.get("file_type", "data")
@@ -176,11 +172,11 @@ def sms_upload_file():
         FileHandlerSMS()
         print("Data file uploaded and processed successfully")
 
-    return redirect("/admin/sms/panel")
+    return redirect("/admin/sms/panel")  # Use absolute path
 
 
+@admin_views.route("/admin/sms/module_status", methods=["POST"])
 @admin_required
-@admin_views.route("/sms/module_status", methods=["POST"])
 def sms_module_status():
     with open("app/data/module_status.json", "r") as f:
         data = json.load(f)
@@ -195,19 +191,19 @@ def sms_module_status():
     with open("app/data/module_status.json", "w") as f:
         json.dump(data, f, indent=4)
 
-    return redirect("./panel")
+    return redirect("/admin/sms/panel")  # Use absolute path
 
 
+@admin_views.route("/admin/sms/export_logincodes", methods=["POST"])
 @admin_required
-@admin_views.route("/sms/export_logincodes", methods=["POST"])
 def sms_export_logincodes_route():
     if request.method == "POST":
         export_logincodesSMS()
-        return redirect("./panel")
+        return redirect("/admin/sms/panel")  # Use absolute path
 
 
+@admin_views.route("/admin/sms/download_logincodes", methods=["GET"])  # Added /admin prefix
 @admin_required
-@admin_views.route("/sms/download_logincodes", methods=["GET"])
 def sms_download_logincodes():  # Ensure this function is used for the SMS route
     download_dir = "./data/sms/downloads"
     return send_from_directory(download_dir, "SmS_Logincodes.zip", as_attachment=True)
@@ -216,8 +212,8 @@ def sms_download_logincodes():  # Ensure this function is used for the SMS route
         
 
 
+@admin_views.route("/admin/sms/export_selections", methods=["POST"])
 @admin_required
-@admin_views.route("/sms/export_selections", methods=["POST"])
 def sms_export_selections():
     try:
         print("Starting SMS selection export...")
@@ -227,19 +223,19 @@ def sms_export_selections():
         if result_file_path and os.path.exists(result_file_path):
             print(f"Export successful, file created at: {result_file_path}")
             # Redirect to panel instead of download to avoid immediate download
-            return redirect(url_for("admin_views.sms_Panel"))
+            return redirect("/admin/sms/panel")  # Use absolute path
         else:
             print("Export failed - no file created")
-            return redirect(url_for("admin_views.sms_Panel"))
+            return redirect("/admin/sms/panel")  # Use absolute path
     except Exception as e:
         print(f"Error exporting selections: {e}")
         import traceback
         traceback.print_exc()
-        return redirect(url_for("admin_views.sms_Panel"))
+        return redirect("/admin/sms/panel")  # Use absolute path
 
 
+@admin_views.route("/admin/sms/download_selections", methods=["GET"])
 @admin_required
-@admin_views.route("/sms/download_selections", methods=["GET"])
 def sms_download_selections():
     try:
         # Use relative path from the current file location
@@ -257,7 +253,7 @@ def sms_download_selections():
             result_file_path = SelectionExporterSMS(db)
             if not result_file_path or not os.path.exists(result_file_path):
                 print("Could not create export file")
-                return redirect(url_for("admin_views.sms_Panel"))
+                return redirect("/admin/sms/panel")  # Use absolute path
         
         return send_from_directory(
             download_dir,
@@ -269,4 +265,4 @@ def sms_download_selections():
         print(f"Error downloading selections: {e}")
         import traceback
         traceback.print_exc()
-        return redirect(url_for("admin_views.sms_Panel"))
+        return redirect("/admin/sms/panel")  # Use absolute path

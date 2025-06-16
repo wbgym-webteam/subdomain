@@ -13,4 +13,5 @@ Before the main page [wbgym.de](https://wbgym.de) switched to Wordpress as a CMS
 
 The documentation is found in the `/docs` folder. It is written in Markdown and is generated with MkDocs. The documentation is hosted on [GitHub Pages](https://wbgym.github.io/subdomain/).
 
+
 On these pages you will find all the information you need 💻.

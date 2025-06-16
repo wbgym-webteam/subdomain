@@ -11,13 +11,24 @@ Login - Admin
 </head>
 <form method="post" class="login-container">
     <h1>Admin Login</h1>
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
     <input type="text" name="username" id="username" placeholder="Username">
     <input type="password" name="password" id="password" placeholder="Password">
     <input type="submit" value="Login" id="submit">
     <p id="errorMessage" class="error-message"></p>
 </form>
 
-
-
+<style>
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ef5350;
+}
+</style>
 
 {% endblock %}
