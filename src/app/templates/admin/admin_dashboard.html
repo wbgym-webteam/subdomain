@@ -1,1 +1,12 @@
-<!-- This file is intentionally empty - no dashboard functionality required -->
+{% extends 'base.html' %}
+
+{% block title %}
+Admin Dashboard
+{% endblock %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin/admin_dashboard.css') }}">
+</head>
+
+{% endblock %}
