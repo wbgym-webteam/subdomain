@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
+    <!-- Top spacer removed for better accessibility -->
+
     <!-- Success Popup -->
-    <div id="success-popup" class="popup-overlay" style="display: none;">
+    <div id="success-popup" class="popup-overlay popup-hidden">
         <div class="popup-content">
             <div class="popup-icon">✓</div>
             <h3>Erfolgreich abgespeichert!</h3>
@@ -19,14 +21,17 @@
 
     <!-- Course selection form matching login structure -->
     <div class="login-container sms-container">
-        <h1>SMS Kurswahl</h1>
-        <!--<h2 class="welcome-message">Willkommen, {{ student }}!</h2>-->
-        <p>Bitte wählen Sie Ihre Kurswünsche aus (1. Wunsch = höchste Priorität, max. 6 Wünsche)</p>
+        <div class="header-section">
+            <h1>SMS Kurswahl</h1>
+            <p class="instruction-text">Bitte wählen Sie Ihre Kurswünsche aus (1. Wunsch = höchste Priorität, max. 6 Wünsche)</p>
+        </div>
 
         <div class="selection-counter">
-            Ausgewählte Kurswünsche: <span id="selection-count">0</span>/<span id="selection-limit">6</span>
+            <div class="counter-main">
+                Ausgewählte Kurswünsche: <span id="selection-count">0</span>/<span id="selection-limit">6</span>
+            </div>
             <!-- Debug info -->
-            <div style="font-size: 12px; color: #999; margin-top: 5px;">
+            <div class="debug-info">
                 Verfügbare Kurse: {{ courses|length }}
             </div>
         </div>
@@ -61,7 +66,7 @@
                             </div>
                         </div>
                         
-                        <div class="course-details" id="details_{{ course.id }}" style="display: none;">
+                        <div class="course-details course-details-hidden" id="details_{{ course.id }}">
 
                             <div class="detail-row">
                                 <span class="detail-label">Beschreibung:</span>
@@ -83,7 +88,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                <div style="text-align: center; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                <div class="no-courses-message">
                     <p><strong>Keine Kurse verfügbar</strong></p>
                     <p>Es wurden keine Kurse für Ihre Klassenstufe gefunden.</p>
                 </div>
@@ -278,273 +283,429 @@
             }
         });
     </script>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: auto;
+        min-height: 100%;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+    }
 
-    <style>
-        /* SMS-specific overrides */
+
+    .sms-container {
+        max-width: 1200px;
+        width: 90%;
+        padding-top: 0;
+        margin-top: 0;
+        margin-bottom: 50px;
+        position: relative;
+        z-index: 1;
+        overflow: visible;
+        height: auto;
+}
+
+    
+
+    .course-card:first-child {
+        margin-top: 0;
+    }
+
+    .admin-panel {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background-color: #7b598d;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 600;
+    }
+
+    .admin-panel a {
+        text-decoration: none;
+        color: #4c0275;
+        font-size: 14px;
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .header-section h1 {
+        margin-bottom: 15px;
+        color: #560d4f;
+        font-size: 2.5rem;
+    }
+
+    .instruction-text {
+        font-size: 1.1rem;
+        color: #666;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.5;
+    }
+
+    .selection-counter {
+        text-align: center;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #dee2e6;
+    }
+
+    .counter-main {
+        font-weight: bold;
+        color: #560d4f;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+    }
+
+    .debug-info {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .error-hidden {
+        display: none;
+    }
+
+    .popup-hidden {
+        display: none;
+    }
+
+    .course-details-hidden {
+        display: none;
+    }
+
+    .no-courses-message {
+        text-align: center;
+        padding: 30px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 12px;
+        border: 2px dashed #dee2e6;
+    }
+
+    .no-courses-message p {
+        margin-bottom: 10px;
+        color: #6c757d;
+    }
+
+    .no-courses-message strong {
+        color: #560d4f;
+    }
+
+    .courses-container {
+        margin-bottom: 20px;
+        padding-top: 0;
+    }
+
+    .course-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+    }
+
+    .course-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        cursor: pointer;
+        background: #f8f9fa;
+        transition: background-color 0.3s ease;
+        border-bottom: 1px solid #eee;
+    }
+
+    .course-header:hover {
+        background: #e9ecef;
+    }
+
+    .course-title-section {
+        display: flex;
+        align-items: center;
+        flex: 1;
+    }
+
+    .course-title {
+        margin: 0;
+        color: #560d4f;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .expand-icon {
+        margin-left: 15px;
+        color: #560d4f;
+        font-size: 14px;
+        transition: transform 0.3s ease;
+    }
+
+    .wish-dropdown-section {
+        margin-left: 20px;
+    }
+
+    .course-details {
+        padding: 20px;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .detail-row {
+        display: flex;
+        margin-bottom: 12px;
+        align-items: flex-start;
+    }
+
+    .detail-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-label {
+        font-weight: bold;
+        color: #560d4f;
+        min-width: 120px;
+        margin-right: 15px;
+    }
+
+    .detail-value {
+        color: #333;
+        flex: 1;
+    }
+
+    .wish-select {
+        padding: 10px;
+        background-color: #560d4f;
+        color: white;
+        border-radius: 15px;
+        border: 1px solid white;
+        margin-bottom: 5px;
+        width: 130px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .wish-select:focus {
+        outline: none;
+        background-color: #8846a4;
+        box-shadow: 0 0 8px rgba(134, 70, 164, 0.4);
+    }
+
+    .wish-select:hover {
+        background-color: #8846a4;
+        transform: translateY(-1px);
+    }
+
+    .wish-select option {
+        padding: 8px;
+        background: #560d4f;
+        color: white;
+    }
+
+    .error-message {
+        background: #e67272;
+        border: 1px solid #c53d3d;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 10px;
+        color: rgb(170, 5, 5);
+        text-align: center;
+    }
+
+    .wishes-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .wishes-container h3 {
+        margin-top: 0;
+        color: #560d4f;
+    }
+
+    .wishes-container ol {
+        text-align: left;
+        margin: 10px 0;
+        color: black;
+    }
+
+    .wishes-container li {
+        margin: 5px 0;
+    }
+
+    .logout-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .logout-btn {
+        background-color: #560d4f;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .logout-btn:hover {
+        background-color: #8846a4;
+        transform: translateY(-2px);
+    }
+
+    .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+
+    .popup-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .popup-icon {
+        font-size: 48px;
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+
+    .popup-content h3 {
+        color: #560d4f;
+        margin-bottom: 10px;
+    }
+
+    .popup-content p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .popup-btn {
+        background-color: #560d4f;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
+    .popup-btn:hover {
+        background-color: #8846a4;
+    }
+
+    @media screen and (orientation: landscape) and (max-height: 500px) {
         .sms-container {
-            max-width: 1200px;
-            width: 90%;
+            margin-top: 0;
+            padding-top: 0;
         }
 
-        .welcome-message {
-            color: #560d4f;
-            font-size: 22px;
-            margin-bottom: 10px;
+        .admin-panel {
+            top: 5px;
         }
 
-        .error-hidden {
-            display: none;
-        }
-
-        /* Admin panel from login */
-        div.admin-panel {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #7b598d;
+        .header-section {
             padding: 10px;
-            border-radius: 5px;
+            margin-bottom: 15px;
         }
-        
-        div.admin-panel a {
-            text-decoration: none;
-            color: #4c0275;
-            font-size: 14px;
+
+        .header-section h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
         }
 
         .selection-counter {
-            text-align: center;
-            background: #f0f0f0;
             padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #560d4f;
-        }
-
-        .courses-container {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .course-card {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            overflow: hidden;
+            margin-bottom: 10px;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .sms-container {
+            width: 95%;
+            margin-top: 0;
         }
 
-        .course-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        .header-section h1 {
+            font-size: 2rem;
         }
 
         .course-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            cursor: pointer;
-            background: #f8f9fa;
-            transition: background-color 0.3s ease;
-            position: relative;
-            border-bottom: 1px solid #eee;
+            padding: 12px 15px;
         }
 
-        .course-header:hover {
-            background: #e9ecef;
-        }
-
-        .course-title-section {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-
-        .course-title {
-            margin: 0;
-            color: #560d4f;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .expand-icon {
-            margin-left: 15px;
-            color: #560d4f;
-            font-size: 14px;
-            transition: transform 0.3s ease;
-        }
-
-        .wish-dropdown-section {
-            margin-left: 20px;
-        }
-
-        .course-details {
-            padding: 20px;
-            background: white;
-            transition: all 0.3s ease;
-        }
-
-        .detail-row {
-            display: flex;
-            margin-bottom: 12px;
-            align-items: flex-start;
-        }
-
-        .detail-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .detail-label {
-            font-weight: bold;
-            color: #560d4f;
-            min-width: 120px;
-            margin-right: 15px;
-        }
-
-        .detail-value {
-            color: #333;
-            flex: 1;
-        }
-
-        /* Styled dropdown matching login select */
         .wish-select {
-            padding: 10px;
-            background-color: #560d4f;
-            color: white;
-            border-radius: 15px;
-            border: 1px solid white;
-            margin-bottom: 5px;
-            width: 130px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .wish-select:focus {
-            outline: none;
-            background-color: #8846a4;
-            box-shadow: 0 0 8px rgba(134, 70, 164, 0.4);
-        }
-
-        .wish-select:hover {
-            background-color: #8846a4;
-            transform: translateY(-1px);
-        }
-
-        .wish-select option {
+            width: 110px;
             padding: 8px;
-            background: #560d4f;
-            color: white;
         }
+    }
 
-        .error-message {
-            background: #e67272;
-            border: 1px solid #c53d3d;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
-            color: rgb(170, 5, 5);
-            text-align: center;
-        }
-
-        .wishes-container {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .wishes-container h3 {
+    @media screen and (orientation: landscape) and (max-height: 400px) {
+        .sms-container {
             margin-top: 0;
-            color: #560d4f;
+            padding-top: 0;
         }
 
-        .wishes-container ol {
-            text-align: left;
-            margin: 10px 0;
-            color: black;
+        .admin-panel {
+            top: 5px;
+            padding: 5px 8px;
+            font-size: 12px;
         }
 
-        .wishes-container li {
-            margin: 5px 0;
-        }
-
-        .logout-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .logout-btn {
-            background-color: #560d4f;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .logout-btn:hover {
-            background-color: #8846a4;
-            transform: translateY(-2px);
-        }
-
-        /* Popup styles */
-        .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .popup-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .popup-icon {
-            font-size: 48px;
-            color: #28a745;
-            margin-bottom: 15px;
-        }
-
-        .popup-content h3 {
-            color: #560d4f;
+        .header-section {
+            padding: 8px;
             margin-bottom: 10px;
         }
 
-        .popup-content p {
-            color: #666;
-            margin-bottom: 20px;
+        .header-section h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
         }
 
-        .popup-btn {
-            background-color: #560d4f;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
+        .selection-counter {
+            padding: 8px;
+            margin-bottom: 10px;
         }
+    }
+</style>
 
-        .popup-btn:hover {
-            background-color: #8846a4;
-        }
-    </style>
+
 </body>
 </html>
