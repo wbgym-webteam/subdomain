@@ -13,6 +13,9 @@ Login
 <form method="post" class="login-container">
     {% if tdw_module_status != "inactive" or sms_module_status != "inactive" %}
     <h1>Willkommen zurück!</h1>
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     <select name="event" id="event-selector">
         {% if tdw_module_status != "inactive" %} <option value="tdw">TdW</option>  {% endif %}
@@ -51,6 +54,14 @@ Login
         border-radius: 15px;
         border: 1px solid white;
         margin-bottom: 5px;
+    }
+    .error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ef5350;
     }
 </style>
 {% endblock %}
