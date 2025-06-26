@@ -162,6 +162,7 @@ def submit_selection():
         except Exception as e:
             print(f"Error saving selections: {e}")
             db.session.rollback()
+            return redirect(url_for('sms.selection', error='true'))
 
         return redirect(url_for('sms.selection', success='true'))
 

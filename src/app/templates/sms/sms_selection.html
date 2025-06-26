@@ -9,16 +9,6 @@
 <body>
     <!-- Top spacer removed for better accessibility -->
 
-    <!-- Success Popup -->
-    <div id="success-popup" class="popup-overlay popup-hidden">
-        <div class="popup-content">
-            <div class="popup-icon">✓</div>
-            <h3>Erfolgreich abgespeichert!</h3>
-            <p>Ihre Kurswünsche wurden erfolgreich übermittelt.</p>
-            <button onclick="closeSuccessPopup()" class="popup-btn">OK</button>
-        </div>
-    </div>
-
     <!-- Course selection form matching login structure -->
     <div class="login-container sms-container">
         <div class="header-section">
@@ -96,6 +86,12 @@
             </div>
             
             <input type="submit" value="Auswahl bestätigen" class="submit" id="submitBtn">
+            
+            <!-- Success message -->
+            <div id="success-message" class="success-message {% if not request.args.get('success') %}success-hidden{% endif %}">
+                <span class="success-icon">✓</span>
+                <span class="success-text">Ihre Kurswahl wurde erfolgreich gespeichert!</span>
+            </div>
         </form>
 
         <!-- Error message for conflicts -->
@@ -107,7 +103,14 @@
         <div id="wishes-summary" class="wishes-container">
             <h3>Ihre Kurswünsche im Überblick:</h3>
             <div id="wishesDisplay">
-                <p>Noch keine Wünsche ausgewählt</p>
+                <ol>
+                    <li id="wish-slot-1" class="wish-slot empty">1. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span></li>
+                    <li id="wish-slot-2" class="wish-slot empty">2. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span></li>
+                    <li id="wish-slot-3" class="wish-slot empty">3. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span></li>
+                    <li id="wish-slot-4" class="wish-slot empty">4. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span></li>
+                    <li id="wish-slot-5" class="wish-slot empty">5. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span></li>
+                    <li id="wish-slot-6" class="wish-slot empty">6. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span></li>
+                </ol>
             </div>
         </div>
 
@@ -141,8 +144,14 @@
             const wishSelects = document.querySelectorAll('select[name^="wish_"]');
             const selectionCount = document.getElementById('selection-count');
             const limitMessage = document.getElementById('limit-message');
-            const wishesDisplay = document.getElementById('wishesDisplay');
             const submitBtn = document.getElementById('submitBtn');
+            
+            // Reset all wish slots
+            for (let i = 1; i <= 6; i++) {
+                const slot = document.getElementById(`wish-slot-${i}`);
+                slot.innerHTML = `${i}. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span>`;
+                slot.className = 'wish-slot empty';
+            }
             
             // Collect all selected wishes
             const wishes = [];
@@ -170,20 +179,12 @@
             // Update selection count
             selectionCount.textContent = wishes.length;
             
-            // Sort wishes by priority
-            wishes.sort((a, b) => a.priority - b.priority);
-            
-            // Update wishes display
-            if (wishes.length === 0) {
-                wishesDisplay.innerHTML = '<p>Noch keine Wünsche ausgewählt</p>';
-            } else {
-                let html = '<ol>';
-                wishes.forEach(wish => {
-                    html += `<li><strong>${wish.courseName}</strong></li>`;
-                });
-                html += '</ol>';
-                wishesDisplay.innerHTML = html;
-            }
+            // Fill the wish slots with selected courses
+            wishes.forEach(wish => {
+                const slot = document.getElementById(`wish-slot-${wish.priority}`);
+                slot.innerHTML = `${wish.priority}. Wunsch: <strong>${wish.courseName}</strong>`;
+                slot.className = 'wish-slot filled';
+            });
             
             // Show/hide error message and enable/disable submit
             if (hasConflict) {
@@ -199,14 +200,6 @@
             }
         }
         
-        function showSuccessPopup() {
-            document.getElementById('success-popup').style.display = 'flex';
-        }
-
-        function closeSuccessPopup() {
-            document.getElementById('success-popup').style.display = 'none';
-        }
-
         function handleLogout() {
             const wishSelects = document.querySelectorAll('select[name^="wish_"]');
             const wishes = [];
@@ -270,16 +263,21 @@
             }
         }
 
-        // Check for success parameter in URL to show popup
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             updateWishes();
             
-            // Check if we came back from a successful submission
+            // Check for success parameter and show message
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('success') === 'true') {
-                showSuccessPopup();
-                // Clean up the URL
-                window.history.replaceState({}, document.title, window.location.pathname);
+                const successMessage = document.getElementById('success-message');
+                if (successMessage) {
+                    successMessage.classList.remove('success-hidden');
+                    // Auto-hide after 5 seconds
+                    setTimeout(() => {
+                        successMessage.classList.add('success-hidden');
+                    }, 5000);
+                }
             }
         });
     </script>
@@ -530,6 +528,34 @@
         text-align: center;
     }
 
+    .success-message {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border: 1px solid #28a745;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        color: #155724;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .success-hidden {
+        display: none;
+    }
+
+    .success-icon {
+        font-size: 18px;
+        font-weight: bold;
+        margin-right: 8px;
+        color: #28a745;
+    }
+
+    .success-text {
+        font-weight: 500;
+        font-size: 16px;
+    }
+
     .wishes-container {
         background: #f8f9fa;
         padding: 20px;
@@ -546,10 +572,32 @@
         text-align: left;
         margin: 10px 0;
         color: black;
+        list-style: none;
+        padding: 0;
     }
 
-    .wishes-container li {
-        margin: 5px 0;
+    .wish-slot {
+        margin: 8px 0;
+        padding: 10px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .wish-slot.empty {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    .wish-slot.filled {
+        background-color: #e8f5e8;
+        border-color: #28a745;
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+    }
+
+    .empty-text {
+        color: #6c757d;
+        font-style: italic;
     }
 
     .logout-container {
@@ -571,60 +619,6 @@
     .logout-btn:hover {
         background-color: #8846a4;
         transform: translateY(-2px);
-    }
-
-    .popup-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 2000;
-    }
-
-    .popup-content {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        max-width: 400px;
-        width: 90%;
-    }
-
-    .popup-icon {
-        font-size: 48px;
-        color: #28a745;
-        margin-bottom: 15px;
-    }
-
-    .popup-content h3 {
-        color: #560d4f;
-        margin-bottom: 10px;
-    }
-
-    .popup-content p {
-        color: #666;
-        margin-bottom: 20px;
-    }
-
-    .popup-btn {
-        background-color: #560d4f;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-    }
-
-    .popup-btn:hover {
-        background-color: #8846a4;
     }
 
     @media screen and (orientation: landscape) and (max-height: 500px) {
