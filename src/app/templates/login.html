@@ -20,17 +20,12 @@ Login
     <select name="event" id="event-selector">
         {% if tdw_module_status != "inactive" %} <option value="tdw">TdW</option>  {% endif %}
         {% if sms_module_status != "inactive" %} <option value="sms">SmS</option>  {% endif %}
-        <!-- enable this option when the SmS module is available -->
     </select>
     <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
     <input type="submit" value="Login" class="submit">
     {% endif %}
     {% if tdw_module_status == "inactive" and sms_module_status == "inactive" %} <h1>Derzeit kann man sich nicht für SmS oder Tdw anmelden.</h1>  {% endif %}
 </form>
-
-<!--<div class="admin-panel">
-    <a href="/admin_login">Admin</a>
-</div>-->
 
 <style>
     div.admin-panel {
@@ -54,6 +49,9 @@ Login
         border-radius: 15px;
         border: 1px solid white;
         margin-bottom: 5px;
+        -webkit-appearance: none; /* Entfernt den Pfeil im Safari */
+        -moz-appearance: none; /* Entfernt den Pfeil im Firefox */
+        appearance: none; /* Entfernt den Pfeil in modernen Browsern */
     }
     .error-message {
     background-color: #ffebee;
