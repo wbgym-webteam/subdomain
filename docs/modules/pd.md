@@ -10,6 +10,7 @@ Things presented by the admin:
 - the list of students, with there emails, class
 
 How the System Works:
+- All of it runs on subdomains
 - There are Columns and each studends ranks inside each Column all courses by there likeness
 - The User submits his wishes
 - The system determines what studend visits what course (each person has to have a course from every Column) and when he visits, like in what block/session he visits it
@@ -22,6 +23,7 @@ Output from the system:
 ## Current Questions
 - Is there a minimum amount of people who have to visit a course, inside each session
 - Problem with storing personal student data, on what servers do we run and the store the data
+
 
 ## Things hat will not happen in year 2025/2026:
 - email sending list
