@@ -51,7 +51,7 @@ class BlockedPresentation(db.Model):
 # P-Modules
 
 class PTStudent(db.Model):
-    __table__name = "pt_students"
+    __tablename__ = "pt_students"  # Fixed: was __table__name
 
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(80), nullable=False)
@@ -67,20 +67,29 @@ class PTPresentation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
-    presenters = db.Column(db.String(80), nullable=False)
+    presenter = db.Column(db.String(80), nullable=False)
+    teacher = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(250), nullable=True)
     slot = db.Column(db.Integer, nullable=False)
     max_students = db.Column(db.Integer, nullable=False)
+    column = db.Column(db.Integer, nullable=False)
     room = db.Column(db.String(20), nullable=False)
 
+class PTWishes(db.Model):
+    __tablename__ = "pt_wishes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, nullable=False)
+    presentation_id = db.Column(db.Integer, nullable=False)
+    weight = db.Column(db.Integer, nullable=False)
 
 class PTSelection(db.Model):
     __tablename__ = "pt_selections"
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, nullable=False)
-    presentation_id = db.Column(db.Integer, nullable=False)
-
+    student_id = db.Column(db.Integer, db.ForeignKey('pt_students.id'), nullable=False)
+    presentation_id = db.Column(db.Integer, db.ForeignKey('pt_presentations.id'), nullable=False)
+    ranking = db.Column(db.Integer, nullable=True)  # Add ranking column for weighted selection
     # Relationships
     student = db.relationship("PTStudent", backref=db.backref("selections", lazy=True))
     presentation = db.relationship("PTPresentation", backref=db.backref("selections", lazy=True))

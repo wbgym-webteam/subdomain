@@ -35,11 +35,15 @@ def create_app():
         from .auth import auth
         from .admin_views import admin_views
         from .tdw_views import tdw
+        from .pt_views import pt
+        from .pt_admin_views import pt_admin_views  # <-- add this import
 
         app.register_blueprint(views, url_prefix="/")
         app.register_blueprint(auth, url_prefix="/")
         app.register_blueprint(admin_views, url_prefix="/admin")
         app.register_blueprint(tdw, url_prefix="/tdw")
+        app.register_blueprint(pt, url_prefix="/pt")
+        app.register_blueprint(pt_admin_views)  # <-- add this line
 
         # db.drop_all()
         db.create_all()

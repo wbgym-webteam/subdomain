@@ -14,9 +14,10 @@ Login
     <h1>Willkommen zurück!</h1>
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     <select name="event" id="event-selector">
-        <option value="tdw">TdW</option>
+        <option value="tdw" disabled>TdW</option>
         <option value="sms" disabled>SmS</option>
-        <!-- enable this option when the SmS module is available -->
+        <option value="pt">PT</option>
+        <!-- enable this option when the SmS and TdW module is available -->
     </select>
     <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
     <input type="submit" value="Login" class="submit">
