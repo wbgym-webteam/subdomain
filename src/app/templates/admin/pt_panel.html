@@ -57,6 +57,22 @@ PT - Admin Panel
     </a>
     <hr>
 
+    <!-- Run Selection Engine -->
+    <form action="{{ url_for('pt_admin_views.pt_run_selection') }}" method="post">
+        <label for="run_selection">Run Course Assignment Algorithm:</label>
+        <button type="submit" onclick="return confirm('This will assign students to courses based on their preferences. Continue?')">Run Selection Engine</button>
+    </form>
+    <a href="{{ url_for('pt_admin_views.pt_view_assignments') }}">
+        <button>View Assignment Results</button>
+    </a>
+    <a href="{{ url_for('pt_admin_views.pt_export_assignments_pdf') }}">
+        <button>Export Student Schedules (PDF)</button>
+    </a>
+    <a href="{{ url_for('pt_admin_views.pt_export_room_lists_pdf') }}">
+        <button>Export Room Lists (PDF)</button>
+    </a>
+    <hr>
+
     <!-- Activate / Deactivate the module -->
     <form action="{{ url_for('pt_admin_views.pt_module_status') }}" method="post">
         <label for="module_status">Module Status:</label>

@@ -75,14 +75,6 @@ class PTPresentation(db.Model):
     column = db.Column(db.Integer, nullable=False)
     room = db.Column(db.String(20), nullable=False)
 
-class PTWishes(db.Model):
-    __tablename__ = "pt_wishes"
-
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, nullable=False)
-    presentation_id = db.Column(db.Integer, nullable=False)
-    weight = db.Column(db.Integer, nullable=False)
-
 class PTSelection(db.Model):
     __tablename__ = "pt_selections"
 
@@ -93,4 +85,16 @@ class PTSelection(db.Model):
     # Relationships
     student = db.relationship("PTStudent", backref=db.backref("selections", lazy=True))
     presentation = db.relationship("PTPresentation", backref=db.backref("selections", lazy=True))
+
+class PTAssignment(db.Model):
+    __tablename__ = "pt_assignments"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('pt_students.id'), nullable=False)
+    presentation_id = db.Column(db.Integer, db.ForeignKey('pt_presentations.id'), nullable=False)
+    slot = db.Column(db.Integer, nullable=False)
+    
+    # Relationships
+    student = db.relationship("PTStudent", backref=db.backref("assignments", lazy=True))
+    presentation = db.relationship("PTPresentation", backref=db.backref("assignments", lazy=True))
 

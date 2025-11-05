@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, Blueprint, session
 import sqlalchemy
 from sqlalchemy import text
-from .models import PTStudent, PTPresentation, PTSelection
+from .models import PTStudent, PTPresentation, PTSelection, PTAssignment
 
 # Importing DB for sqlalchemy
 from . import db
@@ -28,6 +28,38 @@ def selection():
             if student_id is None:
                 return redirect("/login")
             student_id = str(student_id)
+
+            # Check if assignments have been made
+            assignments_query = db.session.execute(
+                text("""
+                    SELECT p.title, p.presenter, p.slot, p.column, p.room, p.description
+                    FROM pt_assignments a
+                    JOIN pt_presentations p ON a.presentation_id = p.id
+                    WHERE a.student_id = :student_id
+                    ORDER BY p.slot
+                """),
+                {"student_id": student_id}
+            ).all()
+            
+            # If assignments exist, show them instead of selection interface
+            if assignments_query:
+                # DB Query to get the student's name and grade
+                db_current_student = db.session.execute(
+                    db.select(
+                        PTStudent.first_name, PTStudent.last_name, PTStudent.grade
+                    ).filter_by(id=student_id)
+                ).one_or_none()
+
+                current_student = dict(db_current_student._mapping)
+                full_name = (
+                    f'{current_student["first_name"]} {current_student["last_name"]}'
+                )
+                
+                return render_template(
+                    "pt/pt_assignments.html",
+                    student=full_name,
+                    assignments=assignments_query
+                )
 
             # DB Query to get the student's name and grade
             db_current_student = db.session.execute(
