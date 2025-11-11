@@ -116,7 +116,8 @@ def pt_export_logincodes_route():
 @pt_admin_views.route("/admin/pt/download_logincodes", methods=["GET"])  # Added /admin prefix
 @admin_required
 def pt_download_logincodes():  # Ensure this function is used for the pt route
-    download_dir = "./data/pt/downloads"
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    download_dir = os.path.join(current_dir, 'data', 'pt', 'downloads')
     return send_from_directory(download_dir, "PT_Logincodes.zip", as_attachment=True)
 
 

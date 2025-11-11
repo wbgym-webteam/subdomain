@@ -1,7 +1,6 @@
 from docx import Document
 from docx.shared import Pt
 from sqlalchemy import text
-from openpyxl import load_workbook
 import zipfile
 import os
 
@@ -9,95 +8,23 @@ from . import db
 
 
 def get_class_with_names(grade, grade_selector):
-    # Get student data from database (without names)
-    db_students = db.session.execute(
+    # Get student data directly from pt_students table with names
+    query = db.session.execute(
         text(
-            f"SELECT id, logincode FROM pt_students WHERE grade = {grade} AND grade_selector = {grade_selector} ORDER BY id"
+            f"SELECT first_name, last_name, logincode FROM pt_students WHERE grade = {grade} AND grade_selector = {grade_selector} ORDER BY last_name, first_name"
         )
     ).fetchall()
-    
-    # Load names from Excel file
-    try:
-        workbook = load_workbook("app/data/pt/uploads/workbook.xlsx")
-        sheet = workbook.worksheets[0]
-        
-        # Create mapping of student_id to names
-        student_names = {}
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            if row[0] is None:
-                break
-            student_id = row[0]
-            first_name = row[2] or ""  # Column C
-            last_name = row[1] or ""   # Column B
-            student_names[student_id] = (first_name, last_name)
-        
-        # Combine database data with Excel names
-        result = []
-        for db_student in db_students:
-            student_id = db_student[0]
-            logincode = db_student[1]
-            if student_id in student_names:
-                first_name, last_name = student_names[student_id]
-                # Create a mock object with attributes
-                class StudentRecord:
-                    def __init__(self, first_name, last_name, logincode):
-                        self.first_name = first_name
-                        self.last_name = last_name
-                        self.logincode = logincode
-                
-                result.append(StudentRecord(first_name, last_name, logincode))
-        
-        return sorted(result, key=lambda x: (x.last_name, x.first_name))
-        
-    except Exception as e:
-        print(f"Error reading Excel file: {e}")
-        return []
+    return query
 
 
 def get_sek2_with_names(grade):
-    # Get student data from database (without names)
-    db_students = db.session.execute(
+    # Get student data directly from pt_students table with names
+    query = db.session.execute(
         text(
-            f"SELECT id, logincode FROM pt_students WHERE grade = {grade} ORDER BY id"
+            f"SELECT first_name, last_name, logincode FROM pt_students WHERE grade = {grade} ORDER BY last_name, first_name"
         )
     ).fetchall()
-    
-    # Load names from Excel file
-    try:
-        workbook = load_workbook("app/data/pt/uploads/workbook.xlsx")
-        sheet = workbook.worksheets[0]
-        
-        # Create mapping of student_id to names
-        student_names = {}
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            if row[0] is None:
-                break
-            student_id = row[0]
-            first_name = row[2] or ""  # Column C
-            last_name = row[1] or ""   # Column B
-            student_names[student_id] = (first_name, last_name)
-        
-        # Combine database data with Excel names
-        result = []
-        for db_student in db_students:
-            student_id = db_student[0]
-            logincode = db_student[1]
-            if student_id in student_names:
-                first_name, last_name = student_names[student_id]
-                # Create a mock object with attributes
-                class StudentRecord:
-                    def __init__(self, first_name, last_name, logincode):
-                        self.first_name = first_name
-                        self.last_name = last_name
-                        self.logincode = logincode
-                
-                result.append(StudentRecord(first_name, last_name, logincode))
-        
-        return sorted(result, key=lambda x: (x.last_name, x.first_name))
-        
-    except Exception as e:
-        print(f"Error reading Excel file: {e}")
-        return []
+    return query
 
 
 def zip_files():
@@ -121,6 +48,15 @@ def export_logincodes():
     output_dir = os.getenv("OUTPUT_DIR", "./app/data/pt/downloads")
     os.makedirs(output_dir, exist_ok=True)
 
+    print(f"Cleaning old files from {output_dir}...")
+    for file in os.listdir(output_dir):
+        if file.endswith(".docx") or file == "PT_Logincodes.zip":
+            try:
+                os.remove(os.path.join(output_dir, file))
+                print(f"Deleted old file: {file}")
+            except Exception as e:
+                print(f"Could not delete file {file}: {e}")
+                
     for grade in range(5, 13, 1):
         for grade_selector in range(1, 5, 1):
             if grade == 11 or grade == 12 or grade == 5 or grade == 6:

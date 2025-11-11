@@ -151,7 +151,7 @@ class PTSelectionEngine:
                         # Sort by least populated presentation
                         available_presentations.sort(key=lambda p: presentation_counts[p.id])
                         p_to_assign = available_presentations[0] # Pick the least full one
-                        # ---
+                        #
                         assignments[student_id][slot] = p_to_assign.id
                         presentation_counts[p_to_assign.id] += 1
                         assigned_slots.add(p_to_assign.slot)
