@@ -134,9 +134,122 @@ td {
     padding: 10px;
 }
 
-/* Adjust form layout to be less stacked */
+
 form:last-child {
     border-bottom: none;
     margin-bottom: 0;
     padding-bottom: 0;
 }
+
+
+#selection-log-container {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0 30px;
+    border-radius: 4px;
+    background-color: #f9f9f9; /
+    
+    /* The slide/fade animation */
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out, margin 0.5s ease-out, padding 0.5s ease-out;
+}
+
+/* The 'open' state, triggered by JavaScript */
+#selection-log-container.open {
+    max-height: 600px; 
+    opacity: 1;
+    margin: 20px 0;
+    padding: 20px 30px;
+    border-top: 1.5px solid #e0d6e6;
+    border-bottom: 1.5px solid #e0d6e6;
+}
+
+
+#selection-log-container h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between items */
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* The progress bar itself */
+progress#selection-progress-bar {
+    width: 100%;
+    flex-grow: 1; 
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+/* Progress bar background (Chrome/Safari/Edge) */
+progress#selection-progress-bar::-webkit-progress-bar {
+    background-color: #f0f0f0;
+    border-radius: 6px;
+}
+
+/* Progress bar value (Chrome/Safari/Edge) */
+progress#selection-progress-bar::-webkit-progress-value {
+    background-color: #560d4f;
+    transition: width 0.3s ease;
+}
+
+/* Progress bar value (Firefox) */
+progress#selection-progress-bar::-moz-progress-bar {
+    background-color: #560d4f; 
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+/* Percentage text */
+#selection-progress-percent {
+    font-weight: bold;
+    color: #560d4f;
+    min-width: 40px; 
+}
+
+/* Time estimate text */
+#selection-time-estimate {
+    color: #555;
+    font-style: italic;
+    min-width: 160px; 
+    text-align: right;
+}
+
+.log-container { 
+    background: #252526; 
+    border: 1px solid #333; 
+    padding: 15px; 
+    height: 400px; 
+    overflow-y: scroll; 
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 14px;
+    white-space: pre-wrap; 
+    color: #d4d4d4;
+    border-radius: 4px;
+}
+
+
+.log-container p {
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+    color: #d4d4d4; 
+}
+.log-container p:last-child {
+    border-bottom: none;
+}
+
+
+.log-container .error { color: #f48771; font-weight: bold; }
+.log-container .success { color: #4ec9b0; font-weight: bold; }
+.log-container .report { color: #c586c0; }
+.log-container .iteration { color: #9cdcfe; }
+.log-container .done { color: #4ec9b0; font-size: 1.2em; font-weight: bold; margin-top: 10px; }

@@ -1,3 +1,4 @@
+<!--subdomain\src\app\templates\admin\pt_panel.html-->
 {% extends 'base.html' %}
 
 {% block title %}
@@ -58,10 +59,19 @@ PT - Admin Panel
     <hr>
 
     <!-- Run Selection Engine -->
-    <form action="{{ url_for('pt_admin_views.pt_run_selection') }}" method="post">
+    <form action="{{ url_for('pt_admin_views.pt_run_selection') }}" method="post" id="run-selection-form">
         <label for="run_selection">Run Course Assignment Algorithm:</label>
-        <button type="submit" onclick="return confirm('This will assign students to courses based on their preferences. Continue?')">Run Selection Engine</button>
+        <button type="submit" id="run-selection-btn">Run Selection Engine</button>
     </form>
+    <div id="selection-log-container">
+        <h3>Running Selection Engine...</h3>
+        <div class="progress-bar-container">
+            <progress id="selection-progress-bar" value="0" max="100"></progress>
+            <span id="selection-progress-percent">0%</span>
+            <span id="selection-time-estimate">Calculating...</span>
+        </div>
+        <div id="selection-log-output" class="log-container"></div>
+    </div>
     <a href="{{ url_for('pt_admin_views.pt_view_assignments') }}">
         <button>View Assignment Results</button>
     </a>
@@ -80,4 +90,88 @@ PT - Admin Panel
         <input type="submit" value="Activate / Deactivate">
     </form>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('run-selection-form');
+    const button = document.getElementById('run-selection-btn');
+    const logContainer = document.getElementById('selection-log-container');
+    const logOutput = document.getElementById('selection-log-output');
+    const progressBar = document.getElementById('selection-progress-bar');
+    const progressPercent = document.getElementById('selection-progress-percent');
+    const timeEstimate = document.getElementById('selection-time-estimate');
+    const iterationRegex = /Iteration (\d+)\/(\d+)/g;
+
+    // Helper function to update progress
+    function updateProgress(chunk, startTime) {
+        let matches = [...chunk.matchAll(iterationRegex)];
+        if (matches.length > 0) {
+            // Get the last match from the chunk
+            const lastMatch = matches[matches.length - 1];
+            const current = parseInt(lastMatch[1]);
+            const total = parseInt(lastMatch[2]);
+            const percent = (current / total) * 100;
+            
+            progressBar.value = percent;
+            progressPercent.textContent = `${Math.floor(percent)}%`;
+
+            const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+            if (percent > 1) { // Wait for a bit of data to get a stable estimate
+                const totalTime = (elapsedTime / percent) * 100;
+                const remainingTime = totalTime - elapsedTime;
+                timeEstimate.textContent = `~ ${Math.ceil(remainingTime)} seconds remaining`;
+            }
+        }
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault(); // Stop normal form submission
+        if (!confirm('This will assign students to courses. Continue?')) return;
+
+        // --- Setup UI for running ---
+        const startTime = Date.now();
+        logOutput.innerHTML = ''; // Clear previous logs
+        progressBar.value = 0;
+        progressPercent.textContent = '0%';
+        timeEstimate.textContent = 'Starting...';
+        logContainer.classList.add('open'); // Trigger slide-open animation
+        button.disabled = true;
+        button.textContent = 'Running... Please Wait...';
+
+        try {
+            const response = await fetch(form.action, { method: form.method });
+            if (!response.body) throw new Error('Response body is missing.');
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                logOutput.innerHTML += chunk; 
+                logOutput.scrollTop = logOutput.scrollHeight; // Auto-scroll
+                updateProgress(chunk, startTime); // Update progress bar
+            }
+
+            logOutput.innerHTML += '<p class="success">--- Process Complete ---</p>';
+            progressBar.value = 100;
+            progressPercent.textContent = '100%';
+            const totalDuration = Math.floor((Date.now() - startTime) / 1000);
+            timeEstimate.textContent = `Done in ${totalDuration}s.`;
+
+        } catch (error) {
+            console.error('Error fetching stream:', error);
+            logOutput.innerHTML += `<p class="error">An error occurred: ${error.message}</p>`;
+            timeEstimate.textContent = 'Failed.';
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Run Selection Engine';
+            logOutput.scrollTop = logOutput.scrollHeight; // Scroll to end
+        }
+    });
+});
+</script>
+
 {% endblock %}

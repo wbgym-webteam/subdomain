@@ -7,7 +7,9 @@ from flask import (
     url_for,
     session,
     send_from_directory,
-    send_file
+    send_file,
+    Response,
+    current_app
 )
 
 from sqlalchemy import text
@@ -15,14 +17,15 @@ from sqlalchemy import text
 import json
 import os
 import zipfile
-
+import html
+import traceback
 from .pt_filehandler import FileHandlerPT
 
 from .models import PTStudent, PTPresentation, PTSelection
 from . import db
 from .pt_logincode_export import export_logincodes as export_logincodesPT
 from .pt_selection_export import SelectionExporter as SelectionExporterPT
-from .pt_selection_engine import run_pt_selection
+from .pt_selection_engine import run_pt_selection_generator
 
 pt_admin_views = Blueprint("pt_admin_views", __name__, static_folder="static")
 
@@ -167,17 +170,47 @@ def pt_download_wishes():
 @pt_admin_views.route("/admin/pt/run_selection", methods=["POST"])
 @admin_required
 def pt_run_selection():
-    try:
-        print("Starting PT course assignment...")
-        report = run_pt_selection()
-        print(f"Assignment completed successfully: {report}")
-        session['assignment_report'] = report
-        return redirect("/admin/pt/panel")
-    except Exception as e:
-        print(f"Error running selection: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/pt/panel")
+    """
+    This route now returns a streaming response of *just*
+    HTML log fragments, not a full page.
+    """
+    app_ctx = current_app._get_current_object()
+
+    def stream_progress(app):
+        # 4. Wrap the *entire* generator in the app context.
+        with app.app_context():
+            try:
+                # 2. Run the generator and stream its output
+                engine_generator = run_pt_selection_generator()
+                for log_line in engine_generator:
+                    # Escape the log line to prevent HTML injection
+                    safe_line = html.escape(log_line)
+                    
+                    # Add some color coding for readability
+                    if "ERROR" in log_line or "FATAL" in log_line or "WARNING" in log_line:
+                        yield f'<p class="error">{safe_line}</p>'
+                    elif "Iteration" in log_line:
+                        yield f'<p class="iteration">{safe_line}</p>'
+                    elif "--- Assignment Report ---" in log_line or "- " in log_line:
+                        yield f'<p class="report">{safe_line}</p>'
+                    elif "--- DONE ---" in log_line or "Successfully saved" in log_line:
+                        yield f'<p class="success">{safe_line}</p>'
+                    else:
+                        yield f'<p>{safe_line}</p>'
+                    
+                    # Flush buffer
+                    yield " " 
+                
+                yield '<p class="done">Engine run finished.</p>'
+
+            except Exception as e:
+                safe_error = html.escape(str(e))
+                safe_traceback = html.escape(traceback.format_exc())
+                yield f'<p class="error">A critical error occurred in the view: {safe_error}</p>'
+                yield f'<p class="error">{safe_traceback}</p>'
+
+    # Return the streaming response
+    return Response(stream_progress(app_ctx), mimetype='text/html')
 
 @pt_admin_views.route("/admin/pt/view_assignments", methods=["GET"])
 @admin_required
