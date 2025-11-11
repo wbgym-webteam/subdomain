@@ -5,15 +5,15 @@ from .models import PTStudent, PTPresentation, PTSelection, PTAssignment
 
 # Importing DB for sqlalchemy
 from . import db
-
+import json
 # Blueprint
 pt = Blueprint("pt", __name__)
 
 # ---------------------------------------------------------------
-# TDW Routes
+# PT Routes
 # ---------------------------------------------------------------
 #
-# This is the view that the logged in student will see
+# This is the view that the logged in PT student will see
 
 
 @pt.route("/", methods=["GET", "POST"])
@@ -21,67 +21,79 @@ def selection():
     # Checks if the user is logged in
     if session.get("logged_in", True) == True:
         if request.method == "POST":
-            pass  # idk you can delete this but be careful pls :D
+            pass
         else:
             # Get the student id from the session storage
-            student_id = session.get("pt_student_id")  # Changed from tdw_student_id
+            student_id = session.get("pt_student_id")
             if student_id is None:
                 return redirect("/login")
             student_id = str(student_id)
 
-            # Check if assignments have been made
-            assignments_query = db.session.execute(
-                text("""
-                    SELECT p.title, p.presenter, p.slot, p.column, p.room, p.description
-                    FROM pt_assignments a
-                    JOIN pt_presentations p ON a.presentation_id = p.id
-                    WHERE a.student_id = :student_id
-                    ORDER BY p.slot
-                """),
-                {"student_id": student_id}
-            ).all()
+            # --- LOGIC FIX: ---
+            # We need to check the module status first.
             
-            # If assignments exist, show them instead of selection interface
-            if assignments_query:
-                # DB Query to get the student's name and grade
+            with open("app/data/module_status.json", "r") as f:
+                module_status = json.load(f)
+                ms = module_status["modules"]["PT"]
+
+            # 1. If module is INACTIVE, check for assignments and show them
+            if ms == "inactive":
+                assignments_query = db.session.execute(
+                    text("""
+                        SELECT p.title, p.presenter, p.slot, p.column, p.room, p.description
+                        FROM pt_assignments a
+                        JOIN pt_presentations p ON a.presentation_id = p.id
+                        WHERE a.student_id = :student_id
+                        ORDER BY p.slot
+                    """),
+                    {"student_id": student_id}
+                ).all()
+
                 db_current_student = db.session.execute(
-                    db.select(
-                        PTStudent.first_name, PTStudent.last_name, PTStudent.grade
-                    ).filter_by(id=student_id)
-                ).one_or_none()
-
-                current_student = dict(db_current_student._mapping)
-                full_name = (
-                    f'{current_student["first_name"]} {current_student["last_name"]}'
-                )
+                        db.select(
+                            PTStudent.first_name, PTStudent.last_name, PTStudent.grade
+                        ).filter_by(id=student_id)
+                    ).one_or_none()
                 
-                return render_template(
-                    "pt/pt_assignments.html",
-                    student=full_name,
-                    assignments=assignments_query
-                )
+                full_name = "Student"
+                if db_current_student:
+                    current_student = dict(db_current_student._mapping)
+                    full_name = (
+                        f'{current_student["first_name"]} {current_student["last_name"]}'
+                    )
 
-            # DB Query to get the student's name and grade
+                if assignments_query:
+                    # Render a NEW, simple student-facing assignments page
+                    # (You need to create this template)
+                    return render_template(
+                        "pt/pt_student_assignments.html", # <-- This is a new student-safe template
+                        student=full_name,
+                        assignments=assignments_query
+                    )
+                else:
+                    # Module is closed and no assignments are found (e.g., admin hasn't run engine)
+                    return render_template(
+                        "pt/pt_closed.html", # <-- You need to create this template
+                        student=full_name
+                    )
+
+            # 2. If module is ACTIVE, always show the selection page
+            # (This fixes your UndefinedError)
+            
             db_current_student = db.session.execute(
                 db.select(
                     PTStudent.first_name, PTStudent.last_name, PTStudent.grade
                 ).filter_by(id=student_id)
             ).one_or_none()
 
-            # It creates a dictoionary from the query result to access the values by key
             current_student = dict(db_current_student._mapping)
-
-            # Extraction of the student's name for display on the template
             full_name = (
                 f'{current_student["first_name"]} {current_student["last_name"]}'
             )
-
-            # The grade is relevant for the options that will be displayed
             grade = current_student["grade"]
 
             # Get the presentations organized by columns
             presentations_by_column = {}
-            
             db_presentations = db.session.execute(db.select(PTPresentation)).all()
 
             for presentation in db_presentations:
@@ -90,49 +102,43 @@ def selection():
                 if column not in presentations_by_column:
                     presentations_by_column[column] = {}
                 
-                # Create a key for merging courses with same name and description
                 merge_key = f"{pres.title}|{pres.description}"
                 
                 if merge_key not in presentations_by_column[column]:
                     presentations_by_column[column][merge_key] = {
-                        'id': f"merged_{hash(merge_key)}",  # Unique ID for merged course
-                        'presentation_ids': [],  # List of actual presentation IDs
+                        'id': f"merged_{hash(merge_key)}",
+                        'presentation_ids': [],
                         'title': pres.title,
                         'description': pres.description,
                         'teacher': pres.presenter,
                         'hosts': pres.room,
-                        'rooms': [pres.room]  # Track all rooms
+                        'rooms': [pres.room]
                     }
                 else:
-                    # Add room to existing merged course if different
                     if pres.room not in presentations_by_column[column][merge_key]['rooms']:
                         presentations_by_column[column][merge_key]['rooms'].append(pres.room)
                         presentations_by_column[column][merge_key]['hosts'] += f", {pres.room}"
                 
-                # Add the actual presentation ID to the merged course
                 presentations_by_column[column][merge_key]['presentation_ids'].append(pres.id)
             
-            # Convert to list format for template
             for column in presentations_by_column:
                 presentations_by_column[column] = list(presentations_by_column[column].values())
 
-            # Get existing selections with rankings - use any ranking from merged courses
+            # Get existing selections with rankings
             existing_selections = {}
             rows = db.session.execute(
                 text("SELECT presentation_id, ranking FROM pt_selections WHERE student_id = :sid"),
                 {"sid": student_id},
             ).all()
             
-            # Map rankings to merged courses
             for presentation_id, ranking in rows:
-                # Find which merged course this presentation belongs to
                 for column_presentations in presentations_by_column.values():
                     for merged_course in column_presentations:
                         if presentation_id in merged_course['presentation_ids']:
                             existing_selections[merged_course['id']] = int(ranking or 0)
                             break
 
-            # When rendering the template, pass organized data
+            # Now this will always render correctly when the module is active
             return render_template(
                 "pt/pt_selection.html",
                 student=full_name,

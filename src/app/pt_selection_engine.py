@@ -7,6 +7,7 @@ import math
 from collections import defaultdict, Counter
 import time
 
+# --- Happiness Scoring ---
 WISH_HAPPINESS = {
     1: 100,  # First choice
     2: 70,   # Second choice
@@ -19,9 +20,9 @@ NO_WISH_HAPPINESS = -50   # Assigned a course they didn't wish for at all
 
 
 # --- Optimization Settings ---
-TOTAL_ITERATIONS = 50000000
+TOTAL_ITERATIONS = 5000000
 START_TEMP = 1000
-COOLING_RATE = 0.99995
+COOLING_RATE = 0.99995 
 
 class PTSelectionEngine:
     def __init__(self):
@@ -98,8 +99,6 @@ class PTSelectionEngine:
         
         # Add happiness from student wishes
         for student_id, assigned_slots in assignments.items():
-            # --- REMOVED: Column conflict check no longer needed ---
-            # Initial assignment is guaranteed to be valid
             for slot, presentation_id in assigned_slots.items():
                 if presentation_id is None:
                     continue
@@ -130,7 +129,6 @@ class PTSelectionEngine:
                     
                 presentation = self.presentations[presentation_id]
                 
-                # Check for SLOT, COLUMN, and CAPACITY
                 if presentation.slot not in assigned_slots and \
                    presentation.column not in assigned_columns and \
                    presentation_counts[presentation_id] < self.presentation_capacity[presentation_id]:
@@ -146,11 +144,14 @@ class PTSelectionEngine:
                     available_presentations = [
                         p for p in self.presentations_by_slot[slot]
                         if p.column not in assigned_columns and
-                           presentation_counts[p.id] < self.presentation_capacity[p.id] # Hard capacity check
+                           presentation_counts[p.id] < self.presentation_capacity[p.id] 
                     ]
                     
                     if available_presentations:
-                        p_to_assign = random.choice(available_presentations)
+                        # Sort by least populated presentation
+                        available_presentations.sort(key=lambda p: presentation_counts[p.id])
+                        p_to_assign = available_presentations[0] # Pick the least full one
+                        # ---
                         assignments[student_id][slot] = p_to_assign.id
                         presentation_counts[p_to_assign.id] += 1
                         assigned_slots.add(p_to_assign.slot)
@@ -278,31 +279,29 @@ class PTSelectionEngine:
                 if p_old_id == p_new_id:
                     continue 
 
+                # --- HARD CONSTRAINT CHECKS ---
                 if p_new_id is not None:
-                    # 1. Check Capacity: Is the new course full?
+                    # 1. Check Capacity
                     if current_counts[p_new_id] >= self.presentation_capacity[p_new_id]:
                         continue # Move is impossible. Reject.
                 
-                    # 2. Check Column Conflict: Is student already in this column?
+                    # 2. Check Column Conflict
                     p_new_col = self.presentations[p_new_id].column
-                    
-                    # Find all columns the student is in *other* slots
                     other_assigned_cols = {
                         self.presentations[pid].column 
                         for s, pid in current_assignments[s_id].items() 
                         if s != slot_id and pid is not None
                     }
-                    
                     if p_new_col in other_assigned_cols:
                         continue # Move is impossible. Reject.
                 
                 
-                # 1. Happiness Delta
+                # --- This move is VALID. Calculate score delta. ---
+                
                 old_happiness = self._get_happiness(s_id, p_old_id)
                 new_happiness = self._get_happiness(s_id, p_new_id)
                 happiness_delta = new_happiness - old_happiness
-
-                # --- Total Score Change ---
+                
                 score_delta = happiness_delta
 
                 # Simulated Annealing: Decide whether to accept the change
@@ -322,10 +321,13 @@ class PTSelectionEngine:
                         best_assignments = {s: c.copy() for s, c in current_assignments.items()}
                         best_counts = current_counts.copy()
 
-
                 temp *= COOLING_RATE
+                
+                if temp < 0.001:
+                    yield f"Temperature is frozen (Temp: {temp:.4f}). Stopping optimization early at iteration {i}."
+                    break # Exit the for-loop
 
-            yield f"Optimization finished after {TOTAL_ITERATIONS} iterations."
+            yield f"Optimization finished after {i+1} iterations." # Show true iteration count
             yield f"Final Best Score: {best_score}"
 
             # --- 4. Final Report & Save ---
@@ -343,7 +345,7 @@ class PTSelectionEngine:
             yield f"--- FATAL ERROR ---"
             yield f"An error occurred: {e}"
             import traceback
-            yield traceback.format_Fexc()
+            yield traceback.format_exc()
             yield "No assignments have been saved. Please resolve the error and try again."
             db.session.rollback() # Rollback any partial changes
 
