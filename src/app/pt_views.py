@@ -29,14 +29,12 @@ def selection():
                 return redirect("/login")
             student_id = str(student_id)
 
-            # --- LOGIC FIX: ---
-            # We need to check the module status first.
             
             with open("app/data/module_status.json", "r") as f:
                 module_status = json.load(f)
                 ms = module_status["modules"]["PT"]
 
-            # 1. If module is INACTIVE, check for assignments and show them
+
             if ms == "inactive":
                 assignments_query = db.session.execute(
                     text("""
@@ -61,24 +59,6 @@ def selection():
                     full_name = (
                         f'{current_student["first_name"]} {current_student["last_name"]}'
                     )
-
-                if assignments_query:
-                    # Render a NEW, simple student-facing assignments page
-                    # (You need to create this template)
-                    return render_template(
-                        "pt/pt_student_assignments.html", # <-- This is a new student-safe template
-                        student=full_name,
-                        assignments=assignments_query
-                    )
-                else:
-                    # Module is closed and no assignments are found (e.g., admin hasn't run engine)
-                    return render_template(
-                        "pt/pt_closed.html", # <-- You need to create this template
-                        student=full_name
-                    )
-
-            # 2. If module is ACTIVE, always show the selection page
-            # (This fixes your UndefinedError)
             
             db_current_student = db.session.execute(
                 db.select(
@@ -110,15 +90,13 @@ def selection():
                         'presentation_ids': [],
                         'title': pres.title,
                         'description': pres.description,
-                        'teacher': pres.presenter,
-                        'hosts': pres.room,
-                        'rooms': [pres.room]
+                        'teacher': pres.teacher,
+                        'hosts': pres.presenter,
+                        'rooms': [pres.room],
                     }
                 else:
                     if pres.room not in presentations_by_column[column][merge_key]['rooms']:
-                        presentations_by_column[column][merge_key]['rooms'].append(pres.room)
-                        presentations_by_column[column][merge_key]['hosts'] += f", {pres.room}"
-                
+                        presentations_by_column[column][merge_key]['rooms'].append(pres.room)                
                 presentations_by_column[column][merge_key]['presentation_ids'].append(pres.id)
             
             for column in presentations_by_column:
@@ -138,7 +116,6 @@ def selection():
                             existing_selections[merged_course['id']] = int(ranking or 0)
                             break
 
-            # Now this will always render correctly when the module is active
             return render_template(
                 "pt/pt_selection.html",
                 student=full_name,
@@ -151,7 +128,7 @@ def selection():
 
 #
 # This view will never be displayed, because the only accepted method is POST (not to confuse w/ the classic GET Method)
-# But it does the magic behind the selection :o
+# But it does the magic behind the selection :o in the pt_selection_engine.py file
 
 
 @pt.route("/submit_selection", methods=["POST"])
