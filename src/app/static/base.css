@@ -34,14 +34,9 @@ h2 {
     gap: 10px;
 
     padding: 10px 0;
-    position: fixed; 
-    bottom: 0;
-    left: 0;
-    width: 100%;
     font-family: 'Arial', sans-serif;
     font-size: 12px;
     border-top: 1px solid #7b598d; 
-    z-index: 100; 
 }
 
 .student-footer p {
@@ -105,4 +100,21 @@ h2 {
     border-width: 5px;
     border-style: solid;
     border-color: white transparent transparent transparent;
+}
+
+@media (max-width: 600px) {
+    .student-footer {
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 8px;
+        text-align: center;
+    }
+    .student-footer p {
+        font-size: 13px;
+        word-break: break-word;
+        white-space: normal;
+    }
+    .info-container {
+        margin-top: 4px;
+    }
 }
