@@ -1,14 +1,52 @@
-body {
-    font-family: 'Arial', sans-serif;
+/*subdomain\src\app\static\login.css*/
+html, body {
+    width: 100%;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #560d4f, #8846a4);
-    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     color: #fff;
 }
+
+div.admin-panel {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #7b598d;
+    padding: 10px;
+    border-radius: 5px;
+}
+div.admin-panel a {
+    text-decoration: none;
+    color: #4c0275;
+    font-size: 14px;
+}
+
+select {
+    padding: 10px;
+    background-color: #560d4f;
+    color: white;
+    border-radius: 15px;
+    border: 1px solid white;
+    margin-bottom: 5px;
+}
+select option:disabled {
+        color: #999;
+        background-color: #3a0935;
+    }
 
 .login-container {
     background: rgba(255, 255, 255, 0.9);
@@ -16,6 +54,7 @@ body {
     padding: 40px 30px;
     width: 100%;
     max-width: 400px;
+    margin: 0 auto;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     text-align: center;
 }
@@ -77,4 +116,11 @@ p.error {
     border: 1px solid #c53d3d;
     border-radius: 3px;
     padding: 5px;
+}
+
+@media (max-width: 430px) {
+    .login-container {
+        padding: 20px 5px;
+        max-width: 98vw;
+    }
 }
