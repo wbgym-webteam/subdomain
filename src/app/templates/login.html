@@ -14,11 +14,20 @@ Login
     <h1>Willkommen zurück!</h1>
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     <select name="event" id="event-selector">
-        <option value="tdw" disabled>TdW</option>
-        <option value="sms" disabled>SmS</option>
-        <option value="pt">PT</option>
-        <!-- enable this option when the SmS and TdW module is available -->
-    </select>
+        
+        <option value="tdw" {% if status.get('TdW', 'inactive') == 'inactive' %}disabled{% endif %}>
+            TdW
+        </option>
+        
+        <option value="sms" {% if status.get('SmS', 'inactive') == 'inactive' %}disabled{% endif %}>
+            SmS
+        </option>
+        
+        <option value="pt" {% if status.get('PT', 'inactive') == 'inactive' %}disabled{% endif %}>
+            PT
+        </option>
+        
+        </select>
     <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
     <input type="submit" value="Login" class="submit">
 </form>
@@ -49,6 +58,10 @@ Login
         border-radius: 15px;
         border: 1px solid white;
         margin-bottom: 5px;
+    }
+    select option:disabled {
+        color: #999;
+        background-color: #3a0935;
     }
 </style>
 {% endblock %}

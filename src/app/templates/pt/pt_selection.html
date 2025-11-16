@@ -47,7 +47,6 @@
                   <span class="rank-chip" aria-live="polite">Rang&nbsp;<span class="rank-num">–</span></span>
                 </div>
 
-                <!-- Hidden inputs for all underlying presentation IDs -->
                 {% for pid in presentation.presentation_ids %}
                 <input type="hidden" 
                        name="ranking_{{ pid }}" 
@@ -62,10 +61,8 @@
                 <p><strong>Lehrer:</strong> {{ presentation.teacher }}</p>
                 <p><strong>Hosts:</strong> {{ presentation.hosts }}</p>
                 <p><strong>Beschreibung:</strong> {{ presentation.description }}</p>
-                {% if presentation.presentation_ids|length > 1 %}
-                <p><strong>Verfügbare Slots:</strong> {{ presentation.presentation_ids|length }}</p>
-                {% endif %}
-              </div>
+                
+                </div>
             </div>
             {% endfor %}
           </div>

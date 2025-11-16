@@ -31,13 +31,18 @@ def pt_logincode_exists(c):
 def login():
     session["logged_in"] = False
 
-    if request.method == "POST":
-        # Get the status of the models
+    # --- FIX: Load module status at the top ---
+    # This makes it available for both GET and POST
+    try:
         with open("app/data/module_status.json", "r") as f:
             module_status = json.load(f)
+    except FileNotFoundError:
+        # Default status if file doesn't exist
+        module_status = {"modules": {"TdW": "inactive", "SmS": "inactive", "PT": "inactive"}}
 
-        print(f"Form data: {request.form}")  # Debug print
-        print(f"Module status: {module_status}")  # Debug print
+    if request.method == "POST":
+        print(f"Form data: {request.form}")      # Debug print
+        print(f"Module status: {module_status}") # Debug print
 
         if (
             request.form.get("event") == "tdw"
@@ -51,7 +56,8 @@ def login():
                 session["logged_in"] = True
                 return redirect("/tdw")
             else:
-                return render_template("login.html")
+                # --- FIX: Pass status on failed login ---
+                return render_template("login.html", status=module_status["modules"])
         elif (
             request.form.get("event") == "pt"
             and module_status["modules"].get("PT", "inactive") == "active"  # Use .get() with default
@@ -66,7 +72,8 @@ def login():
                 return redirect("/pt")
             else:
                 print("PT login failed - invalid logincode")
-                return render_template("login.html")
+                # --- FIX: Pass status on failed login ---
+                return render_template("login.html", status=module_status["modules"])
         elif (
             request.form.get("event") == "sms"
             and module_status["modules"]["SmS"] == "active"
@@ -75,9 +82,11 @@ def login():
         # TODO: add the logic here, when the module is in dev
         else:
             print(f"No matching event or module inactive")
-            return render_template("login.html")
+            # --- FIX: Pass status on failed login ---
+            return render_template("login.html", status=module_status["modules"])
     else:
-        return render_template("login.html")
+        # --- FIX: Pass status on initial page load (GET request) ---
+        return render_template("login.html", status=module_status["modules"])
 
 
 @auth.route("/admin_login", methods=["GET", "POST"])
@@ -97,6 +106,3 @@ def adminLogin():
             return redirect("/admin/tdw/panel")
 
     return render_template("admin/admin_login.html")
-
-
-# When the SmS module comes, we need a normal admin panel which links to the sms admin panel and the tdw admin panel
