@@ -307,84 +307,91 @@ def pt_export_assignments_pdf():
         from reportlab.lib import colors
         from reportlab.lib.enums import TA_CENTER, TA_LEFT
         
-        # Create download directory with absolute path
         current_dir = os.path.dirname(os.path.abspath(__file__))
         download_dir = os.path.join(current_dir, 'data', 'pt', 'downloads')
         os.makedirs(download_dir, exist_ok=True)
         
-        print(f"Download directory: {download_dir}")
+        zip_filename = 'PT_Schüler_Stundenpläne.zip'
+        zip_path = os.path.join(download_dir, zip_filename)
+
+        print(f"Cleaning old files from {download_dir}...")
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+        for file in os.listdir(download_dir):
+            if file.startswith('PT_Stundenpläne_') and file.endswith('.pdf'):
+                os.remove(os.path.join(download_dir, file))
         
-        # Create PDF file path
-        pdf_filename = 'PT_Schüler_Stundenpläne.pdf'
-        pdf_path = os.path.join(download_dir, pdf_filename)
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            textColor=colors.black
+        )
+        student_title_style = ParagraphStyle(
+            'StudentTitle',
+            parent=styles['Heading2'],
+            fontSize=18,
+            spaceAfter=20,
+            alignment=TA_CENTER,
+            textColor=colors.black
+        )
+        info_style = ParagraphStyle(
+            'InfoStyle',
+            parent=styles['Normal'],
+            fontSize=12,
+            spaceAfter=10,
+            alignment=TA_LEFT
+        )
         
-        print(f"PDF path: {pdf_path}")
-        
-        # Get all students with their assignments first to check if any exist
-        students_query = db.session.execute(
+        classes_query = db.session.execute(
             text("""
-                SELECT DISTINCT s.id, s.first_name, s.last_name, s.grade, s.grade_selector
+                SELECT DISTINCT s.grade, s.grade_selector
                 FROM pt_students s
                 JOIN pt_assignments a ON s.id = a.student_id
-                ORDER BY s.last_name, s.first_name
+                ORDER BY s.grade, s.grade_selector
             """)
         ).all()
         
-        if not students_query:
+        if not classes_query:
             print("No students with assignments found")
-            # Create a simple PDF with no assignments message
-            doc = SimpleDocTemplate(pdf_path, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm)
-            styles = getSampleStyleSheet()
-            story = [Paragraph("Keine PT-Kurszuordnungen gefunden.", styles['Title'])]
-            doc.build(story)
-        else:
-            print(f"Found {len(students_query)} students with assignments")
+            return redirect("/admin/pt/panel") 
+        
+        print(f"Found {len(classes_query)} classes with assignments.")
+        
+        for grade, grade_selector in classes_query:
             
-            # Create PDF document
+            pdf_filename = f"PT_Stundenpläne_{grade}_{grade_selector}.pdf"
+            pdf_path = os.path.join(download_dir, pdf_filename)
             doc = SimpleDocTemplate(pdf_path, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm)
             story = []
-            
-            # Get styles
-            styles = getSampleStyleSheet()
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
-                fontSize=24,
-                spaceAfter=30,
-                alignment=TA_CENTER,
-                textColor=colors.darkblue
-            )
-            
-            student_title_style = ParagraphStyle(
-                'StudentTitle',
-                parent=styles['Heading2'],
-                fontSize=18,
-                spaceAfter=20,
-                alignment=TA_CENTER,
-                textColor=colors.black
-            )
-            
-            info_style = ParagraphStyle(
-                'InfoStyle',
-                parent=styles['Normal'],
-                fontSize=12,
-                spaceAfter=10,
-                alignment=TA_LEFT
-            )
-            
-            # Add main title page
-            story.append(Paragraph("PT-Kurszuordnungen", title_style))
-            story.append(Spacer(1, 2*cm))
-            story.append(Paragraph(f"Schüler-Stundenpläne - {len(students_query)} Schüler", styles['Heading2']))
+
+            students_query = db.session.execute(
+                text("""
+                    SELECT DISTINCT s.id, s.first_name, s.last_name, s.grade, s.grade_selector
+                    FROM pt_students s
+                    JOIN pt_assignments a ON s.id = a.student_id
+                    WHERE s.grade = :grade AND s.grade_selector = :grade_selector
+                    ORDER BY s.last_name, s.first_name
+                """),
+                {"grade": grade, "grade_selector": grade_selector}
+            ).all()
+
+            if not students_query:
+                continue
+
+            story.append(Paragraph(f"PT-Kurszuordnungen - Klasse {grade}/{grade_selector}", title_style))
+            story.append(Paragraph(f"{len(students_query)} Schüler", styles['Heading2']))
             story.append(PageBreak())
             
-            # Generate page for each student
             for i, student in enumerate(students_query):
-                student_id, first_name, last_name, grade, grade_selector = student
+                student_id, first_name, last_name, s_grade, s_grade_selector = student
                 
                 # Add student header
                 story.append(Paragraph(f"{last_name}, {first_name}", student_title_style))
-                story.append(Paragraph(f"Klasse: {grade} | Klassenbezeichnung: {grade_selector}", info_style))
+                story.append(Paragraph(f"Klasse: {s_grade} | Klassenbezeichnung: {s_grade_selector}", info_style))
                 story.append(Spacer(1, 0.5*cm))
                 
                 # Get student's assignments
@@ -400,14 +407,9 @@ def pt_export_assignments_pdf():
                 ).all()
                 
                 if assignments_query:
-                    # Create table data
-                    table_data = [
-                        ['Block', 'Kurstitel', 'Referent', 'Lehrer', 'Raum']
-                    ]
-                    
+                    table_data = [['Block', 'Kurstitel', 'Referent', 'Lehrer', 'Raum']]
                     for assignment in assignments_query:
                         title, presenter, teacher, slot, room, description = assignment
-                        # Handle None values
                         table_data.append([
                             f"Block {slot}",
                             title or "N/A",
@@ -416,32 +418,28 @@ def pt_export_assignments_pdf():
                             room or "N/A"
                         ])
                     
-                    # Create and style the table
                     table = Table(table_data, colWidths=[2*cm, 6*cm, 3*cm, 3*cm, 2*cm])
                     table.setStyle(TableStyle([
-                        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                         ('FONTSIZE', (0, 0), (-1, 0), 12),
                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
                         ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
                         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                         ('FONTSIZE', (0, 1), (-1, -1), 10),
                         ('GRID', (0, 0), (-1, -1), 1, colors.black),
                         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                     ]))
-                    
                     story.append(table)
                     story.append(Spacer(1, 1*cm))
                     
-                    # Add course descriptions if they exist
-                    has_descriptions = any(assignment[5] for assignment in assignments_query if assignment[5])
+                    has_descriptions = any(a[5] for a in assignments_query if a[5])
                     if has_descriptions:
                         story.append(Paragraph("Kursbeschreibungen:", styles['Heading3']))
                         story.append(Spacer(1, 0.3*cm))
-                        
                         for assignment in assignments_query:
                             title, presenter, teacher, slot, room, description = assignment
                             if description and description.strip():
@@ -451,27 +449,29 @@ def pt_export_assignments_pdf():
                 else:
                     story.append(Paragraph("Keine Kurszuordnungen für diesen Schüler gefunden.", info_style))
                 
-                # Add page break except for the last student
                 if i < len(students_query) - 1:
                     story.append(PageBreak())
             
-            # Build PDF
+         
             doc.build(story)
-        
-        # Verify the file was created
-        if not os.path.exists(pdf_path):
-            print(f"PDF file was not created at {pdf_path}")
-            return redirect("/admin/pt/panel")
-        
-        print(f"PDF created successfully at {pdf_path}")
-        print(f"File size: {os.path.getsize(pdf_path)} bytes")
-        
-        # Send file using relative path from app directory
+            print(f"Created PDF for class {grade}/{grade_selector} at {pdf_path}")
+
+
+        print(f"Zipping PDFs into {zip_path}...")
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for file in os.listdir(download_dir):
+                if file.startswith('PT_Stundenpläne_') and file.endswith('.pdf'):
+                    file_full_path = os.path.join(download_dir, file)
+                    zipf.write(file_full_path, file)
+                    os.remove(file_full_path) 
+
+        print("Zipping complete.")
+
         return send_from_directory(
             os.path.join('data', 'pt', 'downloads'),
-            pdf_filename,
+            zip_filename,
             as_attachment=True,
-            mimetype="application/pdf"
+            mimetype="application/zip"
         )
         
     except ImportError as e:
@@ -483,7 +483,7 @@ def pt_export_assignments_pdf():
         import traceback
         traceback.print_exc()
         return redirect("/admin/pt/panel")
-
+    
 @pt_admin_views.route("/admin/pt/export_room_lists_pdf", methods=["GET"])
 @admin_required
 def pt_export_room_lists_pdf():
@@ -513,7 +513,7 @@ def pt_export_room_lists_pdf():
             text("""
                 SELECT 
                     p.room, p.slot, p.title, p.presenter, p.teacher, p.description,
-                    s.first_name, s.last_name, s.grade, s.logincode
+                    s.first_name, s.last_name, s.grade, s.grade_selector
                 FROM pt_assignments a
                 JOIN pt_students s ON a.student_id = s.id
                 JOIN pt_presentations p ON a.presentation_id = p.id
@@ -534,7 +534,7 @@ def pt_export_room_lists_pdf():
             # Organize data by room and slot
             room_data = {}
             for assignment in room_assignments_query:
-                room, slot, title, presenter, teacher, description, first_name, last_name, grade, logincode = assignment
+                room, slot, title, presenter, teacher, description, first_name, last_name, grade, grade_selector = assignment
                 
                 if room not in room_data:
                     room_data[room] = {}
@@ -554,7 +554,7 @@ def pt_export_room_lists_pdf():
                     'first_name': first_name,
                     'last_name': last_name,
                     'grade': grade,
-                    'logincode': logincode
+                    'grade_selector': grade_selector 
                 })
             
             # Create PDF document
@@ -569,7 +569,7 @@ def pt_export_room_lists_pdf():
                 fontSize=24,
                 spaceAfter=30,
                 alignment=TA_CENTER,
-                textColor=colors.darkblue
+                textColor=colors.black
             )
             
             room_title_style = ParagraphStyle(
@@ -587,7 +587,7 @@ def pt_export_room_lists_pdf():
                 fontSize=14,
                 spaceAfter=15,
                 alignment=TA_LEFT,
-                textColor=colors.darkgreen
+                textColor=colors.black 
             )
             
             info_style = ParagraphStyle(
@@ -633,9 +633,9 @@ def pt_export_room_lists_pdf():
                     story.append(Paragraph(f"<b>Schüler ({len(students)}):</b>", course_title_style))
                     
                     if students:
-                        # Create student table
+
                         table_data = [
-                            ['Nr.', 'Nachname', 'Vorname', 'Klasse', 'Login-Code']
+                            ['Nr.', 'Nachname', 'Vorname', 'Klasse', 'Klassen-Bez.', 'Anwesend']
                         ]
                         
                         for i, student in enumerate(students, 1):
@@ -644,27 +644,28 @@ def pt_export_room_lists_pdf():
                                 student['last_name'] or 'N/A',
                                 student['first_name'] or 'N/A',
                                 str(student['grade']) or 'N/A',
-                                student['logincode'] or 'N/A'
+                                str(student['grade_selector']) or 'N/A',
+                                "" 
                             ])
                         
-                        # Create and style the table
-                        table = Table(table_data, colWidths=[1*cm, 4*cm, 4*cm, 2*cm, 3*cm])
+                        # --- ADDED WIDTH FOR NEW COLUMN ---
+                        table = Table(table_data, colWidths=[1*cm, 3.5*cm, 3.5*cm, 2*cm, 2.5*cm, 2.5*cm])
+
                         table.setStyle(TableStyle([
-                            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey), 
+                            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),    
                             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                             ('FONTSIZE', (0, 0), (-1, 0), 11),
                             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
                             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                             ('FONTSIZE', (0, 1), (-1, -1), 9),
                             ('GRID', (0, 0), (-1, -1), 1, colors.black),
                             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                            ('ALIGN', (0, 0), (0, -1), 'CENTER'),  # Number column center
-                            ('ALIGN', (1, 1), (2, -1), 'LEFT'),    # Name columns left
-                            ('ALIGN', (3, 1), (-1, -1), 'CENTER'), # Grade and login center
+                            ('ALIGN', (0, 0), (0, -1), 'CENTER'), 
+                            ('ALIGN', (1, 1), (2, -1), 'LEFT'),
+                            ('ALIGN', (3, 1), (-1, -1), 'CENTER'),
                         ]))
                         
                         story.append(table)

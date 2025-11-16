@@ -54,7 +54,10 @@ class PTSelectionEngine:
             
         for (p,) in presentations_query:
             self.presentations[p.id] = p
-            self.presentation_capacity[p.id] = p.max_students
+            # --- THIS IS THE FIX ---
+            # Convert max_students to an integer when loading
+            self.presentation_capacity[p.id] = int(p.max_students)
+            # --- END OF FIX ---
             self.presentations_by_slot[p.slot].append(p)
         
         self.slot_ids = sorted(list(self.presentations_by_slot.keys()))
@@ -129,6 +132,7 @@ class PTSelectionEngine:
                     
                 presentation = self.presentations[presentation_id]
                 
+                # This comparison will now work (int < int)
                 if presentation.slot not in assigned_slots and \
                    presentation.column not in assigned_columns and \
                    presentation_counts[presentation_id] < self.presentation_capacity[presentation_id]:
@@ -281,7 +285,7 @@ class PTSelectionEngine:
 
                 # --- HARD CONSTRAINT CHECKS ---
                 if p_new_id is not None:
-                    # 1. Check Capacity
+                    # 1. Check Capacity (this will now work: int >= int)
                     if current_counts[p_new_id] >= self.presentation_capacity[p_new_id]:
                         continue # Move is impossible. Reject.
                 
@@ -345,7 +349,9 @@ class PTSelectionEngine:
             yield f"--- FATAL ERROR ---"
             yield f"An error occurred: {e}"
             import traceback
-            yield traceback.format_exc()
+            # --- TYPO FIX ---
+            yield traceback.format_exc() 
+            # --- END TYPO FIX ---
             yield "No assignments have been saved. Please resolve the error and try again."
             db.session.rollback() # Rollback any partial changes
 
