@@ -1,3 +1,4 @@
+<!--subdomain\src\app\templates\login.html-->
 {% extends 'base.html' %}
 
 {% block title %}
@@ -6,12 +7,21 @@ Login
 
 {% block content %}
 
-<head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
-</head>
+<!-- Link placed directly in content block -->
+<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+
+<!-- Admin panel inside Main, positioned absolutely by CSS -->
+<div class="admin-panel">
+    <a href="/admin_login">Admin</a>
+</div>
 
 <form method="post" class="login-container">
     <h1>Willkommen zurück!</h1>
+    
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
     <p>Bitte geben Sie Ihren Login-Code ein, um fortzufahren.</p>
     
     <select name="event" id="event-selector">
@@ -26,15 +36,8 @@ Login
         </option>
     </select>
     
-    <input type="password" name="logincode" id="logincode" placeholder="Login-Code">
+    <input type="password" name="logincode" id="logincode" placeholder="Login-Code" required>
     <input type="submit" value="Login" class="submit">
 </form>
 
-<div class="admin-panel">
-    <a href="/admin_login">Admin</a>
-</div>
-
-<style>
-
-</style>
 {% endblock %}

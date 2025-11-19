@@ -1,13 +1,11 @@
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(135deg, #560d4f, #8846a4);
-    height: 100vh;
+/*subdomain\src\app\static\admin\admin_login.css*/
+main {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;   
+    width: 100%;
+    min-height: 100%;      
 }
 
 .login-container {
@@ -73,4 +71,5 @@ body {
     color: red;
     font-size: 14px;
     margin-top: 10px;
+    min-height: 20px; 
 }

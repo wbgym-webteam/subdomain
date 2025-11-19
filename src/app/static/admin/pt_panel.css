@@ -1,13 +1,13 @@
+/*subdomain\src\app\static\admin\pt_panel.css*/
 body {
     font-family: 'Arial', sans-serif;
     background-color: #560d4f; /* Main purple background */
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* Remove display: flex and justify-content */
 }
+
 
 main {
     background-color: white;
@@ -17,7 +17,8 @@ main {
     max-width: 750px;
     padding: 30px;
     color: #333;
-    margin: 20px;
+    margin: 20px auto; /* Changed to center using auto margins */
+    align-items: center;
 }
 
 header h1 {

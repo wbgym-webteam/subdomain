@@ -1,25 +1,13 @@
-/*subdomain\src\app\static\login.css*/
-html, body {
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    box-sizing: border-box;
-}
+/* subdomain\src\app\static\login.css */
 
-*, *::before, *::after {
-    box-sizing: inherit;
-}
 
-body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #560d4f, #8846a4);
+main {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    color: #fff;
-}
+    align-items: center;     
+    width: 100%;
+    position: relative;      
 
 div.admin-panel {
     position: absolute;
@@ -28,10 +16,13 @@ div.admin-panel {
     background-color: #7b598d;
     padding: 10px;
     border-radius: 5px;
+    z-index: 10;
 }
+
 div.admin-panel a {
     text-decoration: none;
-    color: #4c0275;
+    color: #fff;
+    font-weight: bold;
     font-size: 14px;
 }
 
@@ -41,37 +32,37 @@ select {
     color: white;
     border-radius: 15px;
     border: 1px solid white;
-    margin-bottom: 5px;
+    margin-bottom: 15px; /
+    cursor: pointer;
 }
+
 select option:disabled {
-        color: #999;
-        background-color: #3a0935;
-    }
+    color: #999;
+    background-color: #3a0935;
+}
 
 .login-container {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     padding: 40px 30px;
     width: 100%;
     max-width: 400px;
-    margin: 0 auto;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     text-align: center;
 }
 
 .login-container h1 {
     font-size: 28px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #333;
 }
 
 .login-container p {
     font-size: 14px;
-    margin-bottom: 30px;
-    color: #555;
+    margin-bottom: 25px;
+    color: #666;
+    line-height: 1.4;
 }
-
-
 
 .login-container input {
     width: 100%;
@@ -81,12 +72,13 @@ select option:disabled {
     border-radius: 8px;
     font-size: 16px;
     box-sizing: border-box;
+    transition: border-color 0.2s;
 }
 
 .login-container input:focus {
     outline: none;
-    border-color: #4a90e2;
-    box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+    border-color: #8846a4;
+    box-shadow: 0 0 0 3px rgba(136, 70, 164, 0.2);
 }
 
 .login-container input.submit {
@@ -96,6 +88,7 @@ select option:disabled {
     border: none;
     color: white;
     font-size: 18px;
+    font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
@@ -103,7 +96,7 @@ select option:disabled {
 
 .login-container input.submit:hover {
     background-color: #8846a4;
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .login-container input.submit:active {
@@ -111,16 +104,24 @@ select option:disabled {
 }
 
 p.error {
-    color: rgb(170, 5, 5);
-    background: #e67272;
-    border: 1px solid #c53d3d;
-    border-radius: 3px;
-    padding: 5px;
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
 }
 
 @media (max-width: 430px) {
     .login-container {
-        padding: 20px 5px;
-        max-width: 98vw;
+        padding: 30px 20px;
+        max-width: 90%;
+    }
+    div.admin-panel {
+        top: auto;
+        bottom: -40px; 
+        right: 50%;
+        transform: translateX(50%);
     }
 }
