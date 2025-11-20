@@ -1,59 +1,288 @@
-:root {
-    --checkbox: 10px;
+/*subdomain\src\app\static\tdw\tdw_selection.css*/
+/* --- 1. Page Specific Reset --- */
+body {
+    /* KEY FIX: background-attachment: fixed ensures the gradient doesn't 'reset' or repeat when scrolling */
+    background: linear-gradient(135deg, #560d4f, #8846a4) !important; 
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    min-height: 100vh;
 }
 
-.container {
-    background-color: white;
+/* --- 2. Main Container Styling --- */
+.login-container.sms-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 30px;
+    width: 100%;           
+    max-width: 800px;      
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    margin: 40px auto;     
+    display: block;        
 }
 
-h1 {
+/* --- 3. Headers --- */
+.header-section {
     text-align: center;
-    margin-top: 20px;
+    margin-bottom: 20px;
     background: white;
-    color: purple;
-    font-size: 50px;
-
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-input#checkbox {
-    transform: scale(2);
+.header-section h1 {
+    margin: 0 0 10px 0;
+    color: #560d4f;
+    font-size: 2.5rem;
 }
 
-table {
-    border-collapse: collapse;
+.instruction-text {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 5px 0;
+}
+
+/* --- 4. Counter Box --- */
+.selection-counter {
+    text-align: center;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #dee2e6;
+}
+
+.counter-main {
+    font-weight: bold;
+    color: #560d4f;
+    font-size: 1.2rem;
+}
+
+/* --- 5. Card Styling (The List) --- */
+.courses-container {
+    margin-bottom: 20px;
+}
+
+.course-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.course-card:hover {
+    box-shadow: 0 5px 15px rgba(86, 13, 79, 0.15);
+    border-color: #bfaec2;
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.course-card:hover .course-header {
+    background: #f0ebf2;
+}
+
+.course-title-section {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.course-title {
+    margin: 0;
+    color: #560d4f;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.expand-icon {
+    margin-left: 15px;
+    color: #560d4f;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    opacity: 0.7;
+}
+
+/* --- 6. Accordion Details --- */
+.course-details {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #eee;
+}
+
+.course-details-hidden {
+    display: none;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 12px;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #560d4f;
+    min-width: 100px;
+    margin-right: 15px;
+}
+
+.detail-value {
+    color: #444;
+    flex: 1;
+    line-height: 1.4;
+}
+
+/* --- 7. Checkbox Styling --- */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+input[type="checkbox"].custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid #560d4f;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+input[type="checkbox"].custom-checkbox:checked {
+    background-color: #560d4f;
+}
+
+input[type="checkbox"].custom-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+input[type="checkbox"].custom-checkbox:hover {
+    box-shadow: 0 0 0 4px rgba(86, 13, 79, 0.1);
+}
+
+/* --- 8. Error Message --- */
+.error-message {
+    background: #ffeaea;
+    border: 1px solid #ffcdd2;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 15px 0;
+    color: #c62828;
+    text-align: center;
+    font-weight: bold;
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+/* --- 9. Buttons --- */
+.submit-container {
+    margin-top: 20px;
+}
+
+input.submit {
     width: 100%;
-}
-
-tr {
-    border-bottom: 3px solid #000080;
-}
-
-td, th {
-    padding: 8px;
-}
-
-.logout_button {
-    background-color: red;
+    padding: 15px;
+    background-color: #560d4f;
     border: none;
     color: white;
-    opacity: 0.8;
-    padding: 10px 20px;
-    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
-    margin-top: 2%;
-    margin-left: 2%;
-        float: left;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.submit-selection-container {
-    display: flex;
-    justify-content: flex-end; /* Aligns content to the right */
-    margin-top: 15px;
-    margin-right: 10px;
-    font-size: 18px;
+input.submit:hover {
+    background-color: #7a1370;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
-.submit-button {
+/* --- 10. Logout --- */
+.logout-container {
+    text-align: center;
+    margin-top: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
 
+.logout-btn {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* --- 11. Responsive --- */
+@media screen and (max-width: 768px) {
+    .login-container.sms-container {
+        padding: 15px;
+    }
+    
+    .header-section h1 {
+        font-size: 1.8rem;
+    }
+    
+    .course-header {
+        padding: 12px;
+    }
+    
+    .course-title {
+        font-size: 16px;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        margin-bottom: 4px;
+    }
 }
