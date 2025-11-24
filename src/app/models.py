@@ -61,6 +61,7 @@ class PTStudent(db.Model):
     grade = db.Column(db.Integer, nullable=False)
     grade_selector = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False)
+    gender = db.Column(db.String(20), nullable=False) # eather m for male or f for female
 
 class PTPresentation(db.Model):
     __tablename__ = "pt_presentations"
@@ -74,7 +75,7 @@ class PTPresentation(db.Model):
     max_students = db.Column(db.Integer, nullable=False)
     column = db.Column(db.Integer, nullable=False)
     room = db.Column(db.String(20), nullable=False)
-
+    gender = db.Column(db.String(20), nullable=False) # eather m for male, f for female or u for unisex
 class PTSelection(db.Model):
     __tablename__ = "pt_selections"
 

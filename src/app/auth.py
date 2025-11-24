@@ -1,3 +1,4 @@
+#subdomain\src\app\auth.py
 from flask import Blueprint, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 import json

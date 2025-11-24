@@ -62,7 +62,7 @@ def selection():
             
             db_current_student = db.session.execute(
                 db.select(
-                    PTStudent.first_name, PTStudent.last_name, PTStudent.grade
+                    PTStudent.first_name, PTStudent.last_name, PTStudent.grade, PTStudent.gender
                 ).filter_by(id=student_id)
             ).one_or_none()
 
@@ -72,17 +72,23 @@ def selection():
             )
             grade = current_student["grade"]
 
+            student_gender = current_student["gender"]
+
             # Get the presentations organized by columns
             presentations_by_column = {}
             db_presentations = db.session.execute(db.select(PTPresentation)).all()
 
             for presentation in db_presentations:
                 pres = presentation[0]
+
+                if pres.gender != 'u' and pres.gender != student_gender:
+                    continue
+
                 column = pres.column
                 if column not in presentations_by_column:
                     presentations_by_column[column] = {}
                 
-                merge_key = f"{pres.title}|{pres.description}"
+                merge_key = f"{pres.title}|{pres.description}|{pres.gender}"
                 
                 if merge_key not in presentations_by_column[column]:
                     presentations_by_column[column][merge_key] = {
@@ -93,6 +99,7 @@ def selection():
                         'teacher': pres.teacher,
                         'hosts': pres.presenter,
                         'rooms': [pres.room],
+                        'gender': pres.gender
                     }
                 else:
                     if pres.room not in presentations_by_column[column][merge_key]['rooms']:

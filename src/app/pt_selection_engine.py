@@ -34,6 +34,7 @@ class PTSelectionEngine:
         self.presentations_by_slot = defaultdict(list)
         self.student_ids = []
         self.slot_ids = [] # e.g., [1, 2, 3]
+        self.student_genders = {}
 
     def load_data(self):
         """Load all necessary data from database"""
@@ -41,6 +42,7 @@ class PTSelectionEngine:
         students_query = db.session.execute(db.select(PTStudent)).all()
         self.students = [s[0] for s in students_query]
         self.student_ids = [s.id for s in self.students]
+        self.student_genders = {s.id: s.gender for s in self.students}
         if not self.students:
             yield "ERROR: No students found in database."
             return
@@ -124,6 +126,7 @@ class PTSelectionEngine:
             
             student_wishes = self.wishes_lookup.get(student_id, {})
             sorted_wishes = sorted(student_wishes.items(), key=lambda item: item[1])
+            student_gender = self.student_genders.get(student_id, 'u')
 
             # Try to assign based on wishes first
             for presentation_id, rank in sorted_wishes:
@@ -132,6 +135,9 @@ class PTSelectionEngine:
                     
                 presentation = self.presentations[presentation_id]
                 
+                if presentation.gender != 'u' and presentation.gender != student_gender:
+                    continue
+
                 # This comparison will now work (int < int)
                 if presentation.slot not in assigned_slots and \
                    presentation.column not in assigned_columns and \
@@ -149,6 +155,7 @@ class PTSelectionEngine:
                         p for p in self.presentations_by_slot[slot]
                         if p.column not in assigned_columns and
                            presentation_counts[p.id] < self.presentation_capacity[p.id] 
+                           (p.gender == 'u' or p.gender == student_gender)
                     ]
                     
                     if available_presentations:
@@ -299,6 +306,13 @@ class PTSelectionEngine:
                     if p_new_col in other_assigned_cols:
                         continue # Move is impossible. Reject.
                 
+                    p_new_gender = self.presentations[p_new_id].gender
+                    s_gender = self.student_genders[s_id]
+
+                    # If course is NOT unisex AND genders don't match -> Reject
+                    if p_new_gender != 'u' and p_new_gender != s_gender:
+                        continue
+                    
                 
                 # --- This move is VALID. Calculate score delta. ---
                 

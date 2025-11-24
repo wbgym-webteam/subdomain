@@ -35,7 +35,7 @@ def load_german_words():
 GERMAN_WORDS = load_german_words()
 
 
-def create_student(student_id, last_name, first_name, email, grade, grade_selector, logincode):
+def create_student(student_id, last_name, first_name, email, grade, grade_selector, logincode, gender):
     # Check if student already exists
     existing_student = db.session.execute(
         db.select(PTStudent).filter_by(id=student_id)
@@ -56,6 +56,7 @@ def create_student(student_id, last_name, first_name, email, grade, grade_select
             grade=grade,
             grade_selector=grade_selector,
             logincode=logincode,
+            gender=gender,
         )
         print("Student erfolgreich gespeichert!")
         db.session.add(new_student)
@@ -103,7 +104,7 @@ def generate_login_code():
 
 
 
-def create_pt_presentation(Course_id, Course_title, Course_description, Course_teacher, Course_min_grade, Course_max_grade, Course_max_people, Course_hosts, Course_column):
+def create_pt_presentation(Course_id, Course_title, Course_description, Course_teacher, Course_min_grade, Course_max_grade, Course_max_people, Course_hosts, Course_column, gender):
     try:
         new_pt_presentation = PTPresentation(
             id = Course_id,  # Use id instead of course_id
@@ -114,6 +115,7 @@ def create_pt_presentation(Course_id, Course_title, Course_description, Course_t
             max_students = Course_max_people,  # Use max_students instead of course_maximum_people
             column = Course_column,  # Use column instead of course_column
             room = Course_hosts,  # Use room instead of course_hosts
+            gender = gender
         )
         db.session.add(new_pt_presentation)
         db.session.commit()
@@ -153,6 +155,7 @@ def FileHandlerPT():
             email = row[3] if len(row) > 3 else None  # Column D
             grade = row[4] if len(row) > 4 else None  # Column E (Grade)
             grade_selector = row[5] if len(row) > 5 else None  # Column F (Grade Selector)
+            gender = row[6] if len(row) > 6 else "u"  # Column G
             
             try:
                 logincode = generate_login_code()
@@ -162,7 +165,7 @@ def FileHandlerPT():
                     break
 
                 # Pass all required parameters
-                create_student(student_id, last_name, first_name, email, grade, grade_selector, logincode)
+                create_student(student_id, last_name, first_name, email, grade, grade_selector, logincode, gender)
             except Exception as e:
                 print(f"Error processing student {student_id}: {e}")
                 db.session.rollback()
@@ -182,7 +185,9 @@ def FileHandlerPT():
             PTPresentation_slot = row[5]
             PTPresentation_max_people = row[6]
             PTPresentation_column = row[7]
-            PTPresentation_room = row[8]  # Add column data from Excel
+            PTPresentation_room = row[8]  
+            PTPresenation_gender = row[9]
+            # Add column data from Excel
 
             print(f"{PTPresentation_id} {PTPresentation_title} {PTPresentation_hosts} {PTPresentation_description} Column: {PTPresentation_column}")
 
@@ -196,6 +201,7 @@ def FileHandlerPT():
                 or PTPresentation_column == None
                 or PTPresentation_slot == None
                 or PTPresentation_room == None
+                or PTPresenation_gender == None
             ):
                 print(f"Skipping row {row_index} due to missing data")
                 break
@@ -210,7 +216,8 @@ def FileHandlerPT():
                     PTPresentation_hosts,
                     PTPresentation_column,
                     PTPresentation_slot,
-                    PTPresentation_room
+                    PTPresentation_room,
+                    PTPresenation_gender
                 )
             except Exception as e:
                 print(f"Error processing course {PTPresentation_id}: {e}")
