@@ -1,74 +1,119 @@
-:root {
-    --form-fontsize: 16px;
-}
-
+/*subdomain\src\app\static\admin\tdw_panel.css*/
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #560d4f, #8846a4);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
+    background-color: #560d4f; /* Main purple background */
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+main {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 750px;
+    padding: 30px;
+    color: #333;
+    margin: 20px auto; 
     align-items: center;
-    color: #000000;
-    line-height: 250%;
 }
 
+header h1 {
+    color: white;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 22px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    text-align: center; /* Added to ensure title is centered like the main box */
+}
 
-.container {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: 40px 35px;
+/* Ensure the header text is aligned nicely with the main box */
+header {
+    width: 90%;
+    max-width: 750px;
+    margin: 20px auto 0 auto;
+}
+
+form {
+    margin-bottom: 25px;
+    padding-bottom: 0;
+}
+
+hr {
+    border: none;
+    border-top: 1.5px solid #e0d6e6;
+    margin: 24px 0;
     width: 100%;
-    max-width: 800px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0.7;
 }
 
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #444;
+}
 
-h1 {
-    font-size: 48px;
-    margin-bottom: 20px;
+input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 15px;
+    box-sizing: border-box; /* Ensures padding doesn't break width */
+}
+
+button, input[type="submit"] {
+    background-color: #560d4f;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color: #6d1766;
+}
+
+a {
+    display: block;
+    margin: 10px 0;
+    text-decoration: none;
+}
+
+.status {
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin: 10px 0;
     color: #333;
 }
 
-
-label#label {
-    font-size: var(--form-fontsize);
+#logout {
+    position: absolute;
+    top: 20px;
+    right: 20px;
 }
 
-.action-button {
-    background-color: #560d4f;
+#logout a {
+    background-color: rgba(255, 255, 255, 0.2);
     color: white;
-    text-decoration: none;
-    font-size: 16px;
-    padding: 2px 6px;
-    margin: 12px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    float: right;
-}
-
-.action-button:hover {
-    background-color: #8846a4;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.admin_button {
-    font-size: var(--form-fontsize);
-    background-color: #8846a4;
-    border: none;
+    padding: 8px 15px;
     border-radius: 4px;
-    color: white;
-    padding: 6px 12px;
+    transition: background-color 0.2s;
 }
 
-.admin_input {
-    background-color: #1DA1F2;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    padding: 6px 12px;
+#logout a:hover {
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
-
+form:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
