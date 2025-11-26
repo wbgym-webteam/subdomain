@@ -54,46 +54,30 @@ def export_logincodes():
         if file.endswith(".docx") or file == "PT_Logincodes.zip":
             try:
                 os.remove(os.path.join(output_dir, file))
-                print(f"Deleted old file: {file}")
             except Exception as e:
                 print(f"Could not delete file {file}: {e}")
                 
     for grade in range(5, 13, 1):
-        for grade_selector in range(1, 5, 1):
-            if grade == 11 or grade == 12 or grade == 5 or grade == 6:
-                print(f"Exporting grade {grade}")
-                query = get_sek2_with_names(grade)
-            else:
-                print(f"Exporting grade {grade}/{grade_selector}")
-                query = get_class_with_names(grade, grade_selector)
-
+        
+        # -----------------------------------------------------------
+        # CASE 1: Grades exported as a whole (5, 6, 11, 12)
+        # -----------------------------------------------------------
+        if grade in [5, 6, 11, 12]:
+            print(f"Exporting grade {grade}")
+            query = get_sek2_with_names(grade)
+            
             if len(query) > 0:
                 doc = Document()
-                # ----------------------------------------------------------------
-                # Add a title
-                if grade == 11 or grade == 12 or grade == 5 or grade == 6:
-                    doc.add_heading(f"PT Login Codes {grade}", 0)
-                else:
-                    doc.add_heading(f"PT Login Codes {grade}/{grade_selector}", 0)
-
-                # ----------------------------------------------------------------
-                # Add a table
+                doc.add_heading(f"PT Login Codes {grade}", 0)
+                
+                # Table setup
                 table = doc.add_table(rows=1, cols=3)
-
-                # Add spacing between rows for data rows only
                 table.style = "Table Grid"
                 
-                hdr_cells = table.rows[0].cells
-                hdr_cells[0].text = "First Name"
-                hdr_cells[1].text = "Last Name"
-                hdr_cells[2].text = "Login Code"
-
                 headers = ["First Name", "Last Name", "Login Code"]
                 for i, header in enumerate(headers):
                     cell = table.cell(0, i)
                     cell.text = header
-
-                    # Set font size and make it bold
                     for paragraph in cell.paragraphs:
                         run = paragraph.runs[0]
                         run.bold = True
@@ -105,22 +89,65 @@ def export_logincodes():
                     row_cells[1].text = row.last_name
                     row_cells[2].text = row.logincode
 
-                for row in table.rows[1:]:  # Skip the header row
+                for row in table.rows[1:]:
                     for cell in row.cells:
                         for paragraph in cell.paragraphs:
                             paragraph.paragraph_format.space_after = Pt(14)
                             paragraph.paragraph_format.space_before = Pt(14)
                             paragraph.paragraph_format.line_spacing = Pt(14)
 
-                if grade == 11 or grade == 12 or grade == 5 or grade == 6:
-                    doc.save(os.path.join(output_dir, f"PT_Logincodes_{grade}.docx"))
-                    print(f"Finished grade {grade}")
-                else:
-                    doc.save(
-                        os.path.join(
-                            output_dir, f"PT_Logincodes_{grade}_{grade_selector}.docx"
-                        )
-                    )
-                    print(f"Finished grade {grade}/{grade_selector}")
+                doc.save(os.path.join(output_dir, f"PT_Logincodes_{grade}.docx"))
+                print(f"Finished grade {grade}")
+            
+            # Skip the rest of the loop for these grades so we don't look for selectors
+            continue 
+
+        # -----------------------------------------------------------
+        # CASE 2: Grades split by Selector (7, 8, 9, 10, etc.)
+        # -----------------------------------------------------------
+        
+        # dynamic query: find out exactly which selectors exist for this grade
+        existing_selectors_query = db.session.execute(
+            text(f"SELECT DISTINCT grade_selector FROM pt_students WHERE grade = {grade} ORDER BY grade_selector ASC")
+        ).fetchall()
+        
+        # Convert to a simple list, filtering out None
+        active_selectors = [r[0] for r in existing_selectors_query if r[0] is not None]
+
+        for grade_selector in active_selectors:
+            print(f"Exporting grade {grade}/{grade_selector}")
+            query = get_class_with_names(grade, grade_selector)
+
+            if len(query) > 0:
+                doc = Document()
+                doc.add_heading(f"PT Login Codes {grade}/{grade_selector}", 0)
+
+                table = doc.add_table(rows=1, cols=3)
+                table.style = "Table Grid"
+                
+                headers = ["First Name", "Last Name", "Login Code"]
+                for i, header in enumerate(headers):
+                    cell = table.cell(0, i)
+                    cell.text = header
+                    for paragraph in cell.paragraphs:
+                        run = paragraph.runs[0]
+                        run.bold = True
+                        run.font.size = Pt(14)
+
+                for row in query:
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = row.first_name
+                    row_cells[1].text = row.last_name
+                    row_cells[2].text = row.logincode
+
+                for row in table.rows[1:]:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            paragraph.paragraph_format.space_after = Pt(14)
+                            paragraph.paragraph_format.space_before = Pt(14)
+                            paragraph.paragraph_format.line_spacing = Pt(14)
+
+                doc.save(os.path.join(output_dir, f"PT_Logincodes_{grade}_{grade_selector}.docx"))
+                print(f"Finished grade {grade}/{grade_selector}")
 
     zip_files()
