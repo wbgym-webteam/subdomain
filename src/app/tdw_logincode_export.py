@@ -47,22 +47,17 @@ def export_logincodes():
     output_dir = os.getenv("OUTPUT_DIR", "./app/data/tdw/downloads")
 
     for grade in range(5, 13, 1):
-        for grade_selector in range(1, 5, 1):
-            if grade == 11 or grade == 12 or grade == 5 or grade == 6:
-                print(f"Exporting grade {grade}")
-                query = get_sek2(grade)
-            else:
-                print(f"Exporting grade {grade}/{grade_selector}")
-                query = get_class(grade, grade_selector)
+        
+        # ----------------------------------------------------------------
+        # Add a title
+        if grade in [5, 6, 11, 12]:
+            print(f"Exporting grade {grade}")
+            query = get_sek2(grade)
+            
 
-            if len(query) > 0 or query is not None:
+            if query and len(query) > 0:
                 doc = Document()
-                # ----------------------------------------------------------------
-                # Add a title
-                if grade == 11 or grade == 12 or grade == 5 or grade == 6:
-                    doc.add_heading(f"TDW Login Codes {grade}", 0)
-                else:
-                    doc.add_heading(f"TDW Login Codes {grade}/{grade_selector}", 0)
+                doc.add_heading(f"TDW Login Codes {grade}", 0)
 
                 # ----------------------------------------------------------------
                 # Add a table
@@ -71,18 +66,11 @@ def export_logincodes():
                 # Add spacing between rows for data rows only
                 table.style = "Table Grid"
                 
-                hdr_cells = table.rows[0].cells
-                hdr_cells[0].text = "First Name"
-                hdr_cells[1].text = "Last Name"
-                hdr_cells[2].text = "Login Code"
-
                 headers = ["First Name", "Last Name", "Login Code"]
                 for i, header in enumerate(headers):
                     cell = table.cell(0, i)
                     cell.text = header
-
                     # Set font size and make it bold
-
                     for paragraph in cell.paragraphs:
                         run = paragraph.runs[0]
                         run.bold = True
@@ -94,23 +82,62 @@ def export_logincodes():
                     row_cells[1].text = row.last_name
                     row_cells[2].text = row.logincode
 
-                for row in table.rows[1:]:  # Skip the header row
+                # Formatting
+                for row in table.rows[1:]:
                     for cell in row.cells:
                         for paragraph in cell.paragraphs:
                             paragraph.paragraph_format.space_after = Pt(14)
                             paragraph.paragraph_format.space_before = Pt(14)
                             paragraph.paragraph_format.line_spacing = Pt(14)
 
+                doc.save(os.path.join(output_dir, f"TdW_Logincodes_{grade}.docx"))
+                print(f"Finished grade {grade}")
+            continue # Move to next grade, skip the selector logic below
 
-                if grade == 11 or grade == 12 or grade == 5 or grade == 6:
-                    doc.save(os.path.join(output_dir, f"TdW_Logincodes_{grade}.docx"))
-                    print(f"Finished grade {grade}")
-                else:
-                    doc.save(
-                        os.path.join(
-                            output_dir, f"TdW_Logincodes_{grade}_{grade_selector}.docx"
-                        )
-                    )
-                    print(f"Finished grade {grade}/{grade_selector}")
+        # CASE 2: Grades that are split by selector (7, 8, 9, 10, etc.)
+        # dynamically fetch only the selectors that actually exist in the DB
+        existing_selectors_query = db.session.execute(
+            text(f"SELECT DISTINCT grade_selector FROM students WHERE grade = {grade} ORDER BY grade_selector ASC")
+        ).fetchall()
+        
+        # Convert list of tuples [(1,), (2,), (5,)] to simple list [1, 2, 5]
+        # Filter out None values just in case
+        active_selectors = [r[0] for r in existing_selectors_query if r[0] is not None]
+
+        for grade_selector in active_selectors:
+            print(f"Exporting grade {grade}/{grade_selector}")
+            query = get_class(grade, grade_selector)
+
+            if query and len(query) > 0:
+                doc = Document()
+                doc.add_heading(f"TDW Login Codes {grade}/{grade_selector}", 0)
+
+                table = doc.add_table(rows=1, cols=3)
+                table.style = "Table Grid"
+                
+                headers = ["First Name", "Last Name", "Login Code"]
+                for i, header in enumerate(headers):
+                    cell = table.cell(0, i)
+                    cell.text = header
+                    for paragraph in cell.paragraphs:
+                        run = paragraph.runs[0]
+                        run.bold = True
+                        run.font.size = Pt(14)
+
+                for row in query:
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = row.first_name
+                    row_cells[1].text = row.last_name
+                    row_cells[2].text = row.logincode
+
+                for row in table.rows[1:]:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            paragraph.paragraph_format.space_after = Pt(14)
+                            paragraph.paragraph_format.space_before = Pt(14)
+                            paragraph.paragraph_format.line_spacing = Pt(14)
+
+                doc.save(os.path.join(output_dir, f"TdW_Logincodes_{grade}_{grade_selector}.docx"))
+                print(f"Finished grade {grade}/{grade_selector}")
 
     zip_files()
