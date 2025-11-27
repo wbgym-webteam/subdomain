@@ -104,24 +104,24 @@ def generate_login_code():
 
 
 
-def create_pt_presentation(Course_id, Course_title, Course_description, Course_teacher, Course_min_grade, Course_max_grade, Course_max_people, Course_hosts, Course_column, gender):
+def create_pt_presentation(id, title, description, presenter, slot, max_people, column, room, gender):
     try:
         new_pt_presentation = PTPresentation(
-            id = Course_id,  # Use id instead of course_id
-            title = Course_title,  # Use title instead of course_title
-            description = Course_description,  # Use description instead of course_description
-            presenter = Course_teacher,  # Use presenter instead of course_Overseers
-            slot = 1,  # Add default slot value
-            max_students = Course_max_people,  # Use max_students instead of course_maximum_people
-            column = Course_column,  # Use column instead of course_column
-            room = Course_hosts,  # Use room instead of course_hosts
-            gender = gender
+            id=id,
+            title=title,
+            description=description,
+            presenter=presenter,     
+            slot=slot,             
+            max_students=max_people,
+            column=column,     
+            room=room,              
+            gender=gender
         )
         db.session.add(new_pt_presentation)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        print(f"Error creating a new pt_presentation #{Course_id} {Course_title}: {e}")
+        print(f"Error creating a new pt_presentation #{id} {title}: {e}")
         
 # ----------------------------------------------------------------------------
 # This is the place where the magic happens ✨✨✨
@@ -159,7 +159,7 @@ def FileHandlerPT():
             
             try:
                 logincode = generate_login_code()
-                print(f"{student_id} {last_name} {first_name} {grade}/{grade_selector} {logincode}")
+                # print(f"{student_id} {last_name} {first_name} {grade}/{grade_selector} {logincode}")
 
                 if student_id is None or grade is None:
                     break
@@ -189,35 +189,27 @@ def FileHandlerPT():
             PTPresenation_gender = row[9]
             # Add column data from Excel
 
-            print(f"{PTPresentation_id} {PTPresentation_title} {PTPresentation_hosts} {PTPresentation_description} Column: {PTPresentation_column}")
+            # print(f"{PTPresentation_id} {PTPresentation_title} {PTPresentation_hosts} {PTPresentation_description} Column: {PTPresentation_column}")
 
             if (
                 PTPresentation_id == None
                 or PTPresentation_title == None
-                or PTPresentation_description == None
-                or PTPresentation_teacher == None
-                or PTPresentation_max_people == None
-                or PTPresentation_hosts == None
-                or PTPresentation_column == None
-                or PTPresentation_slot == None
-                or PTPresentation_room == None
-                or PTPresenation_gender == None
             ):
                 print(f"Skipping row {row_index} due to missing data")
                 break
 
             try:
+                # Using Keyword Arguments to ensure correct mapping
                 create_pt_presentation(
-                    PTPresentation_id,
-                    PTPresentation_title,
-                    PTPresentation_description,
-                    PTPresentation_teacher,
-                    PTPresentation_max_people,
-                    PTPresentation_hosts,
-                    PTPresentation_column,
-                    PTPresentation_slot,
-                    PTPresentation_room,
-                    PTPresenation_gender
+                    id=PTPresentation_id,
+                    title=PTPresentation_title,
+                    description=PTPresentation_description,
+                    presenter=PTPresentation_hosts,  
+                    slot=PTPresentation_slot,    
+                    max_people=PTPresentation_max_people,
+                    column=PTPresentation_column,
+                    room=PTPresentation_room,    
+                    gender=PTPresenation_gender
                 )
             except Exception as e:
                 print(f"Error processing course {PTPresentation_id}: {e}")

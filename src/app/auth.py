@@ -1,5 +1,5 @@
 #subdomain\src\app\auth.py
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect, session, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
@@ -57,8 +57,8 @@ def login():
                 session["logged_in"] = True
                 return redirect("/tdw")
             else:
-                # --- FIX: Pass status on failed login ---
-                return render_template("login.html", status=module_status["modules"])
+                flash("Falscher Login-Code")
+                return redirect(url_for("auth.login"))
         elif (
             request.form.get("event") == "pt"
             and module_status["modules"].get("PT", "inactive") == "active"  # Use .get() with default
@@ -72,19 +72,20 @@ def login():
                 print(f"PT login successful, redirecting to /pt")
                 return redirect("/pt")
             else:
-                print("PT login failed - invalid logincode")
-                # --- FIX: Pass status on failed login ---
-                return render_template("login.html", status=module_status["modules"])
+                flash("Falscher Login-Code")
+                return redirect(url_for("auth.login"))
         elif (
             request.form.get("event") == "sms"
             and module_status["modules"]["SmS"] == "active"
         ):
             pass
-        # TODO: add the logic here, when the module is in dev
         else:
             print(f"No matching event or module inactive")
-            # --- FIX: Pass status on failed login ---
-            return render_template("login.html", status=module_status["modules"])
+            return render_template(
+                "login.html", 
+                status=module_status["modules"], 
+                error="Falscher Login-Code"
+            )
     else:
         # --- FIX: Pass status on initial page load (GET request) ---
         return render_template("login.html", status=module_status["modules"])

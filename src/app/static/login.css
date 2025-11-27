@@ -8,7 +8,7 @@ main {
     align-items: center;     
     width: 100%;
     position: relative;      
-
+}
 div.admin-panel {
     position: absolute;
     top: 10px;
@@ -32,7 +32,7 @@ select {
     color: white;
     border-radius: 15px;
     border: 1px solid white;
-    margin-bottom: 15px; /
+    margin-bottom: 15px; 
     cursor: pointer;
 }
 
@@ -111,6 +111,38 @@ p.error {
     padding: 10px;
     margin-bottom: 15px;
     font-size: 14px;
+}
+
+.login-container input.input-error {
+    border-color: #dc3545; /* Red */
+    background-color: #fff8f8;
+    color: #721c24;
+    /* Trigger the shake animation */
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Ensure the red border stays even if clicked immediately */
+.login-container input.input-error:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 @media (max-width: 430px) {

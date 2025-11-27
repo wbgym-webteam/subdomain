@@ -81,7 +81,21 @@ def selection():
             for presentation in db_presentations:
                 pres = presentation[0]
 
-                if pres.gender != 'u' and pres.gender != student_gender:
+                pres_gender = pres.gender.strip() if pres.gender else 'u'
+                stud_gender = student_gender.strip() if student_gender else 'u'
+
+                is_visible = False
+                
+                if pres_gender == 'u':
+                    is_visible = True
+                
+                elif pres_gender == stud_gender:
+                    is_visible = True
+                
+                elif pres_gender == 'f' and stud_gender == 'w':
+                    is_visible = True
+                
+                if not is_visible:
                     continue
 
                 column = pres.column
