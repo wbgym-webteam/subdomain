@@ -1,3 +1,4 @@
+#subdomain\src\app\admin_views.py
 from flask import (
     Blueprint,
     render_template,
@@ -107,7 +108,7 @@ def download_logincodes():
 @admin_views.route("/tdw/export_selections", methods=["POST"])
 def export_selections():
     if request.method == "POST":
-        SelectionExporter(db, "app/data/tdw/uploads/workbook.xlsx")
+        SelectionExporter(db) 
         return redirect("./panel")
     else:
         return redirect("./panel")
@@ -115,8 +116,8 @@ def export_selections():
 @admin_required
 @admin_views.route("/tdw/download_selections")
 def download_selections():
-    uploads_dir = "./data/tdw/uploads"
-    return send_from_directory(uploads_dir, "workbook.xlsx", as_attachment=True)
+    downloads_dir = "./data/tdw/downloads"
+    return send_from_directory(downloads_dir, "TdW_Selections.xlsx", as_attachment=True)
 
 
 @admin_required

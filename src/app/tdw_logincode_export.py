@@ -3,7 +3,6 @@ from docx.shared import Pt
 from sqlalchemy import text
 import zipfile
 import os
-import os
 
 from . import db
 
@@ -45,6 +44,21 @@ def zip_files():
 def export_logincodes():
     print(os.getcwd())
     output_dir = os.getenv("OUTPUT_DIR", "./app/data/tdw/downloads")
+
+    # ----------------------------------------------------------------
+    # NEW: CLEANUP OLD FILES
+    # This deletes all .docx and the TdW_Logincodes.zip before starting
+    if os.path.exists(output_dir):
+        for filename in os.listdir(output_dir):
+            # Check for .docx files OR the specific zip file
+            if filename.endswith(".docx") or filename == "TdW_Logincodes.zip":
+                file_path = os.path.join(output_dir, filename)
+                try:
+                    os.remove(file_path)
+                    print(f"Deleted old file: {filename}")
+                except Exception as e:
+                    print(f"Error deleting {filename}: {e}")
+    # ----------------------------------------------------------------
 
     for grade in range(5, 13, 1):
         
@@ -140,4 +154,5 @@ def export_logincodes():
                 doc.save(os.path.join(output_dir, f"TdW_Logincodes_{grade}_{grade_selector}.docx"))
                 print(f"Finished grade {grade}/{grade_selector}")
 
+    # Zip the new files
     zip_files()
