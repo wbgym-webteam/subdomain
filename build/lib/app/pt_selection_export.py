@@ -1,6 +1,4 @@
 #subdomain\src\app\pt_selection_export.py
-# This version needs names and surnames saved
-# This file is currently not used, but may be useful for future exports
 from sqlalchemy.sql import text
 from sqlalchemy.exc import IntegrityError
 from openpyxl import load_workbook, Workbook

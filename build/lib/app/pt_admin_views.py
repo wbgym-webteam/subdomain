@@ -27,14 +27,6 @@ from .pt_logincode_export import export_logincodes as export_logincodesPT
 from .pt_selection_export import SelectionExporter as SelectionExporterPT
 from .pt_selection_engine import run_pt_selection_generator
 
-# secure used, because we can't store Personal Data, so secure version of the filehandler is used
-from .pt_filehandler import load_names_map
-
-# secure used, because we can't store Personal Data, so secure version of the filehandler is used
-from .pt_filehandler_secure import FileHandlerPTSecure, load_names_map
-
-import io
-
 pt_admin_views = Blueprint("pt_admin_views", __name__, static_folder="static")
 
 # ------------------------------------------------------------------
@@ -90,9 +82,7 @@ def pt_upload_file():
         # Save as regular data file
         file_path = os.path.join(upload_dir, "workbook.xlsx")
         file.save(file_path)
-        
-        # change function to FileHandlerPT() once we can allow the storage of personal data
-        FileHandlerPTSecure()
+        FileHandlerPT()
         print("Data file uploaded and processed successfully")
 
     return redirect("/admin/pt/panel")  # Use absolute path
@@ -116,171 +106,13 @@ def pt_module_status():
 
     return redirect("/admin/pt/panel")  # Use absolute path
 
-# Version that requires the Names to be Saved in the DB
 @pt_admin_views.route("/admin/pt/export_logincodes", methods=["POST"])
 @admin_required
 def pt_export_logincodes_route():
     if request.method == "POST":
         export_logincodesPT()
         return redirect("/admin/pt/panel")  # Use absolute path
-
-# Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_logincodes_secure", methods=["POST"])
-@admin_required
-def pt_export_logincodes_secure():
-    if "file" not in request.files:
-        return redirect("/admin/pt/panel")
     
-    file = request.files["file"]
-    
-    try:
-        import io
-        import zipfile
-        from docx import Document
-        from docx.shared import Pt
-        from .pt_filehandler import load_names_map
-        
-        # 1. Load Names into MEMORY
-        names_map = load_names_map(file)
-        
-        # 2. Prepare ZIP Buffer
-        zip_buffer = io.BytesIO()
-        
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            
-            # --- STRATEGY 1: Grades 5, 6, 11, 12 (Export as whole grades) ---
-            special_grades = [5, 6, 11, 12]
-            
-            for grade in special_grades:
-                # Get IDs only
-                students = db.session.execute(text(
-                    f"SELECT id, logincode FROM pt_students WHERE grade = {grade}"
-                )).all()
-                
-                if not students:
-                    continue
-                    
-                # Merge Names & Sort
-                student_data = []
-                for s in students:
-                    n = names_map.get(s.id, {'first': 'Unknown', 'last': 'Unknown'})
-                    student_data.append({
-                        'first': n['first'], 
-                        'last': n['last'], 
-                        'code': s.logincode
-                    })
-                
-                # Sort by Last Name
-                student_data.sort(key=lambda x: (x['last'], x['first']))
-                
-                # Generate DOCX in RAM
-                doc = Document()
-                doc.add_heading(f"PT Login Codes {grade}", 0)
-                
-                table = doc.add_table(rows=1, cols=3)
-                table.style = "Table Grid"
-                
-                # Headers
-                headers = ["First Name", "Last Name", "Login Code"]
-                for i, h in enumerate(headers):
-                    cell = table.cell(0, i)
-                    cell.text = h
-                    cell.paragraphs[0].runs[0].bold = True
-                    cell.paragraphs[0].runs[0].font.size = Pt(14)
-                
-                # Rows
-                for s in student_data:
-                    row_cells = table.add_row().cells
-                    row_cells[0].text = s['first']
-                    row_cells[1].text = s['last']
-                    row_cells[2].text = s['code']
-                    
-                    # Apply spacing style to row
-                    for cell in row_cells:
-                        for p in cell.paragraphs:
-                            p.paragraph_format.space_after = Pt(14)
-                            p.paragraph_format.space_before = Pt(14)
-                
-                # Save to ZIP
-                docx_buffer = io.BytesIO()
-                doc.save(docx_buffer)
-                zip_file.writestr(f"PT_Logincodes_{grade}.docx", docx_buffer.getvalue())
-
-            # --- STRATEGY 2: All other grades (Split by Selector) ---
-            # Find which grades/selectors exist (excluding the special ones)
-            combos = db.session.execute(text(
-                f"SELECT DISTINCT grade, grade_selector FROM pt_students WHERE grade NOT IN (5, 6, 11, 12) ORDER BY grade, grade_selector"
-            )).all()
-            
-            for grade, selector in combos:
-                # Get IDs
-                students = db.session.execute(text(
-                    f"SELECT id, logincode FROM pt_students WHERE grade = {grade} AND grade_selector = {selector}"
-                )).all()
-                
-                if not students:
-                    continue
-
-                # Merge Names & Sort
-                student_data = []
-                for s in students:
-                    n = names_map.get(s.id, {'first': 'Unknown', 'last': 'Unknown'})
-                    student_data.append({
-                        'first': n['first'], 
-                        'last': n['last'], 
-                        'code': s.logincode
-                    })
-                
-                student_data.sort(key=lambda x: (x['last'], x['first']))
-                
-                # Generate DOCX
-                doc = Document()
-                doc.add_heading(f"PT Login Codes {grade}/{selector}", 0)
-                
-                table = doc.add_table(rows=1, cols=3)
-                table.style = "Table Grid"
-                
-                # Headers
-                headers = ["First Name", "Last Name", "Login Code"]
-                for i, h in enumerate(headers):
-                    cell = table.cell(0, i)
-                    cell.text = h
-                    cell.paragraphs[0].runs[0].bold = True
-                    cell.paragraphs[0].runs[0].font.size = Pt(14)
-                
-                # Rows
-                for s in student_data:
-                    row_cells = table.add_row().cells
-                    row_cells[0].text = s['first']
-                    row_cells[1].text = s['last']
-                    row_cells[2].text = s['code']
-                    
-                    for cell in row_cells:
-                        for p in cell.paragraphs:
-                            p.paragraph_format.space_after = Pt(14)
-                            p.paragraph_format.space_before = Pt(14)
-
-                # Save to ZIP
-                docx_buffer = io.BytesIO()
-                doc.save(docx_buffer)
-                zip_file.writestr(f"PT_Logincodes_{grade}_{selector}.docx", docx_buffer.getvalue())
-
-        # 3. Finalize and Send
-        zip_buffer.seek(0)
-        return send_file(
-            zip_buffer,
-            as_attachment=True,
-            download_name="PT_Logincodes_Secure.zip",
-            mimetype="application/zip"
-        )
-
-    except Exception as e:
-        print(f"Error in secure logincode export: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/pt/panel")
-
-# Version that requires the Names to be Saved in the DB
 @pt_admin_views.route("/admin/pt/download_logincodes", methods=["GET"])  # Added /admin prefix
 @admin_required
 def pt_download_logincodes():  # Ensure this function is used for the pt route
@@ -288,7 +120,7 @@ def pt_download_logincodes():  # Ensure this function is used for the pt route
     download_dir = os.path.join(current_dir, 'data', 'pt', 'downloads')
     return send_from_directory(download_dir, "PT_Logincodes.zip", as_attachment=True)
 
-# Version that requires the Names to be Saved in the DB
+
 @pt_admin_views.route("/admin/pt/export_wishes", methods=["POST"])
 @admin_required
 def pt_export_wishes():
@@ -307,89 +139,7 @@ def pt_export_wishes():
         traceback.print_exc()
         return redirect("/admin/pt/panel")  # Use absolute path
 
-# Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_wishes_secure", methods=["POST"])
-@admin_required
-def pt_export_wishes_secure():
-    if "file" not in request.files:
-        return redirect("/admin/pt/panel")
-    
-    file = request.files["file"]
-    
-    try:
-        import io
-        from openpyxl import Workbook
-        from .pt_filehandler import load_names_map
-        
-        # 1. Load Names into MEMORY
-        names_map = load_names_map(file)
-        
-        # 2. Query DB for Wishes (IDs only)
-        # We join pt_selections, pt_students, and pt_presentations
-        wishes_query = db.session.execute(text("""
-            SELECT 
-                s.id AS student_id, 
-                s.grade, 
-                s.grade_selector,
-                s.logincode,
-                p.id AS course_id, 
-                p.title AS course_title,
-                sel.ranking
-            FROM pt_selections sel
-            JOIN pt_students s ON sel.student_id = s.id
-            JOIN pt_presentations p ON sel.presentation_id = p.id
-            ORDER BY s.grade, s.grade_selector, s.id, sel.ranking
-        """)).mappings().all()
-        
-        # 3. Build Excel in RAM
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Student Wishes"
-        
-        # Headers
-        ws.append([
-            "Student ID", "Last Name", "First Name", "Grade", "Class", "Login Code",
-            "Rank", "Course ID", "Course Title"
-        ])
-        
-        # 4. Fill Data
-        for row in wishes_query:
-            s_id = row['student_id']
-            
-            # Lookup Name in RAM
-            name_entry = names_map.get(s_id, {'first': 'Unknown', 'last': 'Unknown'})
-            
-            ws.append([
-                s_id,
-                name_entry['last'],
-                name_entry['first'],
-                row['grade'],
-                row['grade_selector'],
-                row['logincode'],
-                row['ranking'],
-                row['course_id'],
-                row['course_title']
-            ])
-            
-        # 5. Save to RAM Buffer
-        excel_buffer = io.BytesIO()
-        wb.save(excel_buffer)
-        excel_buffer.seek(0)
-        
-        return send_file(
-            excel_buffer,
-            as_attachment=True,
-            download_name="PT_Kurs_Wuensche_Secure.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
 
-    except Exception as e:
-        print(f"Error in secure wishes export: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/pt/panel")
-
-# Version that requires the Names to be Saved in the DB
 @pt_admin_views.route("/admin/pt/download_wishes", methods=["GET"])
 @admin_required
 def pt_download_wishes():
@@ -492,7 +242,6 @@ def pt_view_assignments():
         print(f"Error viewing assignments: {e}")
         return redirect("/admin/pt/panel")
 
-# Version that requires the Names to be Saved in the DB
 @pt_admin_views.route("/admin/pt/export_assignments", methods=["GET"])
 @admin_required
 def pt_export_assignments():
@@ -547,7 +296,6 @@ def pt_export_assignments():
         traceback.print_exc()
         return redirect("/admin/pt/panel")
 
-# Version that requires the Names to be Saved in the DB
 @pt_admin_views.route("/admin/pt/export_assignments_pdf", methods=["GET"])
 @admin_required
 def pt_export_assignments_pdf():
@@ -735,149 +483,7 @@ def pt_export_assignments_pdf():
         import traceback
         traceback.print_exc()
         return redirect("/admin/pt/panel")
-
-# Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_assignments_pdf_secure", methods=["POST"])
-@admin_required
-def pt_export_assignments_pdf_secure():
-    if "file" not in request.files:
-        return redirect("/admin/pt/panel")
-        
-    file = request.files["file"]
-    if file.filename == "":
-        return redirect("/admin/pt/panel")
-
-    try:
-        # 1. Load Names into MEMORY
-        from .pt_filehandler import load_names_map
-        names_map = load_names_map(file)
-        print(f"Loaded {len(names_map)} names into memory.")
-
-        # 2. Setup ReportLab dependencies
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import cm
-        from reportlab.lib import colors
-        from reportlab.lib.enums import TA_CENTER
-
-        # 3. Master Buffer for the ZIP file
-        zip_buffer = io.BytesIO()
-
-        # 4. Get Classes
-        classes_query = db.session.execute(
-            text("""
-                SELECT DISTINCT s.grade, s.grade_selector 
-                FROM pt_students s 
-                JOIN pt_assignments a ON s.id = a.student_id
-                ORDER BY s.grade, s.grade_selector
-            """)
-        ).all()
-
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=24, spaceAfter=30, alignment=TA_CENTER)
-        student_title_style = ParagraphStyle('StudentTitle', parent=styles['Heading2'], fontSize=18, spaceAfter=20, alignment=TA_CENTER)
-        info_style = ParagraphStyle('InfoStyle', parent=styles['Normal'], fontSize=12, spaceAfter=10)
-
-        # Open the ZIP file in memory
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            
-            for grade, grade_selector in classes_query:
-                # Prepare a buffer for THIS specific class PDF
-                class_pdf_buffer = io.BytesIO()
-                
-                doc = SimpleDocTemplate(class_pdf_buffer, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm)
-                story = []
-
-                # Get students (IDs only)
-                students_query = db.session.execute(
-                    text("""
-                        SELECT DISTINCT s.id, s.grade, s.grade_selector
-                        FROM pt_students s
-                        JOIN pt_assignments a ON s.id = a.student_id
-                        WHERE s.grade = :grade AND s.grade_selector = :grade_selector
-                    """),
-                    {"grade": grade, "grade_selector": grade_selector}
-                ).all()
-
-                # Process Names in Python
-                student_data_list = []
-                for s in students_query:
-                    name_data = names_map.get(s.id, {'first': 'Unknown', 'last': 'Unknown'})
-                    student_data_list.append({
-                        'id': s.id,
-                        'grade': s.grade,
-                        'grade_selector': s.grade_selector,
-                        'first_name': name_data['first'],
-                        'last_name': name_data['last']
-                    })
-
-                # Sort by Last Name
-                student_data_list.sort(key=lambda x: (x['last_name'], x['first_name']))
-
-                if not student_data_list:
-                    continue
-
-                story.append(Paragraph(f"PT-Kurszuordnungen - Klasse {grade}/{grade_selector}", title_style))
-                story.append(PageBreak())
-
-                for i, student in enumerate(student_data_list):
-                    story.append(Paragraph(f"{student['last_name']}, {student['first_name']}", student_title_style))
-                    story.append(Paragraph(f"Klasse: {student['grade']} | ID: {student['grade_selector']}", info_style))
-                    story.append(Spacer(1, 0.5*cm))
-
-                    assignments = db.session.execute(
-                        text("""
-                            SELECT p.title, p.presenter, p.teacher, p.slot, p.room
-                            FROM pt_assignments a
-                            JOIN pt_presentations p ON a.presentation_id = p.id
-                            WHERE a.student_id = :sid
-                            ORDER BY p.slot
-                        """), {"sid": student['id']}
-                    ).all()
-
-                    if assignments:
-                        table_data = [['Block', 'Kurstitel', 'Referent', 'Lehrer', 'Raum']]
-                        for a in assignments:
-                            table_data.append([f"Block {a.slot}", a.title, a.presenter or "-", a.teacher or "-", a.room or "-"])
-                        
-                        table = Table(table_data, colWidths=[2*cm, 6*cm, 3*cm, 3*cm, 2*cm])
-                        table.setStyle(TableStyle([
-                            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-                            ('GRID', (0,0), (-1,-1), 1, colors.black),
-                            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                        ]))
-                        story.append(table)
-                    else:
-                        story.append(Paragraph("Keine Zuordnungen.", info_style))
-
-                    if i < len(student_data_list) - 1:
-                        story.append(PageBreak())
-
-                # Build PDF into RAM buffer
-                doc.build(story)
-                
-                # Write RAM buffer into ZIP buffer
-                pdf_filename = f"PT_Stundenpläne_{grade}_{grade_selector}.pdf"
-                zip_file.writestr(pdf_filename, class_pdf_buffer.getvalue())
-
-        # Finalize ZIP
-        zip_buffer.seek(0)
-
-        return send_file(
-            zip_buffer,
-            as_attachment=True,
-            download_name="PT_Schüler_Stundenpläne_Secure.zip",
-            mimetype="application/zip"
-        )
-
-    except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/pt/panel")
     
-# Version that requires the Names to be Saved in the DB
 @pt_admin_views.route("/admin/pt/export_room_lists_pdf", methods=["GET"])
 @admin_required
 def pt_export_room_lists_pdf():
@@ -1099,126 +705,6 @@ def pt_export_room_lists_pdf():
         return redirect("/admin/pt/panel")
     except Exception as e:
         print(f"Error exporting room lists PDF: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/pt/panel")
-    
-# Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_room_lists_pdf_secure", methods=["POST"])
-@admin_required
-def pt_export_room_lists_pdf_secure():
-    if "file" not in request.files:
-        return redirect("/admin/pt/panel")
-        
-    file = request.files["file"]
-    
-    try:
-        from .pt_filehandler import load_names_map
-        names_map = load_names_map(file)
-
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import cm
-        from reportlab.lib import colors
-        from reportlab.lib.enums import TA_CENTER
-
-        # Get Data
-        raw_data = db.session.execute(text("""
-            SELECT p.room, p.slot, p.title, p.presenter, p.teacher, p.description,
-                   s.id, s.grade, s.grade_selector
-            FROM pt_assignments a
-            JOIN pt_students s ON a.student_id = s.id
-            JOIN pt_presentations p ON a.presentation_id = p.id
-            ORDER BY p.room, p.slot
-        """)).all()
-
-        # Organize Data
-        room_data = {}
-        for row in raw_data:
-            room, slot, title, presenter, teacher, description, s_id, grade, g_sel = row
-            
-            # Name Lookup
-            name = names_map.get(s_id, {'first': 'Unknown', 'last': 'Unknown'})
-            
-            if room not in room_data: room_data[room] = {}
-            if slot not in room_data[room]:
-                room_data[room][slot] = {
-                    'info': {'title': title, 'presenter': presenter, 'teacher': teacher, 'desc': description},
-                    'students': []
-                }
-            
-            room_data[room][slot]['students'].append({
-                'last': name['last'], 'first': name['first'], 
-                'grade': grade, 'sel': g_sel
-            })
-
-        # Sort students
-        for r in room_data:
-            for s in room_data[r]:
-                room_data[r][s]['students'].sort(key=lambda x: (x['last'], x['first']))
-
-        # PDF Generation in RAM
-        pdf_buffer = io.BytesIO()
-        doc = SimpleDocTemplate(pdf_buffer, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm)
-        story = []
-        styles = getSampleStyleSheet()
-        
-        # Styles
-        title_style = ParagraphStyle('T', parent=styles['Heading1'], fontSize=24, alignment=TA_CENTER, spaceAfter=30)
-        room_style = ParagraphStyle('R', parent=styles['Heading2'], fontSize=18, alignment=TA_CENTER, spaceAfter=20)
-        course_style = ParagraphStyle('C', parent=styles['Heading3'], fontSize=14, spaceAfter=15)
-        text_style = ParagraphStyle('Tx', parent=styles['Normal'], fontSize=12, spaceAfter=10)
-
-        story.append(Paragraph("PT-Raumzuordnungslisten", title_style))
-        story.append(PageBreak())
-
-        total_rooms = sum(len(slots) for slots in room_data.values())
-        count = 0
-
-        for room, slots in sorted(room_data.items()):
-            for slot, data in sorted(slots.items()):
-                count += 1
-                story.append(Paragraph(f"Raum: {room}", room_style))
-                story.append(Paragraph(f"Block {slot} - {data['info']['title']}", course_style))
-                story.append(Paragraph(f"Lehrer: {data['info']['teacher'] or '-'}", text_style))
-                story.append(Spacer(1, 0.5*cm))
-
-                students = data['students']
-                if students:
-                    table_data = [['Nr.', 'Nachname', 'Vorname', 'Klasse', 'Bez.', 'Check']]
-                    for i, st in enumerate(students, 1):
-                        table_data.append([str(i), st['last'], st['first'], str(st['grade']), str(st['sel'] or ''), ''])
-                    
-                    t = Table(table_data, colWidths=[1*cm, 4*cm, 4*cm, 2*cm, 2*cm, 2*cm])
-                    t.setStyle(TableStyle([
-                        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-                        ('GRID', (0,0), (-1,-1), 1, colors.black),
-                        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                        ('ALIGN', (1,1), (2,-1), 'LEFT'), # Left align names
-                    ]))
-                    story.append(t)
-                else:
-                    story.append(Paragraph("Keine Schüler.", text_style))
-
-                story.append(Spacer(1, 1*cm))
-                story.append(Paragraph("Unterschrift: __________________", text_style))
-                
-                if count < total_rooms:
-                    story.append(PageBreak())
-
-        doc.build(story)
-        pdf_buffer.seek(0)
-
-        return send_file(
-            pdf_buffer,
-            as_attachment=True,
-            download_name="PT_Raum_Listen_Secure.pdf",
-            mimetype="application/pdf"
-        )
-
-    except Exception as e:
-        print(f"Error: {e}")
         import traceback
         traceback.print_exc()
         return redirect("/admin/pt/panel")

@@ -1,4 +1,3 @@
-<!--subdomain\src\app\templates\admin\pt_assignments.html-->
 {% extends 'base.html' %}
 
 {% block title %}
@@ -52,11 +51,51 @@ PT Assignment Results - Admin Panel
         .back-button {
             margin-bottom: 20px;
         }
+        
+        /* Updated Export Section Styles */
         .export-section {
             margin: 20px 0;
-            padding: 15px;
+            padding: 20px;
             background: #f0f8ff;
+            border-radius: 8px;
+            border: 1px solid #cce5ff;
+        }
+        .export-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .export-card {
+            background: white;
+            padding: 15px;
+            border: 1px solid #ddd;
             border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .export-card h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #0056b3;
+        }
+        .file-input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-download {
+            width: 100%;
+            padding: 8px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-download:hover {
+            background-color: #004494;
         }
     </style>
 </head>
@@ -114,29 +153,46 @@ PT Assignment Results - Admin Panel
 
     <section class="export-section">
         <h3>Export Options</h3>
-        <p>Download the complete assignment results:</p>
-        <div style="display: flex; gap: 10px; margin: 10px 0;">
-            <a href="{{ url_for('pt_admin_views.pt_export_assignments') }}">
-                <button>Export Assignments to Excel</button>
-            </a>
-            <a href="{{ url_for('pt_admin_views.pt_export_assignments_pdf') }}">
-                <button>Export Student Schedules to PDF</button>
-            </a>
-            <a href="{{ url_for('pt_admin_views.pt_export_room_lists_pdf') }}">
-                <button>Export Room Lists to PDF</button>
-            </a>
+        <p>Use these forms to generate reports. For PDF reports, you must upload the names file again (processed in-memory).</p>
+        
+        <div class="export-grid">
+            <div class="export-card">
+                <h4>Raw Data (Excel)</h4>
+                <p>Export the database IDs and assignments. No names included.</p>
+                <a href="{{ url_for('pt_admin_views.pt_export_assignments') }}">
+                    <button class="btn-download" style="background-color: #28a745;">Download Anonymous Excel</button>
+                </a>
+            </div>
+
+            <div class="export-card">
+                <h4>Student Schedules (PDF)</h4>
+                <form action="{{ url_for('pt_admin_views.pt_export_assignments_pdf_secure') }}" method="post" enctype="multipart/form-data">
+                    <label style="font-size: 0.9em; display:block; margin-bottom:5px;">Upload Name List (.xlsx):</label>
+                    <input type="file" name="file" class="file-input" accept=".xlsx" required>
+                    <button type="submit" class="btn-download">Generate Named PDFs</button>
+                </form>
+            </div>
+
+            <div class="export-card">
+                <h4>Room Lists (PDF)</h4>
+                <form action="{{ url_for('pt_admin_views.pt_export_room_lists_pdf_secure') }}" method="post" enctype="multipart/form-data">
+                    <label style="font-size: 0.9em; display:block; margin-bottom:5px;">Upload Name List (.xlsx):</label>
+                    <input type="file" name="file" class="file-input" accept=".xlsx" required>
+                    <button type="submit" class="btn-download">Generate Named Room Lists</button>
+                </form>
+            </div>
         </div>
     </section>
 
     <section class="assignments-section">
-        <h2>Detailed Assignments</h2>
+        <h2>Detailed Assignments Table</h2>
         {% if assignments %}
         <p>Total assignments: {{ assignments|length }}</p>
         
         <table class="assignments-table">
             <thead>
                 <tr>
-                    <th>Student Name</th>
+                    <th>Student Info</th>
                     <th>Grade</th>
                     <th>Course Title</th>
                     <th>Presenter</th>
@@ -148,7 +204,13 @@ PT Assignment Results - Admin Panel
             <tbody>
                 {% for assignment in assignments %}
                 <tr class="slot-{{ assignment.slot }}">
-                    <td>{{ assignment.last_name }}, {{ assignment.first_name }}</td>
+                    <td>
+                        {% if assignment.last_name %}
+                            {{ assignment.last_name }}, {{ assignment.first_name }}
+                        {% else %}
+                            <span style="color: #999; font-style: italic;">Anonymous (ID hidden)</span>
+                        {% endif %}
+                    </td>
                     <td>{{ assignment.grade }}</td>
                     <td>{{ assignment.title }}</td>
                     <td>{{ assignment.presenter }}</td>

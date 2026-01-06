@@ -1,12 +1,10 @@
 # Imports
-# this filehandler is specifically for the project week (PT) functionality
-# It saved additionaly the names, surnames and emails of the students, which is currently not done in the current settings but may be changed at a later point
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
-
 
 from openpyxl import load_workbook
 
@@ -36,30 +34,6 @@ def load_german_words():
     
 GERMAN_WORDS = load_german_words()
 
-def load_names_map(file_storage):
-    """
-    Reads an uploaded Excel file in memory and returns a dictionary.
-    Format: { student_id_int: {'first': 'John', 'last': 'Doe'} }
-    """
-    workbook = load_workbook(file_storage)
-    sheet = workbook.active
-    
-    names_map = {}
-    
-    # Assuming Row 1 is headers, data starts Row 2
-    # Column A=ID, B=Last Name, C=First Name (Adjust indices based on your excel)
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        s_id = row[0] 
-        last_name = row[1]
-        first_name = row[2]
-        
-        if s_id is not None:
-            names_map[s_id] = {
-                'first': first_name,
-                'last': last_name
-            }
-            
-    return names_map
 
 def create_student(student_id, last_name, first_name, email, grade, grade_selector, logincode, gender):
     # Check if student already exists

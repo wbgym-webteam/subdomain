@@ -9,7 +9,6 @@
 <div class="sms-container">
     <div class="page-island">
         <div class="header-section">
-
             <div class="header-actions">
                 <form action="{{ url_for('pt.logout') }}" method="post">
                     <button type="submit" class="logout-btn logout-btn--ghost" aria-label="Abmelden">
@@ -17,8 +16,11 @@
                     </button>
                 </form>
             </div>
+            
             <h1>PT Kurswahl</h1>
-            <p class="welcome">Willkommen, {{ student }}!</p>
+            
+            <p class="welcome">Willkommen!</p>
+            
             <p class="instruction-text">
                 Ordnen Sie die Kurse in jeder Spalte mit den Pfeilen. <strong>Oben = Rang 1</strong>, darunter Rang 2, usw.
             </p>

@@ -54,9 +54,9 @@ class PTStudent(db.Model):
     __tablename__ = "pt_students"  # Fixed: was __table__name
 
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(80), nullable=True)
-    last_name = db.Column(db.String(80), nullable=True)
-    email = db.Column(db.String(120), nullable=True, unique=True)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
     grade_selector = db.Column(db.Integer, nullable=False)

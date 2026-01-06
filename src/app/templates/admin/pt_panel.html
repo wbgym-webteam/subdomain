@@ -39,23 +39,21 @@ PT - Admin Panel
     <hr>-->
 
     <!-- Login Code Export -->
-    <form action="{{ url_for('pt_admin_views.pt_export_logincodes_route') }}" method="post">
-        <label for="export_login_codes">Export Login Codes:</label>
-        <button type="submit">Export</button>
+    <form action="{{ url_for('pt_admin_views.pt_export_logincodes_secure') }}" method="post" enctype="multipart/form-data" style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+        <label for="secure_login_file" style="font-weight: bold;">Export Login Codes (Word/Zip):</label>
+        <p style="font-size: 0.9em; margin: 5px 0;">(Upload Excel with names. Generates named login slips securely.)</p>
+        <input type="file" name="file" id="secure_login_file" accept=".xlsx" required>
+        <button type="submit">Upload & Download Login Codes</button>
     </form>
-    <a href="{{ url_for('pt_admin_views.pt_download_logincodes') }}" download>
-        <button>Download Logincodes</button>
-    </a>
     <hr>
 
     <!-- Wishes Export -->
-    <form action="{{ url_for('pt_admin_views.pt_export_wishes') }}" method="post">
-        <label for="export_login_codes">Export Wishes:</label>
-        <button type="submit">Export</button>
+    <form action="{{ url_for('pt_admin_views.pt_export_wishes_secure') }}" method="post" enctype="multipart/form-data" style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+        <label for="secure_wishes_file" style="font-weight: bold;">Export Wishes (Excel):</label>
+        <p style="font-size: 0.9em; margin: 5px 0;">(Upload Excel with names. Merges names with student choices.)</p>
+        <input type="file" name="file" id="secure_wishes_file" accept=".xlsx" required>
+        <button type="submit">Upload & Download Wishes</button>
     </form>
-    <a href="{{ url_for('pt_admin_views.pt_download_wishes') }}" download>
-        <button>Download Wishes</button>
-    </a>
     <hr>
 
     <!-- Run Selection Engine -->
@@ -75,12 +73,18 @@ PT - Admin Panel
     <a href="{{ url_for('pt_admin_views.pt_view_assignments') }}">
         <button>View Assignment Results</button>
     </a>
-    <a href="{{ url_for('pt_admin_views.pt_export_assignments_pdf') }}">
-        <button>Export Student Schedules (PDF)</button>
-    </a>
-    <a href="{{ url_for('pt_admin_views.pt_export_room_lists_pdf') }}">
-        <button>Export Room Lists (PDF)</button>
-    </a>
+    <hr>
+    <form action="{{ url_for('pt_admin_views.pt_export_assignments_pdf_secure') }}" method="post" enctype="multipart/form-data" style="margin-top: 15px; border: 1px dashed #ccc; padding: 10px;">
+        <label for="secure_names_file"><strong>Generate PDFs with Names:</strong><br>Upload Excel (names are not saved to DB)</label>
+        <input type="file" name="file" id="secure_names_file" accept=".xlsx" required>
+        <button type="submit">Upload & Download Named PDFs</button>
+    </form>
+    <form action="{{ url_for('pt_admin_views.pt_export_room_lists_pdf_secure') }}" method="post" enctype="multipart/form-data" style="margin-top: 10px; margin-bottom: 10px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+        <label for="secure_room_file" style="font-weight: bold;">Export Room Lists WITH Names:</label>
+        <p style="font-size: 0.9em; margin: 5px 0;">(Upload the student Excel file. Names are processed in memory and NOT saved to DB.)</p>
+        <input type="file" name="file" id="secure_room_file" accept=".xlsx" required>
+        <button type="submit">Generate & Download Room Lists</button>
+    </form>
     <hr>
 
     <!-- Activate / Deactivate the module -->
