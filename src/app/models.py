@@ -23,8 +23,8 @@ class Student(db.Model):
     __tablename__ = "students"
 
     id = db.Column(db.Integer, primary_key=True)
-    last_name = db.Column(db.String(80), nullable=False)
-    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=True)
+    first_name = db.Column(db.String(80), nullable=True)
     grade = db.Column(db.Integer, nullable=False)
     grade_selector = db.Column(db.Integer, nullable=False)
     logincode = db.Column(db.String(20), nullable=False)

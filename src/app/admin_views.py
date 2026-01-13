@@ -14,9 +14,11 @@ from sqlalchemy import text
 import json
 import os
 
-from .tdw_filehandler import FileHandler
-from .tdw_logincode_export import export_logincodes
-from .tdw_selection_export import SelectionExporter
+from flask import send_file
+
+from .tdw_filehandler_secure import FileHandlerTDWSecure, load_names_map
+from .tdw_logincode_export_secure import export_logincodes_secure_ram
+from .tdw_selection_export_secure import SelectionExporterSecureRAM
 from . import db
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
@@ -68,7 +70,7 @@ def upload_file():
         return redirect(url_for("admin_views.tdw_panel"))
     file.save("app/data/tdw/uploads/workbook.xlsx")
 
-    FileHandler()
+    FileHandlerTDWSecure()
     return redirect("/admin/tdw/panel")
 
 
@@ -95,8 +97,32 @@ def module_status():
 @admin_views.route("/tdw/export_logincodes", methods=["POST"])
 def export_logincodes_route():
     if request.method == "POST":
-        export_logincodes()
-        return redirect("./panel")
+        # Require file upload to get names
+        if "file" not in request.files:
+            return redirect("./panel")
+        file = request.files["file"]
+        if file.filename == "":
+            return redirect("./panel")
+
+        try:
+            # Load names into RAM only
+            names_map = load_names_map(file)
+
+            # Export using names from RAM (returns BytesIO buffer)
+            zip_buffer = export_logincodes_secure_ram(names_map)
+
+            # Send file directly to user without saving to disk
+            return send_file(
+                zip_buffer,
+                as_attachment=True,
+                download_name="TdW_Logincodes_Secure.zip",
+                mimetype="application/zip"
+            )
+        except Exception as e:
+            print(f"Error exporting login codes: {e}")
+            import traceback
+            traceback.print_exc()
+            return redirect("./panel")
     
 @admin_required
 @admin_views.route("/tdw/download_logincodes")
@@ -108,8 +134,35 @@ def download_logincodes():
 @admin_views.route("/tdw/export_selections", methods=["POST"])
 def export_selections():
     if request.method == "POST":
-        SelectionExporter(db) 
-        return redirect("./panel")
+        # Require file upload to get names
+        if "file" not in request.files:
+            return redirect("./panel")
+        file = request.files["file"]
+        if file.filename == "":
+            return redirect("./panel")
+
+        try:
+            # Load names into RAM only
+            names_map = load_names_map(file)
+
+            # Export using names from RAM (returns BytesIO buffer)
+            excel_buffer = SelectionExporterSecureRAM(db, names_map)
+
+            if excel_buffer is None:
+                return redirect("./panel")
+
+            # Send file directly to user without saving to disk
+            return send_file(
+                excel_buffer,
+                as_attachment=True,
+                download_name="TdW_Selections_Secure.xlsx",
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        except Exception as e:
+            print(f"Error exporting selections: {e}")
+            import traceback
+            traceback.print_exc()
+            return redirect("./panel")
     else:
         return redirect("./panel")
 
