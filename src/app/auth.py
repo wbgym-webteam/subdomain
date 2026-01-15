@@ -28,14 +28,19 @@ def pt_logincode_exists(c):
     return str(student_id[0])
 
 
+# Get the directory where auth.py is located
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+
+
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     session["logged_in"] = False
 
     # --- FIX: Load module status at the top ---
     # This makes it available for both GET and POST
+    module_status_path = os.path.join(_current_dir, "data", "module_status.json")
     try:
-        with open("app/data/module_status.json", "r") as f:
+        with open(module_status_path, "r") as f:
             module_status = json.load(f)
     except FileNotFoundError:
         # Default status if file doesn't exist
@@ -104,7 +109,8 @@ def adminLogin():
 
         # Check if username/password pair is valid
         if username in admin_usernames and password in admin_passwords:
+            session.permanent = True  # Make session permanent
             session["admin_logged_in"] = True
-            return redirect("/admin/tdw/panel")
+            return redirect("/admin/pt/panel")
 
     return render_template("admin/admin_login.html")

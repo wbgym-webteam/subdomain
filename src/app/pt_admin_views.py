@@ -9,7 +9,8 @@ from flask import (
     send_from_directory,
     send_file,
     Response,
-    current_app
+    current_app,
+    jsonify
 )
 
 from sqlalchemy import text
@@ -46,7 +47,21 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get("admin_logged_in"):
-            # Preserve the original URL for redirect after login
+            # Check if this is a fetch/AJAX request
+            # Fetch requests typically don't have X-Requested-With header,
+            # but we can check for common patterns
+            is_fetch = (
+                request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
+                request.is_json or
+                'application/json' in request.headers.get('Accept', '') or
+                request.headers.get('Content-Type', '').startswith('application/json')
+            )
+
+            if is_fetch:
+                # Return 401 Unauthorized for AJAX/fetch requests
+                return jsonify({'error': 'Unauthorized', 'redirect': '/admin_login'}), 401
+
+            # Preserve the original URL for redirect after login (for normal page requests)
             return redirect(f"/admin_login?next={request.url}")
         return f(*args, **kwargs)
 
@@ -56,52 +71,70 @@ def admin_required(f):
 # ------------------------------------------------------------------
 # Routing for PT admin views
 
-@pt_admin_views.route("/admin/pt/panel", methods=["GET", "POST"])  # Added /admin prefix
+@pt_admin_views.route("/pt/panel", methods=["GET", "POST"])
 @admin_required
 def pt_Panel():
-    with open("app/data/module_status.json", "r") as f:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    module_status_path = os.path.join(current_dir, "data", "module_status.json")
+    with open(module_status_path, "r") as f:
         module_status = json.load(f)
         ms = module_status["modules"]["PT"]
     return render_template("admin/pt_panel.html", status=ms)
 
 
-@pt_admin_views.route("/admin/pt/upload_file", methods=["POST"])
+@pt_admin_views.route("/pt/upload_file", methods=["POST"])
 @admin_required
 def pt_upload_file():
-    if "file" not in request.files:
-        return redirect("/admin/pt/panel")  # Use absolute path
-    file = request.files["file"]
-    if file.filename == "":
-        return redirect("/admin/pt/panel")  # Use absolute path
-    
-    # Create upload directory if it doesn't exist
-    upload_dir = "app/data/pt/uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Check if this is a names file upload
-    file_type = request.form.get("file_type", "data")
-    
-    if file_type == "names":
-        # Save as names file
-        file_path = os.path.join(upload_dir, "names_workbook.xlsx")
-        file.save(file_path)
-        print("Names file uploaded successfully")
-    else:
-        # Save as regular data file
-        file_path = os.path.join(upload_dir, "workbook.xlsx")
-        file.save(file_path)
-        
-        # change function to FileHandlerPT() once we can allow the storage of personal data
-        FileHandlerPTSecure()
-        print("Data file uploaded and processed successfully")
+    try:
+        if "file" not in request.files:
+            session['upload_error'] = "No file provided"
+            return redirect("/admin/pt/panel")
+        file = request.files["file"]
+        if file.filename == "":
+            session['upload_error'] = "Empty filename"
+            return redirect("/admin/pt/panel")
 
-    return redirect("/admin/pt/panel")  # Use absolute path
+        # Use absolute path from app root
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        upload_dir = os.path.join(current_dir, 'data', 'pt', 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Check if this is a names file upload
+        file_type = request.form.get("file_type", "data")
+
+        if file_type == "names":
+            # Save as names file
+            file_path = os.path.join(upload_dir, "names_workbook.xlsx")
+            file.save(file_path)
+            print(f"Names file uploaded successfully to {file_path}")
+            session['upload_success'] = "Names file uploaded successfully"
+        else:
+            # Save as regular data file
+            file_path = os.path.join(upload_dir, "workbook.xlsx")
+            file.save(file_path)
+            print(f"File saved to {file_path}")
+
+            # Process the uploaded file
+            FileHandlerPTSecure()
+            print("Data file uploaded and processed successfully")
+            session['upload_success'] = "Data file uploaded and processed successfully"
+
+        return redirect("/admin/pt/panel")
+
+    except Exception as e:
+        print(f"Error in pt_upload_file: {e}")
+        print(traceback.format_exc())
+        session['upload_error'] = f"Upload failed: {str(e)}"
+        return redirect("/admin/pt/panel")
 
 
-@pt_admin_views.route("/admin/pt/module_status", methods=["POST"])
+@pt_admin_views.route("/pt/module_status", methods=["POST"])
 @admin_required
 def pt_module_status():
-    with open("app/data/module_status.json", "r") as f:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    module_status_path = os.path.join(current_dir, "data", "module_status.json")
+
+    with open(module_status_path, "r") as f:
         data = json.load(f)
 
     current_status = data["modules"]["PT"]
@@ -111,13 +144,13 @@ def pt_module_status():
     else:
         data["modules"]["PT"] = "active"
 
-    with open("app/data/module_status.json", "w") as f:
+    with open(module_status_path, "w") as f:
         json.dump(data, f, indent=4)
 
-    return redirect("/admin/pt/panel")  # Use absolute path
+    return redirect("/admin/pt/panel")
 
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/export_logincodes", methods=["POST"])
+@pt_admin_views.route("/pt/export_logincodes", methods=["POST"])
 @admin_required
 def pt_export_logincodes_route():
     if request.method == "POST":
@@ -125,7 +158,7 @@ def pt_export_logincodes_route():
         return redirect("/admin/pt/panel")  # Use absolute path
 
 # Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_logincodes_secure", methods=["POST"])
+@pt_admin_views.route("/pt/export_logincodes_secure", methods=["POST"])
 @admin_required
 def pt_export_logincodes_secure():
     if "file" not in request.files:
@@ -281,7 +314,7 @@ def pt_export_logincodes_secure():
         return redirect("/admin/pt/panel")
 
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/download_logincodes", methods=["GET"])  # Added /admin prefix
+@pt_admin_views.route("/pt/download_logincodes", methods=["GET"])
 @admin_required
 def pt_download_logincodes():  # Ensure this function is used for the pt route
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -289,7 +322,7 @@ def pt_download_logincodes():  # Ensure this function is used for the pt route
     return send_from_directory(download_dir, "PT_Logincodes.zip", as_attachment=True)
 
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/export_wishes", methods=["POST"])
+@pt_admin_views.route("/pt/export_wishes", methods=["POST"])
 @admin_required
 def pt_export_wishes():
     try:
@@ -308,7 +341,7 @@ def pt_export_wishes():
         return redirect("/admin/pt/panel")  # Use absolute path
 
 # Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_wishes_secure", methods=["POST"])
+@pt_admin_views.route("/pt/export_wishes_secure", methods=["POST"])
 @admin_required
 def pt_export_wishes_secure():
     if "file" not in request.files:
@@ -390,7 +423,7 @@ def pt_export_wishes_secure():
         return redirect("/admin/pt/panel")
 
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/download_wishes", methods=["GET"])
+@pt_admin_views.route("/pt/download_wishes", methods=["GET"])
 @admin_required
 def pt_download_wishes():
     try:
@@ -418,7 +451,7 @@ def pt_download_wishes():
         traceback.print_exc()
         return redirect("/admin/pt/panel")  # Use absolute path
 
-@pt_admin_views.route("/admin/pt/run_selection", methods=["POST"])
+@pt_admin_views.route("/pt/run_selection", methods=["POST"])
 @admin_required
 def pt_run_selection():
     """
@@ -463,7 +496,7 @@ def pt_run_selection():
     # Return the streaming response
     return Response(stream_progress(app_ctx), mimetype='text/html')
 
-@pt_admin_views.route("/admin/pt/view_assignments", methods=["GET"])
+@pt_admin_views.route("/pt/view_assignments", methods=["GET"])
 @admin_required
 def pt_view_assignments():
     try:
@@ -493,7 +526,7 @@ def pt_view_assignments():
         return redirect("/admin/pt/panel")
 
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/export_assignments", methods=["GET"])
+@pt_admin_views.route("/pt/export_assignments", methods=["GET"])
 @admin_required
 def pt_export_assignments():
     try:
@@ -520,8 +553,9 @@ def pt_export_assignments():
             'Slot', 'Column', 'Room', 'Max Students'
         ])
         
-        # Create download directory
-        download_dir = os.path.join('app', 'data', 'pt', 'downloads')
+        # Create download directory with absolute path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        download_dir = os.path.join(current_dir, 'data', 'pt', 'downloads')
         os.makedirs(download_dir, exist_ok=True)
         
         # Save to Excel
@@ -548,7 +582,7 @@ def pt_export_assignments():
         return redirect("/admin/pt/panel")
 
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/export_assignments_pdf", methods=["GET"])
+@pt_admin_views.route("/pt/export_assignments_pdf", methods=["GET"])
 @admin_required
 def pt_export_assignments_pdf():
     try:
@@ -720,7 +754,7 @@ def pt_export_assignments_pdf():
         print("Zipping complete.")
 
         return send_from_directory(
-            os.path.join('data', 'pt', 'downloads'),
+            download_dir,
             zip_filename,
             as_attachment=True,
             mimetype="application/zip"
@@ -737,29 +771,55 @@ def pt_export_assignments_pdf():
         return redirect("/admin/pt/panel")
 
 # Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_assignments_pdf_secure", methods=["POST"])
+@pt_admin_views.route("/pt/export_assignments_pdf_secure", methods=["POST"])
 @admin_required
 def pt_export_assignments_pdf_secure():
+    print("=" * 50)
+    print("FUNCTION CALLED: pt_export_assignments_pdf_secure")
+    print(f"Request method: {request.method}")
+    print(f"Request files: {request.files}")
+    print(f"Request form: {request.form}")
+    print("=" * 50)
+
     if "file" not in request.files:
+        error_msg = "No file uploaded for PDF export"
+        print(f"ERROR: {error_msg}")
+        session['upload_error'] = error_msg
         return redirect("/admin/pt/panel")
-        
+
     file = request.files["file"]
+    print(f"File received: {file.filename}")
+
     if file.filename == "":
+        error_msg = "Empty filename for PDF export"
+        print(f"ERROR: {error_msg}")
+        session['upload_error'] = error_msg
         return redirect("/admin/pt/panel")
 
     try:
+        # Check for required libraries first
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import cm
+            from reportlab.lib import colors
+            from reportlab.lib.enums import TA_CENTER
+            print("ReportLab imported successfully")
+        except ImportError as ie:
+            error_msg = f"Missing required library: {str(ie)}. Please install reportlab: uv pip install reportlab"
+            print(f"ERROR: {error_msg}")
+            session['upload_error'] = error_msg
+            return redirect("/admin/pt/panel")
+
         # 1. Load Names into MEMORY
         from .pt_filehandler import load_names_map
         names_map = load_names_map(file)
         print(f"Loaded {len(names_map)} names into memory.")
 
-        # 2. Setup ReportLab dependencies
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import cm
-        from reportlab.lib import colors
-        from reportlab.lib.enums import TA_CENTER
+        if not names_map:
+            session['upload_error'] = "Failed to load names from Excel file. Please check file format (ID, Last Name, First Name in columns A, B, C)"
+            return redirect("/admin/pt/panel")
 
         # 3. Master Buffer for the ZIP file
         zip_buffer = io.BytesIO()
@@ -767,12 +827,18 @@ def pt_export_assignments_pdf_secure():
         # 4. Get Classes
         classes_query = db.session.execute(
             text("""
-                SELECT DISTINCT s.grade, s.grade_selector 
-                FROM pt_students s 
+                SELECT DISTINCT s.grade, s.grade_selector
+                FROM pt_students s
                 JOIN pt_assignments a ON s.id = a.student_id
                 ORDER BY s.grade, s.grade_selector
             """)
         ).all()
+
+        print(f"Found {len(classes_query)} classes with assignments")
+
+        if not classes_query:
+            session['upload_error'] = "No assignments found in database. Please run the selection engine first."
+            return redirect("/admin/pt/panel")
 
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=24, spaceAfter=30, alignment=TA_CENTER)
@@ -856,13 +922,18 @@ def pt_export_assignments_pdf_secure():
 
                 # Build PDF into RAM buffer
                 doc.build(story)
-                
+                pdf_size = len(class_pdf_buffer.getvalue())
+                print(f"Built PDF for class {grade}/{grade_selector}, size: {pdf_size} bytes")
+
                 # Write RAM buffer into ZIP buffer
                 pdf_filename = f"PT_Stundenpläne_{grade}_{grade_selector}.pdf"
                 zip_file.writestr(pdf_filename, class_pdf_buffer.getvalue())
+                print(f"Added {pdf_filename} to ZIP")
 
         # Finalize ZIP
         zip_buffer.seek(0)
+        zip_size = len(zip_buffer.getvalue())
+        print(f"ZIP file created, total size: {zip_size} bytes")
 
         return send_file(
             zip_buffer,
@@ -872,13 +943,15 @@ def pt_export_assignments_pdf_secure():
         )
 
     except Exception as e:
-        print(f"Error: {e}")
+        error_msg = f"PDF Export Error: {str(e)}"
+        print(error_msg)
         import traceback
         traceback.print_exc()
+        session['upload_error'] = error_msg
         return redirect("/admin/pt/panel")
     
 # Version that requires the Names to be Saved in the DB
-@pt_admin_views.route("/admin/pt/export_room_lists_pdf", methods=["GET"])
+@pt_admin_views.route("/pt/export_room_lists_pdf", methods=["GET"])
 @admin_required
 def pt_export_room_lists_pdf():
     try:
@@ -1084,10 +1157,10 @@ def pt_export_room_lists_pdf():
         
         print(f"PDF created successfully at {pdf_path}")
         print(f"File size: {os.path.getsize(pdf_path)} bytes")
-        
-        # Send file using relative path from app directory
+
+        # Send file using absolute path
         return send_from_directory(
-            os.path.join('data', 'pt', 'downloads'),
+            download_dir,
             pdf_filename,
             as_attachment=True,
             mimetype="application/pdf"
@@ -1104,24 +1177,41 @@ def pt_export_room_lists_pdf():
         return redirect("/admin/pt/panel")
     
 # Version that loads names from uploaded file in RAM ONLY and does not require Names to be saved in DB 
-@pt_admin_views.route("/admin/pt/export_room_lists_pdf_secure", methods=["POST"])
+@pt_admin_views.route("/pt/export_room_lists_pdf_secure", methods=["POST"])
 @admin_required
 def pt_export_room_lists_pdf_secure():
     if "file" not in request.files:
+        session['upload_error'] = "No file uploaded for room lists PDF export"
         return redirect("/admin/pt/panel")
-        
+
     file = request.files["file"]
-    
+    if file.filename == "":
+        session['upload_error'] = "Empty filename for room lists PDF export"
+        return redirect("/admin/pt/panel")
+
     try:
+        # Check for required libraries first
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import cm
+            from reportlab.lib import colors
+            from reportlab.lib.enums import TA_CENTER
+            print("ReportLab imported successfully for room lists")
+        except ImportError as ie:
+            error_msg = f"Missing required library: {str(ie)}. Please install reportlab: uv pip install reportlab"
+            print(f"ERROR: {error_msg}")
+            session['upload_error'] = error_msg
+            return redirect("/admin/pt/panel")
+
         from .pt_filehandler import load_names_map
         names_map = load_names_map(file)
+        print(f"Loaded {len(names_map)} names into memory for room lists")
 
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import cm
-        from reportlab.lib import colors
-        from reportlab.lib.enums import TA_CENTER
+        if not names_map:
+            session['upload_error'] = "Failed to load names from Excel file. Please check file format (ID, Last Name, First Name in columns A, B, C)"
+            return redirect("/admin/pt/panel")
 
         # Get Data
         raw_data = db.session.execute(text("""
@@ -1218,7 +1308,9 @@ def pt_export_room_lists_pdf_secure():
         )
 
     except Exception as e:
-        print(f"Error: {e}")
+        error_msg = f"Room Lists PDF Export Error: {str(e)}"
+        print(error_msg)
         import traceback
         traceback.print_exc()
+        session['upload_error'] = error_msg
         return redirect("/admin/pt/panel")

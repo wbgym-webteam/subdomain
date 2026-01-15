@@ -41,7 +41,8 @@ def load_names_map(file_storage):
     Reads an uploaded Excel file in memory and returns a dictionary.
     Format: { student_id_int: {'first': 'John', 'last': 'Doe'} }
     """
-    workbook = load_workbook(file_storage)
+    # Use keep_vba=False and data_only=True for .xlsm files (macro-enabled)
+    workbook = load_workbook(file_storage, keep_vba=False, data_only=True)
     sheet = workbook.active
     
     names_map = {}
@@ -154,9 +155,11 @@ def create_pt_presentation(id, title, description, presenter, slot, max_people, 
 
 def FileHandlerPT():
     try:
-        # Use os.path.join for better path handling
-        file_path = os.path.join("app", "data", "pt", "uploads", "workbook.xlsx")
-        workbook = load_workbook(file_path)
+        # Use absolute path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_dir, "data", "pt", "uploads", "workbook.xlsx")
+        # Use keep_vba=False and data_only=True for .xlsm files (macro-enabled)
+        workbook = load_workbook(file_path, keep_vba=False, data_only=True)
         print("Loaded File...")
 
         # Clear the database more safely
@@ -253,9 +256,11 @@ def FileHandlerPT():
 def FileHandlerNames():
     """Handle the names file upload separately"""
     try:
-        # Use os.path.join for better path handling
-        file_path = os.path.join("app", "data", "pt", "uploads", "names_workbook.xlsx")
-        workbook = load_workbook(file_path)
+        # Use absolute path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_dir, "data", "pt", "uploads", "names_workbook.xlsx")
+        # Use keep_vba=False and data_only=True for .xlsm files (macro-enabled)
+        workbook = load_workbook(file_path, keep_vba=False, data_only=True)
         print("Names file uploaded successfully...")
         # You can add validation or processing here if needed
         return True

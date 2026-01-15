@@ -20,6 +20,20 @@ PT - Admin Panel
     <a href="{{ url_for('admin_views.admin_logout') }}">Logout</a>
 </div>
 
+{% if session.upload_success %}
+<div style="background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; margin: 15px 0; border-radius: 5px;">
+    {{ session.upload_success }}
+    {% set _ = session.pop('upload_success') %}
+</div>
+{% endif %}
+
+{% if session.upload_error %}
+<div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; margin: 15px 0; border-radius: 5px;">
+    <strong>Error:</strong> {{ session.upload_error }}
+    {% set _ = session.pop('upload_error') %}
+</div>
+{% endif %}
+
 <main>
     <!-- Upload Initial Data -->
     <form action="{{ url_for('pt_admin_views.pt_upload_file') }}" method="post" enctype="multipart/form-data">
@@ -144,7 +158,29 @@ document.addEventListener('DOMContentLoaded', function() {
         button.textContent = 'Running... Please Wait...';
 
         try {
-            const response = await fetch(form.action, { method: form.method });
+            const response = await fetch(form.action, {
+                method: form.method,
+                credentials: 'same-origin',  // Include session cookie for authentication
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'  // Indicate this is an AJAX request
+                }
+            });
+
+            // Check for authentication errors
+            if (response.status === 401) {
+                logOutput.innerHTML += '<p class="error">Session expired. Redirecting to login...</p>';
+                timeEstimate.textContent = 'Session expired.';
+                setTimeout(() => {
+                    window.location.href = '/admin_login';
+                }, 2000);
+                return;
+            }
+
+            // Check for other error status codes
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+
             if (!response.body) throw new Error('Response body is missing.');
 
             const reader = response.body.getReader();
@@ -153,9 +189,9 @@ document.addEventListener('DOMContentLoaded', function() {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-                
+
                 const chunk = decoder.decode(value, { stream: true });
-                logOutput.innerHTML += chunk; 
+                logOutput.innerHTML += chunk;
                 logOutput.scrollTop = logOutput.scrollHeight; // Auto-scroll
                 updateProgress(chunk, startTime); // Update progress bar
             }

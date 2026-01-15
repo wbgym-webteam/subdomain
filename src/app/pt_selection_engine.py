@@ -154,7 +154,7 @@ class PTSelectionEngine:
                     available_presentations = [
                         p for p in self.presentations_by_slot[slot]
                         if p.column not in assigned_columns and
-                           presentation_counts[p.id] < self.presentation_capacity[p.id] 
+                           presentation_counts[p.id] < self.presentation_capacity[p.id] and
                            (p.gender == 'u' or p.gender == student_gender)
                     ]
                     

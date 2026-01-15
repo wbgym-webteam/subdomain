@@ -120,9 +120,18 @@ def FileHandlerPTSecure():
     Reads workbook.xlsx but IGNORES name/email columns.
     Only saves ID, Grade, Class, Gender.
     """
+    # Use absolute path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, "data", "pt", "uploads", "workbook.xlsx")
+
+    # Check if file exists
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Workbook file not found at {file_path}")
+
     try:
-        file_path = os.path.join("app", "data", "pt", "uploads", "workbook.xlsx")
-        workbook = load_workbook(file_path)
+        # Use keep_vba=False and data_only=True for .xlsm files (macro-enabled)
+        # This prevents issues with VBA content and formula evaluation
+        workbook = load_workbook(file_path, keep_vba=False, data_only=True)
         print("Loaded Workbook (Secure Mode)...")
 
         # Clear Database
@@ -136,19 +145,23 @@ def FileHandlerPTSecure():
         except Exception as e:
             print(f"Error clearing database: {e}")
             db.session.rollback()
+            raise Exception(f"Failed to clear database: {e}")
 
         # 1. Process Students (Sheet 1)
+        if len(workbook.worksheets) < 1:
+            raise ValueError("Workbook must have at least one sheet for students")
+
         sheet1 = workbook.worksheets[0]
 
         for row in sheet1.iter_rows(min_row=2, values_only=True):
             student_id = row[0] # Column A: ID
-            
+
             # SKIPPING Columns B, C, D (Name, Surname, Email)
-            
-            grade = row[4]           # Column E: Grade
-            grade_selector = row[5]  # Column F: Class
+
+            grade = row[4] if len(row) > 4 else None           # Column E: Grade
+            grade_selector = row[5] if len(row) > 5 else None  # Column F: Class
             gender = row[6] if len(row) > 6 else "u" # Column G: Gender
-            
+
             if student_id is None or grade is None:
                 continue
 
@@ -159,7 +172,7 @@ def FileHandlerPTSecure():
             course_sheet = workbook.worksheets[1]
             for row in course_sheet.iter_rows(min_row=2, values_only=True):
                 if row[0] is None: continue
-                
+
                 create_pt_presentation(
                     id=row[0],
                     title=row[1],
@@ -174,17 +187,19 @@ def FileHandlerPTSecure():
                 )
 
         print("Secure Data processing complete. No PII saved.")
-        
+
     except Exception as e:
         print(f"Critical error in FileHandlerPTSecure: {e}")
         db.session.rollback()
+        raise  # Re-raise the exception so the route handler can catch it
 
 def load_names_map(file_storage):
     """
     Helper for Secure Exports:
     Reads names from uploaded file into RAM dictionary.
     """
-    workbook = load_workbook(file_storage)
+    # Use keep_vba=False and data_only=True for .xlsm files (macro-enabled)
+    workbook = load_workbook(file_storage, keep_vba=False, data_only=True)
     sheet = workbook.worksheets[0]
     names_map = {}
     for row in sheet.iter_rows(min_row=2, values_only=True):
