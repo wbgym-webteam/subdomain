@@ -43,7 +43,8 @@ def load_names_map(file_storage):
     """
     # Use keep_vba=False and data_only=True for .xlsm files (macro-enabled)
     workbook = load_workbook(file_storage, keep_vba=False, data_only=True)
-    sheet = workbook.active
+    # Explicitly use first sheet (students), not active sheet which could be the courses sheet
+    sheet = workbook.worksheets[0]
     
     names_map = {}
     
