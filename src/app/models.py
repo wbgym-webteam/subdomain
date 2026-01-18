@@ -69,7 +69,7 @@ class PTPresentation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     presenter = db.Column(db.String(80), nullable=False)
-    teacher = db.Column(db.String(80), nullable=False)
+    teacher = db.Column(db.String(80), nullable=True)
     description = db.Column(db.String(250), nullable=True)
     slot = db.Column(db.Integer, nullable=False)
     max_students = db.Column(db.Integer, nullable=False)
