@@ -27,6 +27,17 @@
             <p>
               Speichern nicht vergessen! Ihre Auswahl wird nur übernommen, wenn Sie unten auf "Auswahl bestätigen" klicken.
             </p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}" role="alert">
+                            <span class="flash-icon">✓</span>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         </div>
 
         <div class="selection-counter" id="pt-counter" aria-live="polite">
@@ -62,9 +73,9 @@
                             </div>
 
                             <div class="presentation-details">
-                                <p><strong>Lehrer:</strong> {{ presentation.teacher }}</p>
-                                <p><strong>Hosts:</strong> {{ presentation.hosts }}</p>
-                                <p><strong>Beschreibung:</strong> {{ presentation.description }}</p>
+                                {% if presentation.teacher %}<p><strong>Lehrer:</strong> {{ presentation.teacher }}</p>{% endif %}
+                                <p><strong>Referent:</strong> {{ presentation.hosts }}</p>
+                                {% if presentation.description %}<p><strong>Beschreibung:</strong> {{ presentation.description }}</p>{% endif %}
                             </div>
                         </div>
                         {% endfor %}

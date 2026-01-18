@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, Blueprint, session
+from flask import Flask, render_template, request, redirect, url_for, Blueprint, session, flash
 import sqlalchemy
 from sqlalchemy import text
 from .models import PTStudent, PTPresentation, PTSelection, PTAssignment
@@ -181,7 +181,8 @@ def submit_selection():
                     continue  # Skip invalid rankings
         
         db.session.commit()
-    
+        flash("Ihre Auswahl wurde erfolgreich gespeichert!", "success")
+
     return redirect("/pt")
 
 

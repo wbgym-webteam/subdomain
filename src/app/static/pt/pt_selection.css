@@ -124,3 +124,322 @@ html { min-height: 100%; background: linear-gradient(to bottom right, var(--bran
   opacity: 0.4;
   filter: grayscale(100%);
 }
+
+/* Flash Messages */
+.flash-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  animation: flash-slide-in 0.4s ease-out, flash-fade-out 0.5s ease-in 4s forwards;
+}
+
+.flash-success {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  color: #155724;
+  border: 1px solid #b1dfbb;
+  box-shadow: 0 2px 8px rgba(21, 87, 36, 0.15);
+}
+
+.flash-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+@keyframes flash-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flash-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* =====================================================
+   MOBILE RESPONSIVE STYLES
+   ===================================================== */
+
+/* Tablets and smaller */
+@media (max-width: 768px) {
+  .sms-container {
+    width: 95%;
+    padding: 16px 0 40px;
+  }
+
+  .header-section {
+    padding: 14px 12px;
+    border-radius: 10px;
+  }
+
+  .header-section h1 {
+    font-size: 1.7rem;
+    margin: 4px 0 8px;
+  }
+
+  .instruction-text {
+    font-size: 0.95rem;
+  }
+
+  .selection-counter {
+    padding: 10px 12px;
+    margin: 14px 0 16px;
+  }
+
+  .counter-main {
+    font-size: 0.95rem;
+  }
+
+  .column {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .column h3 {
+    font-size: 0.95rem;
+    padding: 5px 9px;
+  }
+
+  .presentations {
+    gap: 12px;
+  }
+
+  .presentation-header {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .presentation-title {
+    font-size: 16px;
+    flex: 1 1 180px;
+  }
+
+  .presentation-details {
+    padding: 10px 12px 12px;
+  }
+
+  .presentation-details p {
+    font-size: 13.5px;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .presentation-details strong {
+    width: auto;
+    min-width: auto;
+  }
+
+  .submit-btn {
+    padding: 12px 28px;
+    font-size: 15px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .flash-message {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .sms-container {
+    width: 100%;
+    padding: 12px 10px 32px;
+  }
+
+  .header-section {
+    padding: 12px 10px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+
+  .header-section h1 {
+    font-size: 1.4rem;
+    margin: 2px 0 6px;
+  }
+
+  .welcome {
+    font-size: 0.9rem;
+  }
+
+  .instruction-text {
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+
+  .header-section > p {
+    font-size: 0.88rem;
+  }
+
+  .selection-counter {
+    padding: 8px 10px;
+    margin: 12px 0 14px;
+    border-radius: 8px;
+  }
+
+  .counter-main {
+    font-size: 0.88rem;
+  }
+
+  .column {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .column h3 {
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    margin-bottom: 10px;
+  }
+
+  .presentations {
+    gap: 10px;
+  }
+
+  .presentation-card {
+    border-radius: 8px;
+  }
+
+  .presentation-header {
+    padding: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .drag-handle {
+    display: none; /* Hide drag handle on mobile - use arrows instead */
+  }
+
+  .presentation-title {
+    font-size: 15px;
+    flex: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .rank-controls {
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .arrow-btn {
+    width: 44px;
+    height: 40px;
+    border-radius: 10px;
+    /* Larger touch targets for mobile */
+  }
+
+  .arrow-btn::before {
+    width: 16px;
+    height: 16px;
+  }
+
+  .rank-chip {
+    min-width: 70px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .presentation-details {
+    padding: 10px;
+  }
+
+  .presentation-details p {
+    font-size: 13px;
+    margin: 6px 0;
+  }
+
+  .submit-container {
+    margin-top: 12px;
+    padding: 0 10px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+
+  .flash-message {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .flash-icon {
+    font-size: 1rem;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .header-section h1 {
+    font-size: 1.25rem;
+  }
+
+  .presentation-title {
+    font-size: 14px;
+  }
+
+  .arrow-btn {
+    width: 40px;
+    height: 36px;
+  }
+
+  .rank-chip {
+    min-width: 64px;
+    height: 30px;
+    font-size: 11px;
+  }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+  .presentation-card {
+    cursor: default;
+  }
+
+  .presentation-card:hover {
+    box-shadow: var(--shadow-sm); /* Remove hover effect on touch */
+  }
+
+  .arrow-btn:hover {
+    background: #fff;
+    border-color: #d8dbe2;
+  }
+
+  .arrow-btn:active {
+    background: #f3f4f6;
+    border-color: #cfd4dc;
+  }
+
+  .drag-handle {
+    display: none;
+  }
+
+  /* Make sure buttons are easy to tap */
+  .logout-btn--ghost {
+    padding: 10px 14px;
+  }
+}
