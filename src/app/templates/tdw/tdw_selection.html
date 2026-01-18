@@ -9,7 +9,13 @@ Präsentationsauswahl
     <link rel="stylesheet" href="{{ url_for('static', filename='tdw/tdw_selection.css') }}">
 
     <div class="login-container sms-container">
-        
+
+        <div class="logout-container">
+            <form action="{{ url_for('tdw.logout') }}" method="post" id="logout-form">
+                <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="logout-btn">Abmelden</a>
+            </form>
+        </div>
+
         <div class="header-section">
             <h1>Präsentationsauswahl</h1>
             <p class="instruction-text">Für {{ student }}</p>
@@ -67,12 +73,6 @@ Präsentationsauswahl
                 <input type="submit" value="Auswahl bestätigen" class="submit" class="submit-button">
             </div>
         </form>
-
-        <div class="logout-container">
-            <form action="{{ url_for('tdw.logout') }}" method="post" id="logout-form">
-                <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="logout-btn">Abmelden</a>
-            </form>
-        </div>
 
     </div>
 

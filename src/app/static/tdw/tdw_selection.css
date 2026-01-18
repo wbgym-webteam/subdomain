@@ -14,17 +14,19 @@ body {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     padding: 30px;
-    width: 100%;           
-    max-width: 800px;      
+    width: 100%;
+    max-width: 800px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    margin: 40px auto;     
-    display: block;        
+    margin: 40px auto;
+    display: block;
+    position: relative;
 }
 
 /* --- 3. Headers --- */
 .header-section {
     text-align: center;
     margin-bottom: 20px;
+    margin-top: 50px;
     background: white;
     padding: 20px;
     border-radius: 12px;
@@ -32,9 +34,13 @@ body {
 }
 
 .header-section h1 {
-    margin: 0 0 10px 0;
+    margin: 0 auto 10px auto;
+    padding: 0 20px;
     color: #560d4f;
     font-size: 2.5rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 
 .instruction-text {
@@ -240,24 +246,29 @@ input.submit:hover {
 
 /* --- 10. Logout --- */
 .logout-container {
-    text-align: center;
-    margin-top: 30px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
 }
 
 .logout-btn {
-    color: #666;
+    background-color: #dc3545;
+    color: white;
     text-decoration: none;
     font-size: 14px;
-    padding: 8px 16px;
-    border-radius: 20px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 6px;
     transition: all 0.2s;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
 }
 
 .logout-btn:hover {
-    background-color: #f0f0f0;
-    color: #333;
+    background-color: #c82333;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    transform: translateY(-1px);
 }
 
 /* --- 11. Responsive --- */
