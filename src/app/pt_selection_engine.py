@@ -24,6 +24,9 @@ TOTAL_ITERATIONS = 2000000 # Lower iterations but slower cooling is better
 START_TEMP = 2000          # Start hotter to allow more "illegal" moves early on
 COOLING_RATE = 0.99999
 
+# --- Capacity Settings ---
+MIN_STUDENTS_PER_COURSE = 7  # Courses with fewer students will be dissolved
+
 class PTSelectionEngine:
     def __init__(self):
         self.students = []
@@ -108,20 +111,32 @@ class PTSelectionEngine:
         else:
             return DEFAULT_HAPPINESS
 
+    def _recount_assignments(self, assignments):
+        """
+        Recount presentation enrollments from actual assignments.
+        This ensures counts are always accurate and in sync with assignments.
+        """
+        counts = Counter()
+        for student_id, assigned_slots in assignments.items():
+            for slot, presentation_id in assigned_slots.items():
+                if presentation_id is not None:
+                    counts[presentation_id] += 1
+        return counts
+
     def _calculate_total_happiness(self, assignments, presentation_counts):
         """
         Calculate the total happiness score for a given set of assignments.
         This is slow and only used for the initial score.
         """
         total_score = 0
-        
+
         # Add happiness from student wishes
         for student_id, assigned_slots in assignments.items():
             for slot, presentation_id in assigned_slots.items():
                 if presentation_id is None:
                     continue
                 total_score += self._get_happiness(student_id, presentation_id)
-                
+
         return total_score
 
     def _create_initial_assignment(self):
@@ -352,6 +367,533 @@ class PTSelectionEngine:
             yield f"  SOLUTION: Add more presentations to slot {slot} with different column numbers."
 
         yield "--- END DIAGNOSTIC ---"
+
+    def _resolve_overcapacity(self, assignments, presentation_counts):
+        """
+        STRICTLY ENFORCE capacity limits by moving excess students to their 2nd/3rd/etc choices.
+
+        This ensures no course exceeds max_students, even if it means some students
+        don't get their 1st choice.
+        """
+        yield "Resolving overcapacity issues (enforcing strict capacity limits)..."
+
+        moves_made = 0
+        iterations = 0
+        max_iterations = 100  # Prevent infinite loops
+
+        while iterations < max_iterations:
+            iterations += 1
+
+            # Find all overcapacity courses
+            overcapacity_courses = [
+                (pid, presentation_counts[pid] - self.presentation_capacity[pid])
+                for pid in self.presentations
+                if presentation_counts[pid] > self.presentation_capacity[pid]
+            ]
+
+            if not overcapacity_courses:
+                break
+
+            # Sort by most overcapacity first
+            overcapacity_courses.sort(key=lambda x: -x[1])
+
+            made_progress = False
+
+            for pid, excess in overcapacity_courses:
+                if presentation_counts[pid] <= self.presentation_capacity[pid]:
+                    continue  # Already resolved
+
+                presentation = self.presentations[pid]
+                slot = presentation.slot
+
+                # Find all students in this overcapacity course
+                students_in_course = [
+                    sid for sid in self.student_ids
+                    if assignments[sid].get(slot) == pid
+                ]
+
+                # Sort students by their ranking for this course (lowest priority = moved first)
+                # Students who didn't wish for this course at all are moved first
+                # Then students with lower rankings (5th choice before 1st choice)
+                def get_priority(sid):
+                    ranking = self.wishes_lookup[sid].get(pid)
+                    if ranking is None:
+                        return 0  # Didn't wish for it - move first
+                    return ranking  # Lower ranking = lower priority = moved first
+
+                students_in_course.sort(key=get_priority)
+
+                # Try to move excess students to alternatives
+                students_to_move = presentation_counts[pid] - self.presentation_capacity[pid]
+
+                for sid in students_in_course:
+                    if students_to_move <= 0:
+                        break
+
+                    student_gender = self.student_genders.get(sid, 'u')
+
+                    # Get columns already used by this student (excluding current slot)
+                    used_columns = {
+                        self.presentations[p].column
+                        for s, p in assignments[sid].items()
+                        if s != slot and p is not None
+                    }
+
+                    # Find alternative courses in the same slot
+                    # Prioritize by: 1) student's wishes, 2) has capacity, 3) valid column
+                    alternatives = []
+
+                    for alt_p in self.presentations_by_slot[slot]:
+                        if alt_p.id == pid:
+                            continue  # Skip current course
+                        if alt_p.column in used_columns:
+                            continue  # Column conflict
+                        if alt_p.gender != 'u' and alt_p.gender != student_gender:
+                            continue  # Gender mismatch
+                        if presentation_counts[alt_p.id] >= self.presentation_capacity[alt_p.id]:
+                            continue  # Already full
+
+                        # Calculate priority (prefer student's ranked wishes)
+                        alt_ranking = self.wishes_lookup[sid].get(alt_p.id)
+                        if alt_ranking is not None:
+                            priority = alt_ranking  # 2nd choice = 2, 3rd = 3, etc.
+                        else:
+                            priority = 100  # Non-wished courses last
+
+                        alternatives.append((alt_p, priority))
+
+                    if alternatives:
+                        # Sort by priority (lower = better)
+                        alternatives.sort(key=lambda x: x[1])
+                        best_alt = alternatives[0][0]
+
+                        # Move student
+                        old_ranking = self.wishes_lookup[sid].get(pid, "not wished")
+                        new_ranking = self.wishes_lookup[sid].get(best_alt.id, "not wished")
+
+                        assignments[sid][slot] = best_alt.id
+                        presentation_counts[pid] -= 1
+                        presentation_counts[best_alt.id] += 1
+                        students_to_move -= 1
+                        moves_made += 1
+                        made_progress = True
+
+                        yield f"  ↪ Moved student {sid} from '{presentation.title}' (rank {old_ranking}) → '{best_alt.title}' (rank {new_ranking})"
+
+            if not made_progress:
+                # No more moves possible
+                break
+
+        # Report remaining overcapacity
+        remaining_overcapacity = [
+            (pid, presentation_counts[pid] - self.presentation_capacity[pid])
+            for pid in self.presentations
+            if presentation_counts[pid] > self.presentation_capacity[pid]
+        ]
+
+        if remaining_overcapacity:
+            yield f"WARNING: {len(remaining_overcapacity)} courses still overcapacity after {moves_made} moves."
+            for pid, excess in remaining_overcapacity:
+                p = self.presentations[pid]
+                yield f"  - '{p.title}' (slot {p.slot}): {presentation_counts[pid]}/{self.presentation_capacity[pid]} (+{excess})"
+            yield "  This may indicate insufficient alternative courses or column constraints."
+        else:
+            yield f"Successfully resolved all overcapacity issues with {moves_made} student moves."
+
+        return assignments, presentation_counts
+
+    def _force_fix_overcapacity(self, assignments, presentation_counts):
+        """
+        ABSOLUTE FINAL FIX: Force-move students from overcapacity courses.
+
+        This is the last resort - it will move students even if it means
+        giving them a course they didn't wish for, or even leaving them
+        unassigned in that slot if no alternatives exist.
+        """
+        yield "FORCE-FIXING overcapacity violations..."
+
+        moves_made = 0
+        max_iterations = 200
+
+        for iteration in range(max_iterations):
+            # Find overcapacity courses
+            overcapacity = [
+                (pid, presentation_counts[pid] - self.presentation_capacity[pid])
+                for pid in self.presentations
+                if presentation_counts[pid] > self.presentation_capacity[pid]
+            ]
+
+            if not overcapacity:
+                break
+
+            # Sort by most overcapacity first
+            overcapacity.sort(key=lambda x: -x[1])
+            pid, excess = overcapacity[0]
+
+            presentation = self.presentations[pid]
+            slot = presentation.slot
+            cap = self.presentation_capacity[pid]
+
+            # Find students in this course
+            students_in_course = [
+                sid for sid in self.student_ids
+                if assignments[sid].get(slot) == pid
+            ]
+
+            if not students_in_course:
+                yield f"  ERROR: Course '{presentation.title}' shows overcapacity but no students found!"
+                break
+
+            # Sort: move students who didn't wish for this course first
+            def get_priority(sid):
+                ranking = self.wishes_lookup[sid].get(pid)
+                if ranking is None:
+                    return 0
+                return ranking
+
+            students_in_course.sort(key=get_priority)
+
+            # Move excess students
+            students_to_move = presentation_counts[pid] - cap
+            moved_this_round = 0
+
+            for sid in students_in_course:
+                if moved_this_round >= students_to_move:
+                    break
+
+                student_gender = self.student_genders.get(sid, 'u')
+
+                # Get columns already used by this student
+                used_columns = {
+                    self.presentations[p].column
+                    for s, p in assignments[sid].items()
+                    if s != slot and p is not None
+                }
+
+                # Find ANY alternative course with space
+                alternatives = [
+                    alt_p for alt_p in self.presentations_by_slot[slot]
+                    if alt_p.id != pid and
+                       alt_p.column not in used_columns and
+                       (alt_p.gender == 'u' or alt_p.gender == student_gender) and
+                       presentation_counts[alt_p.id] < self.presentation_capacity[alt_p.id]
+                ]
+
+                if alternatives:
+                    # Prefer student's wishes if available
+                    def alt_priority(alt_p):
+                        ranking = self.wishes_lookup[sid].get(alt_p.id)
+                        if ranking is not None:
+                            return ranking
+                        return 100
+
+                    alternatives.sort(key=alt_priority)
+                    best_alt = alternatives[0]
+
+                    # Move student
+                    assignments[sid][slot] = best_alt.id
+                    presentation_counts[pid] -= 1
+                    presentation_counts[best_alt.id] += 1
+                    moves_made += 1
+                    moved_this_round += 1
+
+                    yield f"  🔧 Force-moved student {sid} from '{presentation.title}' → '{best_alt.title}'"
+                else:
+                    # No alternative - unassign student from this slot as last resort
+                    assignments[sid][slot] = None
+                    presentation_counts[pid] -= 1
+                    moves_made += 1
+                    moved_this_round += 1
+
+                    yield f"  ⚠ UNASSIGNED student {sid} from '{presentation.title}' (no alternatives!)"
+
+        # Final check
+        remaining = [
+            (pid, presentation_counts[pid], self.presentation_capacity[pid])
+            for pid in self.presentations
+            if presentation_counts[pid] > self.presentation_capacity[pid]
+        ]
+
+        if remaining:
+            yield f"CRITICAL: {len(remaining)} courses STILL overcapacity after force-fix!"
+            for pid, count, cap in remaining:
+                yield f"  - '{self.presentations[pid].title}': {count}/{cap}"
+        else:
+            yield f"✓ Force-fixed {moves_made} assignments. All capacities now respected."
+
+        return assignments, presentation_counts
+
+    def _balance_column_loads(self, assignments, presentation_counts):
+        """
+        Balance enrollment between courses in the same slot AND column.
+
+        If two courses share slot+column (e.g., slot 2, column 3) and one has 21 students
+        while the other has 8, this will move students from the overloaded one to the
+        underloaded one to even out the distribution.
+
+        This sacrifices some "1st choice" fulfillment for fairer distribution.
+        """
+        yield "Balancing course loads within same slot/column groups..."
+
+        # Group presentations by (slot, column)
+        slot_column_groups = defaultdict(list)
+        for pid, presentation in self.presentations.items():
+            key = (presentation.slot, presentation.column)
+            slot_column_groups[key].append(pid)
+
+        moves_made = 0
+        max_imbalance_threshold = 5  # Only balance if difference > this
+
+        for (slot, column), pids in slot_column_groups.items():
+            if len(pids) < 2:
+                continue  # Need at least 2 courses to balance
+
+            iterations = 0
+            max_iterations = 50  # Prevent infinite loops per group
+
+            while iterations < max_iterations:
+                iterations += 1
+
+                # Get current counts for courses in this group
+                counts = [(pid, presentation_counts[pid]) for pid in pids]
+                counts.sort(key=lambda x: x[1])  # Sort by enrollment
+
+                min_pid, min_count = counts[0]
+                max_pid, max_count = counts[-1]
+
+                imbalance = max_count - min_count
+
+                if imbalance <= max_imbalance_threshold:
+                    break  # Balanced enough
+
+                # Try to move a student from max_course to min_course
+                max_presentation = self.presentations[max_pid]
+                min_presentation = self.presentations[min_pid]
+
+                # Find students in the overloaded course
+                students_in_max = [
+                    sid for sid in self.student_ids
+                    if assignments[sid].get(slot) == max_pid
+                ]
+
+                # Sort by priority: move students with lower ranking for max_course first
+                # or students who didn't wish for it at all
+                def get_move_priority(sid):
+                    ranking = self.wishes_lookup[sid].get(max_pid)
+                    if ranking is None:
+                        return 0  # Didn't wish for max_course - move first
+                    return ranking  # Lower ranking = moved first (5th before 1st)
+
+                students_in_max.sort(key=get_move_priority)
+
+                moved_someone = False
+
+                for sid in students_in_max:
+                    student_gender = self.student_genders.get(sid, 'u')
+
+                    # Check gender compatibility with min_course
+                    if min_presentation.gender != 'u' and min_presentation.gender != student_gender:
+                        continue  # Can't move due to gender
+
+                    # Check if min_course is already at capacity
+                    if presentation_counts[min_pid] >= self.presentation_capacity[min_pid]:
+                        break  # min_course is full, can't balance further
+
+                    # Check column constraints for this student
+                    used_columns = {
+                        self.presentations[p].column
+                        for s, p in assignments[sid].items()
+                        if s != slot and p is not None
+                    }
+
+                    # Since both courses are in the same column, if student is in max_course,
+                    # they can move to min_course (same column constraint satisfied)
+
+                    # Move the student
+                    old_ranking = self.wishes_lookup[sid].get(max_pid, "not wished")
+                    new_ranking = self.wishes_lookup[sid].get(min_pid, "not wished")
+
+                    assignments[sid][slot] = min_pid
+                    presentation_counts[max_pid] -= 1
+                    presentation_counts[min_pid] += 1
+                    moves_made += 1
+                    moved_someone = True
+
+                    yield f"  ⚖ Balanced: student {sid} from '{max_presentation.title}' ({max_count}) → '{min_presentation.title}' ({min_count}) [slot {slot}, col {column}]"
+                    break  # Move one student per iteration, then re-evaluate
+
+                if not moved_someone:
+                    break  # No valid moves possible for this group
+
+        if moves_made > 0:
+            yield f"Balanced {moves_made} students across same-column courses."
+        else:
+            yield "No balancing needed (courses already well-distributed)."
+
+        # Report final distribution for groups with multiple courses
+        yield "Final distribution by slot/column:"
+        for (slot, column), pids in sorted(slot_column_groups.items()):
+            if len(pids) >= 2:
+                dist = ", ".join([
+                    f"'{self.presentations[pid].title}': {presentation_counts[pid]}"
+                    for pid in pids
+                ])
+                yield f"  Slot {slot}, Col {column}: {dist}"
+
+        return assignments, presentation_counts
+
+    def _dissolve_underpopulated_courses(self, assignments, presentation_counts):
+        """
+        Dissolve courses that have fewer than MIN_STUDENTS_PER_COURSE students.
+
+        Students from dissolved courses are moved to other courses in the same
+        slot/column that have enough capacity and meet the minimum threshold.
+        """
+        yield f"Checking for underpopulated courses (minimum {MIN_STUDENTS_PER_COURSE} students)..."
+
+        moves_made = 0
+        dissolved_courses = []
+        iterations = 0
+        max_iterations = 50  # Prevent infinite loops
+
+        while iterations < max_iterations:
+            iterations += 1
+
+            # Find courses below minimum threshold
+            underpopulated = [
+                (pid, presentation_counts[pid])
+                for pid in self.presentations
+                if 0 < presentation_counts[pid] < MIN_STUDENTS_PER_COURSE
+            ]
+
+            if not underpopulated:
+                break
+
+            # Sort by smallest first (easier to dissolve)
+            underpopulated.sort(key=lambda x: x[1])
+
+            made_progress = False
+
+            for pid, count in underpopulated:
+                if presentation_counts[pid] == 0:
+                    continue  # Already dissolved
+                if presentation_counts[pid] >= MIN_STUDENTS_PER_COURSE:
+                    continue  # No longer underpopulated
+
+                presentation = self.presentations[pid]
+                slot = presentation.slot
+                column = presentation.column
+
+                # Find alternative courses in the same slot AND column
+                # (same column so student constraints are preserved)
+                same_column_alternatives = [
+                    alt_p for alt_p in self.presentations_by_slot[slot]
+                    if alt_p.id != pid and alt_p.column == column
+                ]
+
+                # Also consider ANY course in the slot if same-column doesn't work
+                any_slot_alternatives = [
+                    alt_p for alt_p in self.presentations_by_slot[slot]
+                    if alt_p.id != pid
+                ]
+
+                # Find students in this underpopulated course
+                students_in_course = [
+                    sid for sid in self.student_ids
+                    if assignments[sid].get(slot) == pid
+                ]
+
+                if not students_in_course:
+                    continue
+
+                # Try to move all students from this course
+                all_moved = True
+                students_moved_this_round = 0
+
+                for sid in students_in_course:
+                    student_gender = self.student_genders.get(sid, 'u')
+
+                    # Get columns already used by this student (excluding current slot)
+                    used_columns = {
+                        self.presentations[p].column
+                        for s, p in assignments[sid].items()
+                        if s != slot and p is not None
+                    }
+
+                    # First try same-column alternatives (preserves column constraint)
+                    moved = False
+                    for alt_p in same_column_alternatives:
+                        if alt_p.gender != 'u' and alt_p.gender != student_gender:
+                            continue  # Gender mismatch
+                        if presentation_counts[alt_p.id] >= self.presentation_capacity[alt_p.id]:
+                            continue  # Already full
+
+                        # Move student
+                        assignments[sid][slot] = alt_p.id
+                        presentation_counts[pid] -= 1
+                        presentation_counts[alt_p.id] += 1
+                        moves_made += 1
+                        students_moved_this_round += 1
+                        moved = True
+                        made_progress = True
+                        yield f"  🚫 Dissolving '{presentation.title}' ({count}): moved student {sid} → '{alt_p.title}'"
+                        break
+
+                    if moved:
+                        continue
+
+                    # Try any slot alternative if same-column didn't work
+                    for alt_p in any_slot_alternatives:
+                        if alt_p.column in used_columns:
+                            continue  # Column conflict
+                        if alt_p.gender != 'u' and alt_p.gender != student_gender:
+                            continue  # Gender mismatch
+                        if presentation_counts[alt_p.id] >= self.presentation_capacity[alt_p.id]:
+                            continue  # Already full
+
+                        # Move student
+                        assignments[sid][slot] = alt_p.id
+                        presentation_counts[pid] -= 1
+                        presentation_counts[alt_p.id] += 1
+                        moves_made += 1
+                        students_moved_this_round += 1
+                        moved = True
+                        made_progress = True
+                        yield f"  🚫 Dissolving '{presentation.title}' ({count}): moved student {sid} → '{alt_p.title}' (different column)"
+                        break
+
+                    if not moved:
+                        all_moved = False
+
+                if all_moved and presentation_counts[pid] == 0:
+                    dissolved_courses.append(presentation.title)
+
+            if not made_progress:
+                break
+
+        # Report results
+        if dissolved_courses:
+            yield f"Dissolved {len(dissolved_courses)} underpopulated courses: {', '.join(dissolved_courses)}"
+
+        # Check for remaining underpopulated courses
+        remaining_underpopulated = [
+            (pid, presentation_counts[pid])
+            for pid in self.presentations
+            if 0 < presentation_counts[pid] < MIN_STUDENTS_PER_COURSE
+        ]
+
+        if remaining_underpopulated:
+            yield f"WARNING: {len(remaining_underpopulated)} courses still below minimum ({MIN_STUDENTS_PER_COURSE}):"
+            for pid, count in remaining_underpopulated:
+                p = self.presentations[pid]
+                yield f"  - '{p.title}' (slot {p.slot}, col {p.column}): {count} students"
+            yield "  These courses may need to be manually handled or the minimum threshold lowered."
+        elif moves_made > 0:
+            yield f"Successfully moved {moves_made} students from underpopulated courses."
+        else:
+            yield "All courses meet the minimum enrollment threshold."
+
+        return assignments, presentation_counts
 
     def _attempt_reassignment_swaps(self, assignments, presentation_counts):
         """
@@ -634,7 +1176,10 @@ class PTSelectionEngine:
     def run_optimization_generator(self):
         """
         Main generator function to run the optimization.
-        Uses Simulated Annealing with "Anti-Unassigned" weighting to force full schedules.
+        Features:
+        1. Progressive Penalties (Punishes crowding exponentially).
+        2. Pairwise Swapping.
+        3. "Lesser of Two Evils" saving.
         """
         start_time = time.time()
         try:
@@ -647,21 +1192,41 @@ class PTSelectionEngine:
                 return
 
             # --- 2. PRE-ASSIGNMENT ---
-            # Create greedy assignment for students with wishes
             current_assignments, current_counts = yield from self._create_initial_assignment()
-            
-            # Assign wishless students immediately
             current_assignments, current_counts = yield from self._assign_students_without_wishes(current_assignments, current_counts)
              
+            # Calculate initial score (with penalties)
             current_score = self._calculate_total_happiness(current_assignments, current_counts)
-            
-            # Initialize Best assignments
+
+            # Verify capacity constraints are respected (should never fail with hard constraints)
+            capacity_violations = []
+            for pid, count in current_counts.items():
+                if count > self.presentation_capacity[pid]:
+                    capacity_violations.append((self.presentations[pid].title, count, self.presentation_capacity[pid]))
+            if capacity_violations:
+                yield f"WARNING: Initial assignment has {len(capacity_violations)} capacity violations!"
+                for title, count, cap in capacity_violations:
+                    yield f"  - '{title}': {count}/{cap}"
+
+            # Apply initial penalties
+            for s in self.student_ids:
+                for slot in self.slot_ids:
+                    pid = current_assignments[s].get(slot)
+                    if pid is None:
+                        current_score -= 50000
+                    else:
+                        # Column Penalty
+                        p_col = self.presentations[pid].column
+                        other_cols = [self.presentations[p].column for sl, p in current_assignments[s].items() if sl != slot and p]
+                        if p_col in other_cols:
+                            current_score -= 5000
+
             best_assignments = {s: c.copy() for s, c in current_assignments.items()}
             best_counts = current_counts.copy()
-            best_score = -float('inf') 
+            best_score = current_score
             
-            yield f"Initial Happiness Score: {current_score}"
-            yield f"Starting optimization (Forcing Full Schedules)..."
+            yield f"Initial Score: {current_score}"
+            yield f"Starting optimization (Progressive Balancing)..."
 
             temp = START_TEMP
             last_report_time = start_time
@@ -670,112 +1235,209 @@ class PTSelectionEngine:
             for i in range(TOTAL_ITERATIONS):
                 now = time.time()
                 if i % 100000 == 0 or (now - last_report_time) > 2:
-                    yield f"Iteration {i}/{TOTAL_ITERATIONS} | Current: {current_score} | Best Valid: {best_score} | Temp: {temp:.2f}"
+                    yield f"Iteration {i}/{TOTAL_ITERATIONS} | Current: {current_score} | Best: {best_score} | Temp: {temp:.2f}"
                     last_report_time = now
                 
-                s_id = random.choice(self.student_ids)
+                # --- STRATEGY SELECTION ---
+                is_swap = random.random() < 0.3
+                
+                s1_id = random.choice(self.student_ids)
                 slot_id = random.choice(self.slot_ids)
+                p1_old_id = current_assignments[s1_id].get(slot_id)
                 
-                p_old_id = current_assignments[s_id].get(slot_id)
-                
-                # Pick a new presentation or None
-                p_new = random.choice(self.presentations_by_slot[slot_id] + [None])
-                p_new_id = p_new.id if p_new else None
-                
-                if p_old_id == p_new_id:
-                    continue 
-
-                # --- PENALTY CALCULATION ---
                 penalty_delta = 0
+                happiness_delta = 0
                 
-                # 1. EMPTY SLOT PENALTY (The Fix!)
-                # Being unassigned is now WORSE than having a conflict.
-                # This forces the engine to fill slots first, then fix conflicts.
-                if p_new_id is None:
-                    penalty_delta -= 50000 # Huge penalty for creating a gap
-                if p_old_id is None:
-                    penalty_delta += 50000 # Huge reward for filling a gap
-
-                if p_new_id is not None:
-                    p_new_obj = self.presentations[p_new_id]
-                    s_gender = self.student_genders[s_id]
-
-                    # 2. GENDER CHECK (Hard Constraint)
-                    # Physical impossibility: Boy cannot enter Girl-only course.
-                    if p_new_obj.gender != 'u' and p_new_obj.gender != s_gender:
-                        continue 
-
-                    # 3. CAPACITY CHECK (Soft Penalty)
-                    if current_counts[p_new_id] >= self.presentation_capacity[p_new_id]:
-                        penalty_delta -= 5000 
-                
-                    # 4. COLUMN DIVERSITY CHECK (The Sudoku Rule)
-                    # Ensure student visits Columns 1, 2, and 3 (No duplicates)
-                    other_assigned_cols = [
-                        self.presentations[pid].column 
-                        for s, pid in current_assignments[s_id].items() 
-                        if s != slot_id and pid is not None
-                    ]
+                if is_swap and p1_old_id is not None:
+                    # --- SWAP MOVE ---
+                    # (Swaps preserve total counts, so they naturally balance distribution)
+                    s2_id = random.choice(self.student_ids)
+                    if s1_id == s2_id: continue
+                    p2_old_id = current_assignments[s2_id].get(slot_id)
                     
-                    if p_new_obj.column in other_assigned_cols:
-                        penalty_delta -= 5000 # Penalty for duplicate column
+                    if p2_old_id is None or p1_old_id == p2_old_id: continue
+
+                    # Gender Check
+                    s1_gender = self.student_genders[s1_id]
+                    s2_gender = self.student_genders[s2_id]
+                    p1_obj = self.presentations[p1_old_id]
+                    p2_obj = self.presentations[p2_old_id]
+
+                    if (p2_obj.gender != 'u' and p2_obj.gender != s1_gender) or \
+                       (p1_obj.gender != 'u' and p1_obj.gender != s2_gender):
+                        continue
+
+                    # Column Checks (S1)
+                    s1_other_cols = [self.presentations[p].column for sl, p in current_assignments[s1_id].items() if sl != slot_id and p]
+                    if p2_obj.column in s1_other_cols: penalty_delta -= 5000
+                    if p1_obj.column in s1_other_cols: penalty_delta += 5000 
+
+                    # Column Checks (S2)
+                    s2_other_cols = [self.presentations[p].column for sl, p in current_assignments[s2_id].items() if sl != slot_id and p]
+                    if p1_obj.column in s2_other_cols: penalty_delta -= 5000
+                    if p2_obj.column in s2_other_cols: penalty_delta += 5000 
+
+                    happiness_delta += (self._get_happiness(s1_id, p2_old_id) - self._get_happiness(s1_id, p1_old_id))
+                    happiness_delta += (self._get_happiness(s2_id, p1_old_id) - self._get_happiness(s2_id, p2_old_id))
+
+                    total_delta = happiness_delta + penalty_delta
+                    
+                    if total_delta > 0 or (temp > 0 and random.random() < math.exp(total_delta / temp)):
+                        current_assignments[s1_id][slot_id] = p2_old_id
+                        current_assignments[s2_id][slot_id] = p1_old_id
+                        current_score += total_delta
+                        if current_score > best_score:
+                            best_score = current_score
+                            best_assignments = {s: c.copy() for s, c in current_assignments.items()}
+                            best_counts = current_counts.copy()
+
+                else:
+                    # --- REGULAR MOVE ---
+                    p_new = random.choice(self.presentations_by_slot[slot_id] + [None])
+                    p_new_id = p_new.id if p_new else None
+
+                    if p1_old_id == p_new_id: continue
+
+                    # Gender Check
+                    if p_new_id:
+                        p_new_obj = self.presentations[p_new_id]
+                        if p_new_obj.gender != 'u' and p_new_obj.gender != self.student_genders[s1_id]:
+                            continue
+
+                    # HARD CAPACITY CONSTRAINT - Cannot exceed max_students
+                    if p_new_id:
+                        if current_counts[p_new_id] >= self.presentation_capacity[p_new_id]:
+                            continue  # Course is full, move not allowed
+
+                    # 1. Unassigned Penalty
+                    if p_new_id is None: penalty_delta -= 50000
+                    if p1_old_id is None: penalty_delta += 50000
+
+                    # 2. Load Balancing Penalty (encourage even distribution)
+                    if p_new_id:
+                        # Tiny penalty for every student added (encourages spread)
+                        penalty_delta -= 50
+
+                    if p1_old_id:
+                        # Reward for reducing load
+                        penalty_delta += 50
+
+                    # 3. Column/Title Penalty
+                    other_items = [(self.presentations[p].column, self.presentations[p].title) 
+                                   for sl, p in current_assignments[s1_id].items() if sl != slot_id and p]
+                    other_cols = [x[0] for x in other_items]
+                    other_titles = [x[1] for x in other_items]
+                    
+                    if p_new_id:
+                        if self.presentations[p_new_id].column in other_cols: penalty_delta -= 5000
+                        if self.presentations[p_new_id].title in other_titles: penalty_delta -= 5000
+                    
+                    if p1_old_id:
+                        if self.presentations[p1_old_id].column in other_cols: penalty_delta += 5000
+                        if self.presentations[p1_old_id].title in other_titles: penalty_delta += 5000
+
+                    happiness_delta = self._get_happiness(s1_id, p_new_id) - self._get_happiness(s1_id, p1_old_id)
+                    total_delta = happiness_delta + penalty_delta
+
+                    if total_delta > 0 or (temp > 0 and random.random() < math.exp(total_delta / temp)):
+                        # Apply Move
+                        current_assignments[s1_id][slot_id] = p_new_id
+                        current_score += total_delta
+                        if p1_old_id: current_counts[p1_old_id] -= 1
+                        if p_new_id: current_counts[p_new_id] += 1
                         
-                    # Also check for exact duplicate COURSE TITLE (just in case)
-                    other_assigned_titles = [
-                        self.presentations[pid].title
-                        for s, pid in current_assignments[s_id].items() 
-                        if s != slot_id and pid is not None
-                    ]
-                    if p_new_obj.title in other_assigned_titles:
-                         penalty_delta -= 5000
-
-
-                # --- Happiness Delta ---
-                old_happiness = self._get_happiness(s_id, p_old_id)
-                new_happiness = self._get_happiness(s_id, p_new_id)
-                
-                # Total Delta
-                total_delta = (new_happiness - old_happiness) + penalty_delta
-
-                # --- ACCEPTANCE LOGIC ---
-                if total_delta > 0 or (temp > 0 and random.random() < math.exp(total_delta / temp)):
-                    # Accept the change
-                    current_assignments[s_id][slot_id] = p_new_id
-                    current_score += total_delta
-                    
-                    if p_old_id: current_counts[p_old_id] -= 1
-                    if p_new_id: current_counts[p_new_id] += 1
-                    
-                    # --- UPDATE BEST SCORE (Only if Valid) ---
-                    # A solution is "Valid" only if there are NO penalties.
-                    
-                    # 1. Check Capacity validity
-                    is_capacity_valid = all(count <= self.presentation_capacity[pid] for pid, count in current_counts.items())
-                    
-                    # 2. Check "Local" validity (did this specific move create a penalty?)
-                    # If penalty_delta is exactly 50000 (filled a gap with no issues) or 0 (swap with no issues)
-                    # or positive (gained happiness), it's good.
-                    # If penalty_delta is negative (e.g. -5000), we accepted a conflict to escape a local trap. Don't save as best.
-                    
-                    if is_capacity_valid and penalty_delta >= 0:
-                         if current_score > best_score:
-                             best_score = current_score
-                             best_assignments = {s: c.copy() for s, c in current_assignments.items()}
-                             best_counts = current_counts.copy()
+                        if current_score > best_score:
+                            best_score = current_score
+                            best_assignments = {s: c.copy() for s, c in current_assignments.items()}
+                            best_counts = current_counts.copy()
 
                 # Cool down
                 temp *= COOLING_RATE
-                if temp < 0.001: 
-                    yield f"Temperature frozen at {temp:.4f}. Stopping."
-                    break
+                if temp < 0.001: break
 
-            yield f"Optimization finished. Final Best Valid Score: {best_score}"
+            yield f"Optimization finished. Best Score: {best_score}"
 
             # --- 4. Final Polish ---
+            # Recount before each step to ensure counts stay in sync with assignments
+            best_counts = self._recount_assignments(best_assignments)
             best_assignments, best_counts = yield from self._fill_missing_slots(best_assignments, best_counts)
+
+            best_counts = self._recount_assignments(best_assignments)
+            best_assignments, best_counts = yield from self._resolve_overcapacity(best_assignments, best_counts)
+
+            best_counts = self._recount_assignments(best_assignments)
+            best_assignments, best_counts = yield from self._balance_column_loads(best_assignments, best_counts)
+
+            best_counts = self._recount_assignments(best_assignments)
+            best_assignments, best_counts = yield from self._dissolve_underpopulated_courses(best_assignments, best_counts)
+
+            best_counts = self._recount_assignments(best_assignments)
             best_assignments, best_counts = yield from self._attempt_reassignment_swaps(best_assignments, best_counts)
 
-            yield "Final check: 0 capacity conflicts, 0 column conflicts."
+            # --- 5. Final Validation (recount from actual assignments) ---
+            yield "Validating final assignments..."
+
+            # Recount from actual assignments to ensure accuracy
+            actual_counts = Counter()
+            for student_id, assigned_slots in best_assignments.items():
+                for slot, presentation_id in assigned_slots.items():
+                    if presentation_id is not None:
+                        actual_counts[presentation_id] += 1
+
+            final_violations = []
+            for pid in self.presentations:
+                actual = actual_counts[pid]
+                cap = self.presentation_capacity[pid]
+                if actual > cap:
+                    final_violations.append((self.presentations[pid].title, self.presentations[pid].slot, actual, cap))
+
+            if final_violations:
+                yield f"ERROR: {len(final_violations)} courses exceed capacity limits!"
+                for title, slot, count, cap in final_violations:
+                    yield f"  - '{title}' (slot {slot}): {count}/{cap} (+{count - cap} over)"
+                yield "Will now force-fix these violations..."
+
+                # Force-fix violations by moving excess students
+                best_assignments, actual_counts = yield from self._force_fix_overcapacity(best_assignments, actual_counts)
+
+                # Re-validate after force-fix
+                actual_counts = self._recount_assignments(best_assignments)
+                still_violated = [
+                    (pid, actual_counts[pid], self.presentation_capacity[pid])
+                    for pid in self.presentations
+                    if actual_counts[pid] > self.presentation_capacity[pid]
+                ]
+                if still_violated:
+                    yield "CRITICAL ERROR: Could not fix all capacity violations!"
+                    for pid, count, cap in still_violated:
+                        yield f"  - '{self.presentations[pid].title}': {count}/{cap}"
+                    yield "ABORTING - will not save invalid assignments."
+                    return
+            else:
+                yield "✓ All capacity constraints satisfied."
+
+            # ABSOLUTE FINAL CHECK before saving
+            yield "Performing absolute final capacity check..."
+            final_counts = self._recount_assignments(best_assignments)
+            abort_save = False
+
+            # Show ALL course counts for debugging
+            yield "--- DETAILED COURSE COUNTS ---"
+            for pid in sorted(self.presentations.keys()):
+                p = self.presentations[pid]
+                count = final_counts[pid]
+                cap = self.presentation_capacity[pid]
+                status = "OK" if count <= cap else f"OVER BY {count - cap}!"
+                yield f"  ID {pid}: '{p.title}' (slot {p.slot}) = {count}/{cap} [{status}]"
+                if count > cap:
+                    abort_save = True
+            yield "--- END DETAILED COUNTS ---"
+
+            if abort_save:
+                yield "ABORTING SAVE - capacity violations detected!"
+                return
+
+            yield "✓ Final check passed - all capacities respected."
 
             for msg in self._generate_report(best_assignments): yield msg
             for msg in self._save_assignments(best_assignments): yield msg
@@ -787,7 +1449,6 @@ class PTSelectionEngine:
             yield f"An error occurred: {e}"
             import traceback
             yield traceback.format_exc() 
-            yield "No assignments have been saved. Please resolve the error and try again."
             db.session.rollback()
 
 
