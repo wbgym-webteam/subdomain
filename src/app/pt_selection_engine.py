@@ -173,11 +173,62 @@ class PTSelectionEngine:
         yield "Initial assignment created."
         return assignments, presentation_counts
 
+    def _assign_students_without_wishes(self, assignments, presentation_counts):
+        """
+        Assign students who have no wishes (no records in pt_selections table)
+        to the least popular courses, ensuring they get one course per slot
+        from different columns.
+        """
+        yield "Checking for students without wishes..."
+
+        students_without_wishes = []
+        for student_id in self.student_ids:
+            if student_id not in self.wishes_lookup or not self.wishes_lookup[student_id]:
+                students_without_wishes.append(student_id)
+
+        if not students_without_wishes:
+            yield "All students have submitted wishes."
+            return assignments, presentation_counts
+
+        yield f"Found {len(students_without_wishes)} students without wishes. Assigning them to least popular courses..."
+
+        for student_id in students_without_wishes:
+            student_gender = self.student_genders.get(student_id, 'u')
+            assigned_columns = set()
+
+            # Assign one course per slot
+            for slot in self.slot_ids:
+                # Get all presentations in this slot that match constraints
+                available_presentations = [
+                    p for p in self.presentations_by_slot[slot]
+                    if p.column not in assigned_columns and
+                       presentation_counts[p.id] < self.presentation_capacity[p.id] and
+                       (p.gender == 'u' or p.gender == student_gender)
+                ]
+
+                if available_presentations:
+                    # Sort by current enrollment (least populated first)
+                    available_presentations.sort(key=lambda p: presentation_counts[p.id])
+                    chosen_presentation = available_presentations[0]
+
+                    # Assign student to this presentation
+                    assignments[student_id][slot] = chosen_presentation.id
+                    presentation_counts[chosen_presentation.id] += 1
+                    assigned_columns.add(chosen_presentation.column)
+
+                else:
+                    # No available presentation for this slot (shouldn't happen if data is correct)
+                    assignments[student_id][slot] = None
+                    yield f"WARNING: Could not assign student {student_id} to slot {slot} - no available presentations."
+
+        yield f"Successfully assigned {len(students_without_wishes)} students without wishes."
+        return assignments, presentation_counts
+
     def _save_assignments(self, assignments):
         """Clear old assignments and save the new best solution to the DB"""
         yield "Saving best assignments to database..."
         db.session.execute(text("DELETE FROM pt_assignments"))
-        
+
         insert_data = []
         for student_id, assigned_slots in assignments.items():
             for slot, presentation_id in assigned_slots.items():
@@ -185,15 +236,15 @@ class PTSelectionEngine:
                     insert_data.append({
                         "student_id": student_id,
                         "presentation_id": presentation_id,
-                        "slot": slot 
+                        "slot": slot
                     })
-        
+
         if insert_data:
             db.session.execute(text(
                 "INSERT INTO pt_assignments (student_id, presentation_id, slot) "
                 "VALUES (:student_id, :presentation_id, :slot)"
             ), insert_data)
-        
+
         db.session.commit()
         yield f"Successfully saved {len(insert_data)} assignments."
 
@@ -348,15 +399,18 @@ class PTSelectionEngine:
             yield f"Optimization finished after {i+1} iterations." # Show true iteration count
             yield f"Final Best Score: {best_score}"
 
-            # --- 4. Final Report & Save ---
+            # --- 4. Assign students without wishes to least popular courses ---
+            best_assignments, best_counts = yield from self._assign_students_without_wishes(best_assignments, best_counts)
+
+            # --- 5. Final Report & Save ---
             yield "Final check: 0 capacity conflicts, 0 column conflicts."
-            
+
             for msg in self._generate_report(best_assignments):
                 yield msg
-                
+
             for msg in self._save_assignments(best_assignments):
                 yield msg
-                
+
             yield "--- DONE ---"
 
         except Exception as e:
