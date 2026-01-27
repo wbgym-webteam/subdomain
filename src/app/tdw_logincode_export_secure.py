@@ -56,11 +56,11 @@ def export_logincodes_secure_ram(names_map):
                     doc = Document()
                     doc.add_heading(f"TDW Login Codes {grade}", 0)
 
-                    table = doc.add_table(rows=1, cols=3)
+                    table = doc.add_table(rows=1, cols=4)
                     table.style = "Table Grid"
 
                     # Headers
-                    headers = ["First Name", "Last Name", "Login Code"]
+                    headers = ["Website", "First Name", "Last Name", "Login Code"]
                     for i, h in enumerate(headers):
                         cell = table.cell(0, i)
                         cell.text = h
@@ -70,13 +70,15 @@ def export_logincodes_secure_ram(names_map):
                     # Rows
                     for s in student_data:
                         row_cells = table.add_row().cells
-                        row_cells[0].text = s['first']
-                        row_cells[1].text = s['last']
-                        row_cells[2].text = s['code']
+                        row_cells[0].text = "tdw.wbgym.de"
+                        row_cells[1].text = s['first']
+                        row_cells[2].text = s['last']
+                        row_cells[3].text = s['code']
 
                         # Apply spacing
                         for cell in row_cells:
                             for p in cell.paragraphs:
+                                p.paragraph_format.space_after = Pt(14)
                                 p.paragraph_format.space_after = Pt(14)
                                 p.paragraph_format.space_before = Pt(14)
                                 p.paragraph_format.line_spacing = Pt(14)
@@ -126,11 +128,11 @@ def export_logincodes_secure_ram(names_map):
                     doc = Document()
                     doc.add_heading(f"TDW Login Codes {grade}/{grade_selector}", 0)
 
-                    table = doc.add_table(rows=1, cols=3)
+                    table = doc.add_table(rows=1, cols=4)
                     table.style = "Table Grid"
 
                     # Headers
-                    headers = ["First Name", "Last Name", "Login Code"]
+                    headers = ["Website", "First Name", "Last Name", "Login Code"]
                     for i, h in enumerate(headers):
                         cell = table.cell(0, i)
                         cell.text = h
@@ -140,9 +142,10 @@ def export_logincodes_secure_ram(names_map):
                     # Rows
                     for s in student_data:
                         row_cells = table.add_row().cells
-                        row_cells[0].text = s['first']
-                        row_cells[1].text = s['last']
-                        row_cells[2].text = s['code']
+                        row_cells[0].text = "tdw.wbgym.de"
+                        row_cells[1].text = s['first']
+                        row_cells[2].text = s['last']
+                        row_cells[3].text = s['code']
 
                         # Apply spacing
                         for cell in row_cells:

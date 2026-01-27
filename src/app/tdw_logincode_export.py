@@ -75,12 +75,12 @@ def export_logincodes():
 
                 # ----------------------------------------------------------------
                 # Add a table
-                table = doc.add_table(rows=1, cols=3)
+                table = doc.add_table(rows=1, cols=4)
 
                 # Add spacing between rows for data rows only
                 table.style = "Table Grid"
                 
-                headers = ["First Name", "Last Name", "Login Code"]
+                headers = ["Website", "First Name", "Last Name", "Login Code"]
                 for i, header in enumerate(headers):
                     cell = table.cell(0, i)
                     cell.text = header
@@ -92,9 +92,10 @@ def export_logincodes():
 
                 for row in query:
                     row_cells = table.add_row().cells
-                    row_cells[0].text = row.first_name
-                    row_cells[1].text = row.last_name
-                    row_cells[2].text = row.logincode
+                    row_cells[0].text = "tdw.wbgym.de"
+                    row_cells[1].text = row.first_name
+                    row_cells[2].text = row.last_name
+                    row_cells[3].text = row.logincode
 
                 # Formatting
                 for row in table.rows[1:]:
@@ -126,10 +127,10 @@ def export_logincodes():
                 doc = Document()
                 doc.add_heading(f"TDW Login Codes {grade}/{grade_selector}", 0)
 
-                table = doc.add_table(rows=1, cols=3)
+                table = doc.add_table(rows=1, cols=4)
                 table.style = "Table Grid"
                 
-                headers = ["First Name", "Last Name", "Login Code"]
+                headers = ["Website", "First Name", "Last Name", "Login Code"]
                 for i, header in enumerate(headers):
                     cell = table.cell(0, i)
                     cell.text = header
@@ -140,9 +141,10 @@ def export_logincodes():
 
                 for row in query:
                     row_cells = table.add_row().cells
-                    row_cells[0].text = row.first_name
-                    row_cells[1].text = row.last_name
-                    row_cells[2].text = row.logincode
+                    row_cells[0].text = "tdw.wbgym.de"
+                    row_cells[1].text = row.first_name
+                    row_cells[2].text = row.last_name
+                    row_cells[3].text = row.logincode
 
                 for row in table.rows[1:]:
                     for cell in row.cells:
