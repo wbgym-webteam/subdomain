@@ -22,7 +22,7 @@ def SelectionExporter(db, names_file):
     course_titles = {
         row[0]: row[1]
         for row in db.session.execute(
-            text("SELECT Course_id, course_title FROM course")
+            text("SELECT course_id, course_title FROM courses")
         ).fetchall()
     }
 

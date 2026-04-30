@@ -66,12 +66,14 @@ def _greedy_init(students, courses_dict, wish_map):
         wished_ids = [cid for cid, _ in wishes if cid in eligible]
 
         for session in (1, 2):
-            assigned = False
+            other_session = 2 if session == 1 else 1
+            already_assigned = assignment[sid][other_session]
             for cid in wished_ids:
+                if cid == already_assigned:
+                    continue
                 if course_load[cid][session] < courses_dict[cid]["capacity"]:
                     assignment[sid][session] = cid
                     course_load[cid][session] += 1
-                    assigned = True
                     break
             # leave None if no wish fits; _fill_unassigned handles it later
 
@@ -108,14 +110,16 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
 
             new_cid = random.choice(eligible)
             old_cid = assignment[sid][session]
+            other_session = 2 if session == 1 else 1
+            other_cid = assignment[sid][other_session]
 
-            if new_cid == old_cid:
+            if new_cid == old_cid or new_cid == other_cid:
                 temp *= COOLING_RATE
                 continue
 
             # Check capacity (account for freeing old slot)
             new_load = course_load[new_cid][session]
-            if new_cid != old_cid and new_load >= courses_dict[new_cid]["capacity"]:
+            if new_load >= courses_dict[new_cid]["capacity"]:
                 temp *= COOLING_RATE
                 continue
 
@@ -145,6 +149,15 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
 
             grade_a = student_grade[sid_a]
             grade_b = student_grade[sid_b]
+            other_session = 2 if session == 1 else 1
+
+            # Reject swap if it would give a student the same course in both sessions
+            if cid_b is not None and cid_b == assignment[sid_a][other_session]:
+                temp *= COOLING_RATE
+                continue
+            if cid_a is not None and cid_a == assignment[sid_b][other_session]:
+                temp *= COOLING_RATE
+                continue
 
             # Check grade eligibility for the swap
             if cid_b is not None:
@@ -187,9 +200,11 @@ def _fill_unassigned(assignment, course_load, students, courses_dict, wish_map):
         for session in (1, 2):
             if assignment[sid][session] is not None:
                 continue
-            # Sort eligible courses by current load ascending
+            other_session = 2 if session == 1 else 1
+            already_assigned = assignment[sid][other_session]
+            # Sort eligible courses by current load ascending, excluding course already in other session
             candidates = sorted(
-                eligible,
+                [cid for cid in eligible if cid != already_assigned],
                 key=lambda cid: course_load[cid][session]
             )
             for cid in candidates:
@@ -220,8 +235,10 @@ def _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_
                 for victim in victims:
                     grade = student_grade[victim]
                     eligible = _eligible_courses(grade, courses_dict)
+                    other_session = 2 if session == 1 else 1
+                    other_cid = assignment[victim][other_session]
                     candidates = sorted(
-                        [c for c in eligible if c != cid],
+                        [c for c in eligible if c != cid and c != other_cid],
                         key=lambda c: course_load[c][session]
                     )
                     for alt in candidates:
