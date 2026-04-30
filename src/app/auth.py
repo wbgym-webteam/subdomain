@@ -8,6 +8,9 @@ from .models import Student, StudentSMS
 auth = Blueprint("auth", __name__)
 from . import db
 
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_module_status_path = os.path.join(_current_dir, "data", "module_status.json")
+
 
 def logincode_exists(c):
     student_id = db.session.execute(
@@ -31,7 +34,7 @@ def sms_logincode_exists(c):
 def login():
     session["logged_in"] = False
     # Load module status for both POST and GET requests
-    with open("app/data/module_status.json", "r") as f:
+    with open(_module_status_path, "r") as f:
         module_status = json.load(f)
         tdw_module_status = module_status["modules"]["TdW"]
         sms_module_status = module_status["modules"]["SmS"]

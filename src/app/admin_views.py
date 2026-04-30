@@ -13,6 +13,7 @@ from flask import (
 from sqlalchemy import text
 
 import json
+import os
 
 from .tdw_filehandler import FileHandler
 from .tdw_logincode_export import export_logincodes
@@ -27,6 +28,9 @@ from . import db
 from .models import StudentSMS, Student_course, Course, SMSAssignment
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
+
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_module_status_path = os.path.join(_current_dir, "data", "module_status.json")
 
 
 # ------------------------------------------------------------------
@@ -55,7 +59,7 @@ def admin_required(f):
 @admin_views.route("/admin/tdw/panel", methods=["GET", "POST"])  # Added /admin prefix
 @admin_required
 def tdw_Panel():
-    with open("app/data/module_status.json", "r") as f:
+    with open(_module_status_path, "r") as f:
         module_status = json.load(f)
         ms = module_status["modules"]["TdW"]
     return render_template("admin/tdw_panel.html", status=ms)
@@ -78,7 +82,7 @@ def tdw_upload_file():
 @admin_views.route("/admin/tdw/module_status", methods=["POST"])
 @admin_required
 def tdw_module_status():
-    with open("app/data/module_status.json", "r") as f:
+    with open(_module_status_path, "r") as f:
         data = json.load(f)
 
     current_status = data["modules"]["TdW"]
@@ -88,7 +92,7 @@ def tdw_module_status():
     else:
         data["modules"]["TdW"] = "active"
 
-    with open("app/data/module_status.json", "w") as f:
+    with open(_module_status_path, "w") as f:
         json.dump(data, f, indent=4)
 
     return redirect("/admin/tdw/panel")  # Use absolute path
@@ -145,7 +149,7 @@ def admin_logout():
 @admin_views.route("/admin/sms/panel", methods=["GET", "POST"])  # Added /admin prefix
 @admin_required
 def sms_Panel():
-    with open("app/data/module_status.json", "r") as f:
+    with open(_module_status_path, "r") as f:
         module_status = json.load(f)
         ms = module_status["modules"]["SmS"]
     return render_template("admin/sms_panel.html", status=ms)
@@ -170,7 +174,7 @@ def sms_upload_file():
 @admin_views.route("/admin/sms/module_status", methods=["POST"])
 @admin_required
 def sms_module_status():
-    with open("app/data/module_status.json", "r") as f:
+    with open(_module_status_path, "r") as f:
         data = json.load(f)
 
     current_status = data["modules"]["SmS"]
@@ -180,7 +184,7 @@ def sms_module_status():
     else:
         data["modules"]["SmS"] = "active"
 
-    with open("app/data/module_status.json", "w") as f:
+    with open(_module_status_path, "w") as f:
         json.dump(data, f, indent=4)
 
     return redirect("/admin/sms/panel")  # Use absolute path

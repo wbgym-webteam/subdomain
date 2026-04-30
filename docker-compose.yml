@@ -7,6 +7,7 @@ services:
       - .env
     volumes:
       - db_data:/app/src/instance
+      - ./src/app/data:/app/src/app/data
 
 volumes:
   db_data:
