@@ -6,14 +6,13 @@ from flask import (
     url_for,
     session,
     send_from_directory,
-    send_file
+    send_file,
+    flash
 )
 
 from sqlalchemy import text
 
 import json
-import os
-import zipfile
 
 from .tdw_filehandler import FileHandler
 from .tdw_logincode_export import export_logincodes
@@ -22,8 +21,10 @@ from .tdw_selection_export import SelectionExporter
 from .sms_filehandler import FileHandler as FileHandlerSMS
 from .sms_logincode_export import export_logincodes as export_logincodesSMS
 from .sms_selection_export import SelectionExporter as SelectionExporterSMS
+from .sms_selection_engine import run_engine as run_sms_engine
+from .sms_assignment_export import AssignmentExporter as AssignmentExporterSMS
 from . import db
-from .models import StudentSMS, Student_course, Course  
+from .models import StudentSMS, Student_course, Course, SMSAssignment
 
 admin_views = Blueprint("admin_views", __name__, static_folder="static")
 
@@ -154,25 +155,16 @@ def sms_Panel():
 @admin_required
 def sms_upload_file():
     if "file" not in request.files:
-        return redirect("/admin/sms/panel")  # Use absolute path
+        return redirect("/admin/sms/panel")
     file = request.files["file"]
     if file.filename == "":
-        return redirect("/admin/sms/panel")  # Use absolute path
-    
-    # Check if this is a names file upload
-    file_type = request.form.get("file_type", "data")
-    
-    if file_type == "names":
-        # Save as names file
-        file.save("app/data/sms/uploads/names_workbook.xlsx")
-        print("Names file uploaded successfully")
-    else:
-        # Save as regular data file
-        file.save("app/data/sms/uploads/workbook.xlsx")
-        FileHandlerSMS()
-        print("Data file uploaded and processed successfully")
+        return redirect("/admin/sms/panel")
 
-    return redirect("/admin/sms/panel")  # Use absolute path
+    file.save("app/data/sms/uploads/workbook.xlsx")
+    FileHandlerSMS()
+    print("Data file uploaded and processed successfully")
+
+    return redirect("/admin/sms/panel")
 
 
 @admin_views.route("/admin/sms/module_status", methods=["POST"])
@@ -197,16 +189,16 @@ def sms_module_status():
 @admin_views.route("/admin/sms/export_logincodes", methods=["POST"])
 @admin_required
 def sms_export_logincodes_route():
-    if request.method == "POST":
-        export_logincodesSMS()
-        return redirect("/admin/sms/panel")  # Use absolute path
-
-
-@admin_views.route("/admin/sms/download_logincodes", methods=["GET"])  # Added /admin prefix
-@admin_required
-def sms_download_logincodes():  # Ensure this function is used for the SMS route
-    download_dir = "./data/sms/downloads"
-    return send_from_directory(download_dir, "SmS_Logincodes.zip", as_attachment=True)
+    if "names_file" not in request.files or request.files["names_file"].filename == "":
+        return redirect("/admin/sms/panel")
+    names_file = request.files["names_file"]
+    zip_buffer = export_logincodesSMS(names_file)
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name="SmS_Logincodes.zip",
+        mimetype="application/zip"
+    )
 
     
         
@@ -215,54 +207,45 @@ def sms_download_logincodes():  # Ensure this function is used for the SMS route
 @admin_views.route("/admin/sms/export_selections", methods=["POST"])
 @admin_required
 def sms_export_selections():
-    try:
-        print("Starting SMS selection export...")
-        # Use the SelectionExporter with relative path (it will create the path automatically)
-        result_file_path = SelectionExporterSMS(db)
-        
-        if result_file_path and os.path.exists(result_file_path):
-            print(f"Export successful, file created at: {result_file_path}")
-            # Redirect to panel instead of download to avoid immediate download
-            return redirect("/admin/sms/panel")  # Use absolute path
-        else:
-            print("Export failed - no file created")
-            return redirect("/admin/sms/panel")  # Use absolute path
-    except Exception as e:
-        print(f"Error exporting selections: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/sms/panel")  # Use absolute path
+    if "names_file" not in request.files or request.files["names_file"].filename == "":
+        return redirect("/admin/sms/panel")
+    names_file = request.files["names_file"]
+    buffer = SelectionExporterSMS(db, names_file)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="Kurs_Wuensche.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 
-@admin_views.route("/admin/sms/download_selections", methods=["GET"])
+@admin_views.route("/admin/sms/run_engine", methods=["POST"])
 @admin_required
-def sms_download_selections():
+def sms_run_engine():
     try:
-        # Use relative path from the current file location
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        download_dir = os.path.join(current_dir, 'data', 'sms', 'downloads')
-        file_name = "Kurs_Wuensche.xlsx"
-        file_path = os.path.join(download_dir, file_name)
-        
-        print(f"Looking for file at: {file_path}")
-        print(f"File exists: {os.path.exists(file_path)}")
-        
-        if not os.path.exists(file_path):
-            print("File not found, creating export first...")
-            # Try to create the file first
-            result_file_path = SelectionExporterSMS(db)
-            if not result_file_path or not os.path.exists(result_file_path):
-                print("Could not create export file")
-                return redirect("/admin/sms/panel")  # Use absolute path
-        
-        return send_from_directory(
-            download_dir,
-            file_name,
-            as_attachment=True,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        stats = run_sms_engine(db)
+        flash(
+            f"Engine completed. Session 1: {stats['assigned_session1']}, "
+            f"Session 2: {stats['assigned_session2']}, "
+            f"Unassigned slots: {stats['unassigned']}, "
+            f"Happiness score: {stats['total_happiness']}.",
+            "success"
         )
     except Exception as e:
-        print(f"Error downloading selections: {e}")
-        import traceback
-        traceback.print_exc()
-        return redirect("/admin/sms/panel")  # Use absolute path
+        flash(f"Engine error: {e}", "error")
+    return redirect("/admin/sms/panel")
+
+
+@admin_views.route("/admin/sms/export_assignments", methods=["POST"])
+@admin_required
+def sms_export_assignments():
+    if "names_file" not in request.files or request.files["names_file"].filename == "":
+        return redirect("/admin/sms/panel")
+    names_file = request.files["names_file"]
+    buffer = AssignmentExporterSMS(db, names_file)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="Kurs_Zuteilungen.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )

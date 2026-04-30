@@ -1,108 +1,60 @@
 from sqlalchemy.sql import text
-from sqlalchemy.exc import IntegrityError
 from openpyxl import load_workbook, Workbook
-import os
+import io
 
 
-def get_selections_from_db(db):
-    try:
-        # Retrieve the data from the student_course table
-        return db.session.execute(
-            text(
-                "SELECT Student_id AS student_id, Course_id AS course_id, weight AS weight FROM student_course"
-            )
-        ).mappings().all()  # Use .mappings() to return rows as dictionaries
-    except IntegrityError:
-        db.session.rollback()
-        print("Error fetching selections from database.")
-        return []
+def load_names_map(file_storage):
+    workbook = load_workbook(file_storage, keep_vba=False, data_only=True)
+    sheet = workbook.worksheets[0]
+    names_map = {}
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        if row[0] is not None:
+            names_map[row[0]] = {
+                'first': row[2] or "",
+                'last': row[1] or "",
+            }
+    return names_map
 
 
-def get_students_from_workbook(file_path=None):
-    try:
-        # Use relative path if no file_path is provided
-        if file_path is None:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            file_path = os.path.join(current_dir, 'data', 'sms', 'students.xlsx')
-        
-        # Check if file exists before trying to load it
-        if not os.path.exists(file_path):
-            print(f"Student workbook not found at: {file_path}")
-            return {}
-        
-        workbook = load_workbook(file_path)
-        sheet = workbook.worksheets[0]  # Assuming student data is in the first sheet
-        students = {}
-        for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header row
-            student_id = row[0]
-            if student_id is not None:
-                students[student_id] = {
-                    "first_name": row[2],
-                    "last_name": row[1],
-                    "grade": row[4],
-                }
-        return students
-    except Exception as e:
-        print(f"Error loading workbook: {e}")
-        return {}
+def SelectionExporter(db, names_file):
+    names_map = load_names_map(names_file)
 
+    course_titles = {
+        row[0]: row[1]
+        for row in db.session.execute(
+            text("SELECT Course_id, course_title FROM course")
+        ).fetchall()
+    }
 
-def SelectionExporter(db, file_path=None):
-    try:
-        # Use relative path if no file_path is provided
-        if file_path is None:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            file_path = os.path.join(current_dir, 'data', 'sms', 'downloads', 'Kurs_Wuensche.xlsx')
-        
-        print(f"Attempting to export selections to: {file_path}")
-        
-        # Ensure the directory exists
-        directory = os.path.dirname(file_path)
-        if not os.path.exists(directory):
-            os.makedirs(directory, exist_ok=True)
-            print(f"Created directory: {directory}")
+    selections = db.session.execute(
+        text(
+            "SELECT Student_id AS student_id, Course_id AS course_id, weight "
+            "FROM student_course ORDER BY Student_id ASC, weight ASC"
+        )
+    ).mappings().all()
 
-        # Check if file exists and delete it
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            print(f"Deleted existing file: {file_path}")
+    # Group courses per student, sorted by weight ascending
+    student_courses = {}
+    for row in selections:
+        sid = row["student_id"]
+        student_courses.setdefault(sid, []).append((row["weight"], row["course_id"]))
 
-        # Fetch selections from the database (ordered by student_id, then by weight)
-        selections = db.session.execute(
-            text("SELECT Student_id AS user_id, Course_id AS course_id, weight FROM student_course ORDER BY Student_id ASC, weight ASC")
-        ).mappings().all()
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "SMS_Selections"
 
-        print(f"Selections fetched: {len(selections)}")
+    sheet.append(["Last Name", "First Name", "Wish 1", "Wish 2", "Wish 3", "Wish 4", "Wish 5", "Wish 6"])
 
-        # Create a new workbook (always create fresh)
-        workbook = Workbook()
-        sheet = workbook.active
-        sheet.title = "SMS_Selections"
+    for student_id, courses in student_courses.items():
+        names = names_map.get(student_id, {'first': '', 'last': ''})
+        sorted_courses = sorted(courses, key=lambda x: x[0])
+        wish_titles = [course_titles.get(cid, str(cid)) for _, cid in sorted_courses]
+        # Pad to 6 columns
+        while len(wish_titles) < 6:
+            wish_titles.append("")
+        sheet.append([names['last'], names['first']] + wish_titles[:6])
 
-        # Add headers
-        headers = ["student_id", "course_id", "weight"]
-        sheet.append(headers)
-
-        # Add selections (students with wishes)
-        if selections:
-            for selection in selections:
-                print(f"Processing selection: {selection}")
-                if "user_id" in selection and "course_id" in selection and "weight" in selection:
-                    sheet.append([selection["user_id"], selection["course_id"], selection["weight"]])
-                else:
-                    print(f"Skipping invalid selection: {selection}")
-        else:
-            print("No selections found - creating empty file with headers only")
-
-        # Save the workbook
-        workbook.save(file_path)
-        print(f"SUCCESS: Selections exported to {file_path}")
-        print(f"File exists after save: {os.path.exists(file_path)}")
-        
-        return file_path  # Return the file path for download
-        
-    except Exception as e:
-        print(f"ERROR in SelectionExporter: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+    return buffer

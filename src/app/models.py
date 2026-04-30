@@ -87,3 +87,20 @@ class Course(db.Model):
     course_maximum_people = db.Column(db.Integer, nullable=False)
 
 
+class SMSAssignment(db.Model):
+    __tablename__ = "sms_assignment"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    student_id = db.Column(
+        db.Integer,
+        db.ForeignKey("students_sms.Student_id", name="fk_sms_assignment_student_id"),
+        nullable=False,
+    )
+    course_id = db.Column(
+        db.Integer,
+        db.ForeignKey("courses.course_id", name="fk_sms_assignment_course_id"),
+        nullable=False,
+    )
+    session = db.Column(db.Integer, nullable=False)  # 1 or 2
+
+

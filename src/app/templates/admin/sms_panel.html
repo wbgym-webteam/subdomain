@@ -27,33 +27,37 @@ SmS - Admin Panel
         <button type="submit">Upload Initial Data</button>
     </form>
 
-    <!-- Upload Names File -->
-    <form action="{{ url_for('admin_views.sms_upload_file') }}" method="post" enctype="multipart/form-data">
-        <label for="names_file">Upload Names File (for Login Code Export):</label>
-        <input type="file" name="file" id="names_file" accept=".xlsx, .xls" required>
-        <input type="hidden" name="file_type" value="names">
-        <button type="submit">Upload Names File</button>
-    </form>
-
     <!-- Login Code Export -->
-    <form action="{{ url_for('admin_views.sms_export_logincodes_route') }}" method="post">
-        <label for="export_login_codes">Export Login Codes:</label>
-        <button type="submit">Export</button>
+    <form action="{{ url_for('admin_views.sms_export_logincodes_route') }}" method="post" enctype="multipart/form-data">
+        <label for="names_file">Export Login Codes (upload names file):</label>
+        <input type="file" name="names_file" id="names_file" accept=".xlsx, .xls" required>
+        <button type="submit">Export &amp; Download Logincodes</button>
     </form>
 
-    <a href="{{ url_for('admin_views.sms_download_logincodes') }}" download>
-        <button>Download Logincodes</button>
-    </a>
+    <!-- Run Selection Engine -->
+    <form action="{{ url_for('admin_views.sms_run_engine') }}" method="post">
+        <label>Run Course Selection Engine:</label>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="flash flash-{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+        <button type="submit">Run Selection Engine</button>
+    </form>
 
     <!-- Selection Export -->
-    <form action="{{ url_for('admin_views.sms_export_selections') }}" method="post">
-        <label for="export_login_codes">Export Selections:</label>
-        <button type="submit">Export</button>
+    <form action="{{ url_for('admin_views.sms_export_selections') }}" method="post" enctype="multipart/form-data">
+        <label for="selections_names_file">Export Wish Selections (upload names file):</label>
+        <input type="file" name="names_file" id="selections_names_file" accept=".xlsx, .xls" required>
+        <button type="submit">Export &amp; Download Selections</button>
     </form>
 
-    <a href="{{ url_for('admin_views.sms_download_selections') }}" download>
-        <button>Download Selections</button>
-    </a>
+    <!-- Assignment Export -->
+    <form action="{{ url_for('admin_views.sms_export_assignments') }}" method="post" enctype="multipart/form-data">
+        <label for="assignments_names_file">Export Course Assignments (upload names file):</label>
+        <input type="file" name="names_file" id="assignments_names_file" accept=".xlsx, .xls" required>
+        <button type="submit">Export &amp; Download Assignments</button>
+    </form>
 
     <!-- Activate / Deactivate the module -->
     <form action="{{ url_for('admin_views.sms_module_status') }}" method="post">

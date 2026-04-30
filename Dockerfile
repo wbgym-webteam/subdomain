@@ -9,4 +9,4 @@ COPY src/ ./src/
 
 EXPOSE 8000
 WORKDIR /app/src
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "main:app"]
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "--timeout", "300", "--workers", "2", "main:app"]
