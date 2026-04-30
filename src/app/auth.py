@@ -87,25 +87,18 @@ def adminLogin():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        env_admin_username = os.getenv("ADMIN_USERNAME")
-        env_admin_password = os.getenv("ADMIN_PASSWORD")
-        
-        # Debug prints - remove these in production
-        print(f"Form username: '{username}'")
-        print(f"Form password: '{password}'")
-        print(f"Env username: '{env_admin_username}'")
-        print(f"Env password: '{env_admin_password}'")
-        print(f"Username match: {username == env_admin_username}")
-        print(f"Password match: {password == env_admin_password}")
+        env_admin_usernames = os.getenv("ADMIN_USERNAMES", "")
+        env_admin_passwords = os.getenv("ADMIN_PASSWORDS", "")
 
-        if username == env_admin_username and password == env_admin_password:
+        admin_usernames = [u.strip() for u in env_admin_usernames.split(",")]
+        admin_passwords = [p.strip() for p in env_admin_passwords.split(",")]
+
+        if username in admin_usernames and password in admin_passwords:
+            session.permanent = True
             session["admin_logged_in"] = True
-            session.permanent = True  # Make session permanent
-            # Check if there's a next parameter for redirect
             next_page = request.args.get('next')
             if next_page and next_page.startswith('/admin/'):
                 return redirect(next_page)
-            # Default redirect to SMS panel since that's what's being accessed
             return redirect("/admin/sms/panel")
         else:
             return render_template("admin/admin_login.html", error="Invalid credentials")

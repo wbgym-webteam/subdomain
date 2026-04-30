@@ -1,8 +1,12 @@
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-ADD * /
+WORKDIR /app
+
+COPY pyproject.toml uv.lock* ./
+RUN uv sync --no-dev
+
+COPY src/ ./src/
 
 EXPOSE 8000
-WORKDIR /
-RUN uv sync --frozen
-CMD uv run gunicorn app:app
+WORKDIR /app/src
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "main:app"]
