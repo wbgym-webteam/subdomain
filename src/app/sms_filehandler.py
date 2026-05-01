@@ -127,10 +127,12 @@ def FileHandler():
 
         # Clear the database more safely
         try:
-            db.session.execute(text("DELETE FROM students_sms"))
+            db.session.execute(text("DELETE FROM sms_assignment"))
             db.session.execute(text("DELETE FROM student_course"))
+            db.session.execute(text("DELETE FROM students_sms"))
             db.session.execute(text("DELETE FROM courses"))
             db.session.commit()
+            db.session.expire_all()
         except Exception as e:
             print(f"Error clearing database: {e}")
             db.session.rollback()

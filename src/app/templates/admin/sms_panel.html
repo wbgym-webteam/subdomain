@@ -20,12 +20,77 @@ SmS - Admin Panel
 
 <main>
     <!-- Upload Initial Data -->
-    <form action="{{ url_for('admin_views.sms_upload_file') }}" method="post" enctype="multipart/form-data">
+    <form id="uploadInitialDataForm" action="{{ url_for('admin_views.sms_upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="data_file">Upload Initial Data File (Classes, IDs, etc.):</label>
         <input type="file" name="file" id="data_file" accept=".xlsx, .xls" required>
         <input type="hidden" name="file_type" value="data">
-        <button type="submit">Upload Initial Data</button>
+        <button type="button" onclick="openResetModal()">Upload Initial Data</button>
     </form>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="resetModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:white; border-radius:8px; padding:30px; max-width:420px; width:90%; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+            <h2 style="margin-top:0; color:#c0392b; font-size:18px;">Warning: This will reset all data</h2>
+            <p style="color:#555; font-size:14px; line-height:1.5;">
+                Uploading a new initial data file will <strong>permanently delete</strong> all existing student records, course enrollments, and assignments. This cannot be undone.
+            </p>
+            <p style="color:#555; font-size:14px;">Type <strong>RESET</strong> below to confirm:</p>
+            <input
+                type="text"
+                id="resetConfirmInput"
+                placeholder="Type RESET here"
+                oninput="checkResetInput()"
+                style="width:100%; padding:10px; border:2px solid #ddd; border-radius:4px; font-size:14px; box-sizing:border-box; margin-bottom:15px;"
+            >
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closeResetModal()" style="background:#aaa;">Cancel</button>
+                <button type="button" id="confirmResetBtn" onclick="submitUpload()" disabled style="background:#c0392b; opacity:0.4; cursor:not-allowed;">Yes, reset and upload</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openResetModal() {
+            const fileInput = document.getElementById('data_file');
+            if (!fileInput.value) {
+                alert('Please select a file first.');
+                return;
+            }
+            document.getElementById('resetConfirmInput').value = '';
+            document.getElementById('confirmResetBtn').disabled = true;
+            document.getElementById('confirmResetBtn').style.opacity = '0.4';
+            document.getElementById('confirmResetBtn').style.cursor = 'not-allowed';
+            document.getElementById('resetModal').style.display = 'flex';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        function checkResetInput() {
+            const val = document.getElementById('resetConfirmInput').value;
+            const btn = document.getElementById('confirmResetBtn');
+            if (val === 'RESET') {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.4';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+
+        function submitUpload() {
+            document.getElementById('resetModal').style.display = 'none';
+            document.getElementById('uploadInitialDataForm').submit();
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('resetModal').addEventListener('click', function(e) {
+            if (e.target === this) closeResetModal();
+        });
+    </script>
 
     <!-- Login Code Export -->
     <form action="{{ url_for('admin_views.sms_export_logincodes_route') }}" method="post" enctype="multipart/form-data">

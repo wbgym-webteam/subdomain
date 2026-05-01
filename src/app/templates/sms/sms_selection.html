@@ -11,6 +11,9 @@
 
     <!-- Course selection form matching login structure -->
     <div class="login-container sms-container">
+        <div class="top-bar">
+            <a href="#" onclick="handleLogout(); return false;" class="logout-btn">Abmelden</a>
+        </div>
         <div class="header-section">
             <h1>SMS Kurswahl</h1>
             <p class="instruction-text">Bitte wählen Sie Ihre Kurswünsche aus (1. Wunsch = höchste Priorität, max. 6 Wünsche)</p>
@@ -85,8 +88,8 @@
                 {% endif %}
             </div>
             
-            <input type="submit" value="Auswahl bestätigen" class="submit" id="submitBtn">
-            
+            <input type="submit" value="Auswahl speichern" class="submit" id="submitBtn" disabled>
+
             <!-- Success message -->
             <div id="success-message" class="success-message {% if not request.args.get('success') %}success-hidden{% endif %}">
                 <span class="success-icon">✓</span>
@@ -114,14 +117,6 @@
             </div>
         </div>
 
-        <div class="logout-container">
-            <a href="#" onclick="handleLogout(); return false;" class="logout-btn">Abmelden</a>
-        </div>
-    </div>
-
-    <!-- Admin panel similar to login -->
-    <div class="admin-panel">
-        <a href="/admin_login">Admin</a>
     </div>
 
     <script>
@@ -145,24 +140,24 @@
             const selectionCount = document.getElementById('selection-count');
             const limitMessage = document.getElementById('limit-message');
             const submitBtn = document.getElementById('submitBtn');
-            
+
             // Reset all wish slots
             for (let i = 1; i <= 6; i++) {
                 const slot = document.getElementById(`wish-slot-${i}`);
                 slot.innerHTML = `${i}. Wunsch: <span class="empty-text">Noch nicht ausgewählt</span>`;
                 slot.className = 'wish-slot empty';
             }
-            
+
             // Collect all selected wishes
             const wishes = [];
             const usedPriorities = new Set();
             let hasConflict = false;
-            
+
             wishSelects.forEach(select => {
                 const courseId = select.name.replace('wish_', '');
                 const priority = select.value;
                 const courseName = select.closest('.course-card').querySelector('.course-title').textContent;
-                
+
                 if (priority) {
                     if (usedPriorities.has(priority)) {
                         hasConflict = true;
@@ -175,28 +170,38 @@
                     });
                 }
             });
-            
+
             // Update selection count
             selectionCount.textContent = wishes.length;
-            
+
             // Fill the wish slots with selected courses
             wishes.forEach(wish => {
                 const slot = document.getElementById(`wish-slot-${wish.priority}`);
                 slot.innerHTML = `${wish.priority}. Wunsch: <strong>${wish.courseName}</strong>`;
                 slot.className = 'wish-slot filled';
             });
-            
+
+            const allSix = wishes.length === 6 && !hasConflict;
+
             // Show/hide error message and enable/disable submit
             if (hasConflict) {
+                limitMessage.querySelector('#limit-text').textContent = 'Bitte beachten Sie: Jede Priorität kann nur einmal vergeben werden!';
                 limitMessage.style.display = 'block';
                 submitBtn.disabled = true;
+                submitBtn.classList.remove('submit-ready');
             } else if (wishes.length > 6) {
                 limitMessage.querySelector('#limit-text').textContent = 'Maximal 6 Wünsche erlaubt!';
                 limitMessage.style.display = 'block';
                 submitBtn.disabled = true;
-            } else {
+                submitBtn.classList.remove('submit-ready');
+            } else if (allSix) {
                 limitMessage.style.display = 'none';
                 submitBtn.disabled = false;
+                submitBtn.classList.add('submit-ready');
+            } else {
+                limitMessage.style.display = 'none';
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('submit-ready');
             }
         }
         
@@ -310,20 +315,10 @@
         margin-top: 0;
     }
 
-    .admin-panel {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background-color: #7b598d;
-        padding: 10px;
-        border-radius: 5px;
-        z-index: 600;
-    }
-
-    .admin-panel a {
-        text-decoration: none;
-        color: #4c0275;
-        font-size: 14px;
+    .top-bar {
+        display: flex;
+        align-items: center;
+        padding: 10px 0 5px 0;
     }
 
     .header-section {
@@ -590,9 +585,9 @@
     }
 
     .wish-slot.filled {
-        background-color: #e8f5e8;
-        border-color: #28a745;
-        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+        background-color: #f3eaf7;
+        border-color: #560d4f;
+        box-shadow: 0 2px 4px rgba(86, 13, 79, 0.15);
     }
 
     .empty-text {
@@ -600,9 +595,20 @@
         font-style: italic;
     }
 
-    .logout-container {
-        text-align: center;
-        margin-top: 20px;
+    #submitBtn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    #submitBtn.submit-ready {
+        animation: pulse-btn 1.2s ease-in-out infinite;
+        background-color: #560d4f;
+        border-color: #3a0836;
+    }
+
+    @keyframes pulse-btn {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(86, 13, 79, 0.5); }
+        50% { box-shadow: 0 0 0 8px rgba(86, 13, 79, 0); }
     }
 
     .logout-btn {
@@ -625,10 +631,6 @@
         .sms-container {
             margin-top: 0;
             padding-top: 0;
-        }
-
-        .admin-panel {
-            top: 5px;
         }
 
         .header-section {
@@ -675,12 +677,6 @@
         .sms-container {
             margin-top: 0;
             padding-top: 0;
-        }
-
-        .admin-panel {
-            top: 5px;
-            padding: 5px 8px;
-            font-size: 12px;
         }
 
         .header-section {

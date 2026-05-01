@@ -259,6 +259,7 @@ def _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_
 
 def _save_to_db(assignment, db_session):
     db_session.execute(text("DELETE FROM sms_assignment"))
+    db_session.expire_all()
 
     rows = []
     for sid, sessions in assignment.items():
