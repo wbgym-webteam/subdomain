@@ -12,6 +12,7 @@ from flask import (
 
 from sqlalchemy import text
 
+import io
 import json
 import os
 
@@ -164,9 +165,21 @@ def sms_upload_file():
     if file.filename == "":
         return redirect("/admin/sms/panel")
 
-    file.save("app/data/sms/uploads/workbook.xlsx")
-    FileHandlerSMS()
-    print("Data file uploaded and processed successfully")
+    # Privacy: never persist student data to disk. Read the upload into a
+    # BytesIO and process it entirely in RAM. The buffer is dropped when this
+    # function returns.
+    buffer = io.BytesIO(file.read())
+    print(f"Received SMS upload in memory: {buffer.getbuffer().nbytes} bytes")
+
+    try:
+        FileHandlerSMS(buffer)
+        print("Data file uploaded and processed successfully")
+        flash("Daten erfolgreich hochgeladen und verarbeitet.", "success")
+    except Exception as e:
+        print(f"FileHandlerSMS failed: {e}")
+        flash(f"Upload fehlgeschlagen: {e}", "error")
+    finally:
+        buffer.close()
 
     return redirect("/admin/sms/panel")
 

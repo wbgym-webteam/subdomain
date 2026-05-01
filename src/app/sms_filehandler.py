@@ -1,5 +1,7 @@
 # Imports
 
+import os
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -16,6 +18,9 @@ from .models import StudentSMS, Student_course, Course  # Removed Hosts
 # CONSTANTS
 CHARACTERS = s.ascii_letters + s.digits
 
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+GERMAN_WORDS_PATH = os.path.join(_APP_DIR, "german_words.txt")
+
 from . import db
 
 
@@ -26,11 +31,11 @@ from . import db
 # Load German words from a separate file
 def load_german_words():
     try:
-        with open("app/german_words.txt", "r", encoding="utf-8") as file:
+        with open(GERMAN_WORDS_PATH, "r", encoding="utf-8") as file:
             words = [line.strip() for line in file if line.strip()]
             return words
     except FileNotFoundError:
-        print("Error: german_words.txt not found!")
+        print(f"Error: german_words.txt not found at {GERMAN_WORDS_PATH}!")
         return ["defaultword"]  # Fallback in case file is missing
     
 
@@ -120,9 +125,25 @@ def generate_login_code():
 # ----------------------------------------------------------------------------
 # This is the place where the magic happens ✨✨✨
 
-def FileHandler():
+def FileHandler(file_source):
+    """Process an uploaded SMS workbook entirely in memory.
+
+    `file_source` is anything openpyxl accepts: a Werkzeug FileStorage,
+    a BytesIO, or any binary file-like object. The workbook is never
+    written to disk — required for privacy of student data.
+    """
+    # Always start from a clean session state. When running under gunicorn,
+    # the same worker process handles many requests in a row and the
+    # SQLAlchemy session may carry stale objects from a prior upload — that
+    # is what was preventing a second upload from replacing the data on
+    # Docker (Flask's dev server creates a fresh request scope each time, so
+    # the bug only showed up under gunicorn).
+    db.session.rollback()
+    db.session.expire_all()
+    db.session.close()
+
+    workbook = load_workbook(file_source, read_only=True, data_only=True)
     try:
-        workbook = load_workbook(f"app/data/sms/uploads/workbook.xlsx")
         print("Loaded File...")
 
         # Clear the database more safely
@@ -136,6 +157,7 @@ def FileHandler():
         except Exception as e:
             print(f"Error clearing database: {e}")
             db.session.rollback()
+            raise
 
         # Get the Students
         sheet1 = workbook.worksheets[0]
@@ -201,19 +223,26 @@ def FileHandler():
                 continue
 
         print("Finished processing courses")
-        
+
     except Exception as e:
         print(f"Critical error in FileHandler: {e}")
         db.session.rollback()
         raise
+    finally:
+        try:
+            workbook.close()
+        except Exception:
+            pass
 
 
-def FileHandlerNames():
-    """Handle the names file upload separately"""
+def FileHandlerNames(file_source):
+    """Validate an uploaded names file in memory. Never written to disk."""
     try:
-        workbook = load_workbook(f"app/data/sms/uploads/names_workbook.xlsx")
-        print("Names file uploaded successfully...")
-        # You can add validation or processing here if needed
+        workbook = load_workbook(file_source, read_only=True, data_only=True)
+        try:
+            print("Names file uploaded successfully...")
+        finally:
+            workbook.close()
         return True
     except Exception as e:
         print(f"Error processing names file: {e}")

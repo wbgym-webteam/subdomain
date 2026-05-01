@@ -14,6 +14,13 @@
         <div class="top-bar">
             <a href="#" onclick="handleLogout(); return false;" class="logout-btn">Abmelden</a>
         </div>
+
+        <!-- Success message -->
+        <div id="success-message" class="success-message {% if not request.args.get('success') %}success-hidden{% endif %}">
+            <span class="success-icon">✓</span>
+            <span class="success-text">Ihre Kurswahl wurde erfolgreich gespeichert!</span>
+        </div>
+
         <div class="header-section">
             <h1>SMS Kurswahl</h1>
             <p class="instruction-text">Bitte wählen Sie Ihre Kurswünsche aus (1. Wunsch = höchste Priorität, max. 6 Wünsche)</p>
@@ -89,12 +96,6 @@
             </div>
             
             <input type="submit" value="Auswahl speichern" class="submit" id="submitBtn" disabled>
-
-            <!-- Success message -->
-            <div id="success-message" class="success-message {% if not request.args.get('success') %}success-hidden{% endif %}">
-                <span class="success-icon">✓</span>
-                <span class="success-text">Ihre Kurswahl wurde erfolgreich gespeichert!</span>
-            </div>
         </form>
 
         <!-- Error message for conflicts -->
@@ -318,7 +319,8 @@
     .top-bar {
         display: flex;
         align-items: center;
-        padding: 10px 0 5px 0;
+        padding: 10px 0 20px 0;
+        margin-bottom: 15px;
     }
 
     .header-section {

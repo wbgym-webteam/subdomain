@@ -2,12 +2,10 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "0.0.0.0:8000:8000"
+      - "[::1]:8000:8000"
     env_file:
       - .env
     volumes:
-      - db_data:/app/src/instance
+      - ./src/instance:/app/src/instance
       - ./src/app/data:/app/src/app/data
-
-volumes:
-  db_data:
