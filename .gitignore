@@ -17,5 +17,5 @@ instance
 migrations
 
 uv.lock
-
+settings.local.json
 tmpclaude-*-cwd
