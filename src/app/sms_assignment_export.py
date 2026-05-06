@@ -39,7 +39,7 @@ def AssignmentExporter(db, names_file):
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Kurs_Zuteilungen"
-    sheet.append(["Last Name", "First Name", "Grade", "Grade Selector",
+    sheet.append(["Student ID", "Last Name", "First Name", "Grade", "Grade Selector",
                   "Session 1 Course", "Session 2 Course"])
 
     for s in students:
@@ -48,7 +48,7 @@ def AssignmentExporter(db, names_file):
         c1 = course_titles.get(assignments.get((sid, 1)), "")
         c2 = course_titles.get(assignments.get((sid, 2)), "")
         sheet.append([
-            names["last"], names["first"],
+            sid, names["last"], names["first"],
             s["grade"], s["grade_selector"],
             c1, c2
         ])

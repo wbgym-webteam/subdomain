@@ -285,18 +285,25 @@ def run_engine(db):
     assignment, course_load = _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_map)
     _save_to_db(assignment, db.session)
 
-    assigned_s1 = sum(1 for s in assignment.values() if s[1] is not None)
-    assigned_s2 = sum(1 for s in assignment.values() if s[2] is not None)
-    unassigned = sum(
-        (1 if s[1] is None else 0) + (1 if s[2] is None else 0)
-        for s in assignment.values()
-    )
-    total_happiness = _total_happiness(assignment, wish_map)
+    total_students = len(students)
+    satisfaction_stats = {"1st Choice": 0, "2nd-3rd": 0, "Wished": 0, "Not Wished": 0, "Unassigned": 0}
+
+    for sid, sessions in assignment.items():
+        for session, cid in sessions.items():
+            if cid is None:
+                satisfaction_stats["Unassigned"] += 1
+                continue
+            ranking = wish_map.get(sid, {}).get(cid)
+            if ranking == 1:
+                satisfaction_stats["1st Choice"] += 1
+            elif ranking in (2, 3):
+                satisfaction_stats["2nd-3rd"] += 1
+            elif ranking is not None:
+                satisfaction_stats["Wished"] += 1
+            else:
+                satisfaction_stats["Not Wished"] += 1
 
     return {
-        "total_students": len(students),
-        "assigned_session1": assigned_s1,
-        "assigned_session2": assigned_s2,
-        "unassigned": unassigned,
-        "total_happiness": total_happiness,
+        "total_students": total_students,
+        "satisfaction": satisfaction_stats,
     }

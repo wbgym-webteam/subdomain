@@ -241,13 +241,12 @@ def sms_export_selections():
 def sms_run_engine():
     try:
         stats = run_sms_engine(db)
-        flash(
-            f"Engine completed. Session 1: {stats['assigned_session1']}, "
-            f"Session 2: {stats['assigned_session2']}, "
-            f"Unassigned slots: {stats['unassigned']}, "
-            f"Happiness score: {stats['total_happiness']}.",
-            "success"
-        )
+        total = stats["total_students"]
+        parts = [f"Total Students: {total}"]
+        for key, count in stats["satisfaction"].items():
+            percent = (count / total * 100) if total > 0 else 0
+            parts.append(f"{key}: {count} ({percent:.1f}%)")
+        flash("Engine completed. " + " | ".join(parts), "success")
     except Exception as e:
         flash(f"Engine error: {e}", "error")
     return redirect("/admin/sms/panel")

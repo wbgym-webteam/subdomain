@@ -43,7 +43,7 @@ def SelectionExporter(db, names_file):
     sheet = workbook.active
     sheet.title = "SMS_Selections"
 
-    sheet.append(["Last Name", "First Name", "Wish 1", "Wish 2", "Wish 3", "Wish 4", "Wish 5", "Wish 6"])
+    sheet.append(["Student ID", "Last Name", "First Name", "Wish 1", "Wish 2", "Wish 3", "Wish 4", "Wish 5", "Wish 6"])
 
     for student_id, courses in student_courses.items():
         names = names_map.get(student_id, {'first': '', 'last': ''})
@@ -52,7 +52,7 @@ def SelectionExporter(db, names_file):
         # Pad to 6 columns
         while len(wish_titles) < 6:
             wish_titles.append("")
-        sheet.append([names['last'], names['first']] + wish_titles[:6])
+        sheet.append([student_id, names['last'], names['first']] + wish_titles[:6])
 
     buffer = io.BytesIO()
     workbook.save(buffer)
