@@ -107,8 +107,11 @@ def selection():
 @tdw.route("/submit_selection", methods=["POST"])
 def submit_selection():
     if request.method == "POST":
-        # first thing it needs to work is the student_id and the chosen presentations by the students
-        student_id = str(session["tdw_student_id"])
+        # Check if the user is logged in and has a valid session
+        student_id = session.get("tdw_student_id")
+        if student_id is None:
+            return redirect("/login")
+        student_id = str(student_id)
         # it gets the chosen presentations from the form in the html template.
         chosen_presentations = request.form.getlist("options")
 

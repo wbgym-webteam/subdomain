@@ -27,7 +27,7 @@ def export_logincodes_secure_ram(names_map):
 
             # ----------------------------------------------------------------
             # CASE 1: Grades exported as a whole (5, 6, 11, 12)
-            if grade in [5, 6, 11, 12]:
+            if grade in [5, 6]:
                 print(f"Exporting grade {grade}")
 
                 # Get student IDs and login codes from DB
