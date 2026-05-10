@@ -81,10 +81,10 @@ def export_logincodes(names_file):
 
 
 def _fill_table(doc, students):
-    table = doc.add_table(rows=1, cols=3)
+    table = doc.add_table(rows=1, cols=4)
     table.style = "Table Grid"
 
-    headers = ["First Name", "Last Name", "Login Code"]
+    headers = ["First Name", "Last Name", "Login Code", "Link"]
     for i, header in enumerate(headers):
         cell = table.cell(0, i)
         cell.text = header
@@ -98,6 +98,7 @@ def _fill_table(doc, students):
         row_cells[0].text = first_name
         row_cells[1].text = last_name
         row_cells[2].text = logincode
+        row_cells[3].text = "sms.wbgym.de"
         for cell in row_cells:
             fmt = cell.paragraphs[0].paragraph_format
             fmt.space_after = space
