@@ -20,12 +20,24 @@ def _load_data(db_session):
         ).fetchall()
     ]
 
-    courses_dict = {
-        r[0]: {"min_grade": r[1], "max_grade": r[2], "capacity": r[3]}
-        for r in db_session.execute(
-            text("SELECT course_id, course_minimum_grade, course_maximum_grade, course_maximum_people FROM courses")
-        ).fetchall()
-    }
+    courses_dict = {}
+    for r in db_session.execute(
+        text("SELECT course_id, course_minimum_grade, course_maximum_grade, course_maximum_people, course_availibility_slot_1, course_availibility_slot_2 FROM courses")
+    ).fetchall():
+        available = set()
+        if r[4]:
+            available.add(1)
+        if r[5]:
+            available.add(2)
+        if not available:
+            # Course runs in neither slot — skip entirely so it can never be assigned.
+            continue
+        courses_dict[r[0]] = {
+            "min_grade": r[1],
+            "max_grade": r[2],
+            "capacity": r[3],
+            "available_sessions": available,
+        }
 
     wish_map = {}
     for r in db_session.execute(
@@ -41,6 +53,10 @@ def _eligible_courses(grade, courses_dict):
         cid for cid, c in courses_dict.items()
         if c["min_grade"] <= grade <= c["max_grade"]
     ]
+
+
+def _course_available(cid, session, courses_dict):
+    return session in courses_dict[cid]["available_sessions"]
 
 
 def _happiness(student_id, course_id, wish_map):
@@ -70,6 +86,8 @@ def _greedy_init(students, courses_dict, wish_map):
             already_assigned = assignment[sid][other_session]
             for cid in wished_ids:
                 if cid == already_assigned:
+                    continue
+                if not _course_available(cid, session, courses_dict):
                     continue
                 if course_load[cid][session] < courses_dict[cid]["capacity"]:
                     assignment[sid][session] = cid
@@ -114,6 +132,10 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
             other_cid = assignment[sid][other_session]
 
             if new_cid == old_cid or new_cid == other_cid:
+                temp *= COOLING_RATE
+                continue
+
+            if not _course_available(new_cid, session, courses_dict):
                 temp *= COOLING_RATE
                 continue
 
@@ -171,6 +193,15 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
                     temp *= COOLING_RATE
                     continue
 
+            # Both courses must actually run in this session (they already did
+            # for their current holder, but be defensive in case data changed).
+            if cid_a is not None and not _course_available(cid_a, session, courses_dict):
+                temp *= COOLING_RATE
+                continue
+            if cid_b is not None and not _course_available(cid_b, session, courses_dict):
+                temp *= COOLING_RATE
+                continue
+
             old_h = (
                 (_happiness(sid_a, cid_a, wish_map) if cid_a is not None else UNASSIGNED_PENALTY) +
                 (_happiness(sid_b, cid_b, wish_map) if cid_b is not None else UNASSIGNED_PENALTY)
@@ -204,7 +235,7 @@ def _fill_unassigned(assignment, course_load, students, courses_dict, wish_map):
             already_assigned = assignment[sid][other_session]
             # Sort eligible courses by current load ascending, excluding course already in other session
             candidates = sorted(
-                [cid for cid in eligible if cid != already_assigned],
+                [cid for cid in eligible if cid != already_assigned and _course_available(cid, session, courses_dict)],
                 key=lambda cid: course_load[cid][session]
             )
             for cid in candidates:
@@ -238,7 +269,7 @@ def _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_
                     other_session = 2 if session == 1 else 1
                     other_cid = assignment[victim][other_session]
                     candidates = sorted(
-                        [c for c in eligible if c != cid and c != other_cid],
+                        [c for c in eligible if c != cid and c != other_cid and _course_available(c, session, courses_dict)],
                         key=lambda c: course_load[c][session]
                     )
                     for alt in candidates:

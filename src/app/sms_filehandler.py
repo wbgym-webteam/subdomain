@@ -75,7 +75,7 @@ def create_student(student_id, grade, grade_selector, logincode, gender=None):
 
 
 
-def create_course(Course_id, Course_title, Course_description, Course_teacher, Course_min_grade, Course_max_grade, Course_max_people, Course_hosts):
+def create_course(Course_id, Course_title, Course_description, Course_teacher, Course_min_grade, Course_max_grade, Course_max_people, Course_hosts, Course_slot_1, Course_slot_2):
     try:
         new_Course = Course(
             course_id = Course_id,
@@ -86,6 +86,8 @@ def create_course(Course_id, Course_title, Course_description, Course_teacher, C
             course_maximum_grade = Course_max_grade,
             course_maximum_people = Course_max_people,
             course_hosts = Course_hosts,
+            course_availibility_slot_1 = Course_slot_1,
+            course_availibility_slot_2 = Course_slot_2,
         )
         db.session.add(new_Course)
         db.session.commit()
@@ -199,8 +201,10 @@ def FileHandler(file_source):
             course_max_grade = row[5]
             course_max_people = row[6]
             course_hosts = row[7]
+            course_slot_1 = bool(row[8]) if len(row) > 8 else False
+            course_slot_2 = bool(row[9]) if len(row) > 9 else False
 
-            print(f"{course_id} {course_title} {course_hosts} {course_discription}")
+            print(f"{course_id} {course_title} {course_hosts} {course_discription} slots={int(course_slot_1)}/{int(course_slot_2)}")
 
             if (
                 course_id == None
@@ -216,7 +220,7 @@ def FileHandler(file_source):
                 break
 
             try:
-                create_course(course_id, course_title, course_discription, course_teacher, course_min_grade, course_max_grade, course_max_people, course_hosts)
+                create_course(course_id, course_title, course_discription, course_teacher, course_min_grade, course_max_grade, course_max_people, course_hosts, course_slot_1, course_slot_2)
             except Exception as e:
                 print(f"Error processing course {course_id}: {e}")
                 db.session.rollback()

@@ -48,7 +48,7 @@ class BlockedPresentation(db.Model):
 
 
 ### # ------------------------------------------------------
-# sms
+# SmS
 
 class StudentSMS(db.Model):
     __tablename__ = "students_sms"
@@ -85,6 +85,8 @@ class Course(db.Model):
     course_minimum_grade = db.Column(db.Integer, nullable=False)
     course_maximum_grade = db.Column(db.Integer, nullable=False)
     course_maximum_people = db.Column(db.Integer, nullable=False)
+    course_availibility_slot_1 = db.Column(db.Boolean, nullable=False)
+    course_availibility_slot_2 = db.Column(db.Boolean, nullable=False)
 
 
 class SMSAssignment(db.Model):
