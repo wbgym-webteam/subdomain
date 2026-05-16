@@ -1,10 +1,9 @@
 body {
     font-family: 'Arial', sans-serif;
     background-color: #560d4f; /* Main purple background */
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
+}
+
+.content-wrapper {
     justify-content: center;
     align-items: center;
 }

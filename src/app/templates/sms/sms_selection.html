@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
     <title>SMS Kurswahl - {{ student }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
@@ -118,6 +119,27 @@
             </div>
         </div>
 
+    </div>
+
+    <div class="student-footer">
+        <p>Diese Website wurde komplett von Schülern der Webteam AG aufgebaut und wird durch Schüler der AG verwaltet.</p>
+        <div class="info-container">
+            <div class="info-icon">i</div>
+            <div class="info-popover">
+                <strong>Erstellt von:</strong>
+                <ul style="text-align: left; margin-top: 5px; padding-left: 20px; margin-bottom: 0;">
+                    <li>Nicolas Evdokimov</li>
+                    <li>Michael Vorogushyn</li>
+                    <li>Linus Busch</li>
+                    <li>Philipp Kretschmer</li>
+                    <li>Samuel Schlusche</li>
+                </ul>
+                <strong>Unterstützt von:</strong>
+                <ul style="text-align: left; margin-top: 5px; padding-left: 20px; margin-bottom: 0;">
+                    <li>Herrn Debray</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -292,9 +314,109 @@
         margin: 0;
         padding: 0;
         height: auto;
-        min-height: 100%;
+        min-height: 100vh;
         overflow-x: hidden;
         scroll-behavior: smooth;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #560d4f, #8846a4);
+        color: #fff;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sms-container {
+        flex: 1 0 auto;
+    }
+
+    .student-footer {
+        width: 100%;
+        flex-shrink: 0;
+        background-color: #560d4f;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        font-family: 'Arial', sans-serif;
+        font-size: 12px;
+        border-top: 1px solid #7b598d;
+    }
+
+    .student-footer p {
+        margin: 0;
+        font-weight: bold;
+    }
+
+    .info-container {
+        position: relative;
+        display: inline-block;
+        vertical-align: super;
+    }
+
+    .info-icon {
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-size: 12px;
+        font-weight: bold;
+        background-color: rgba(221, 221, 221, 0.8);
+        color: #000;
+        border-radius: 50%;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+        text-align: center;
+        cursor: pointer;
+        display: block;
+    }
+
+    .info-popover {
+        display: none;
+        position: absolute;
+        bottom: 150%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: white;
+        color: #333;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        width: 200px;
+        text-align: left;
+        font-size: 12px;
+        z-index: 101;
+    }
+
+    .info-container:hover .info-popover {
+        display: block;
+    }
+
+    .info-popover::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: white transparent transparent transparent;
+    }
+
+    .sms-container h1,
+    .sms-container h2,
+    .sms-container h3,
+    .sms-container p,
+    .sms-container span,
+    .sms-container div,
+    .sms-container button,
+    .sms-container input,
+    .sms-container select,
+    .sms-container label,
+    .sms-container li {
+        font-family: 'Arial', sans-serif;
     }
 
 
@@ -319,6 +441,7 @@
     .top-bar {
         display: flex;
         align-items: center;
+        justify-content: flex-end;
         padding: 10px 0 20px 0;
         margin-bottom: 15px;
     }
@@ -445,6 +568,7 @@
         color: #560d4f;
         font-size: 18px;
         font-weight: bold;
+        text-align: left;
     }
 
     .expand-icon {
@@ -667,11 +791,24 @@
 
         .course-header {
             padding: 12px 15px;
+            gap: 10px;
+        }
+
+        .course-title {
+            font-size: 16px;
+            word-break: break-word;
+        }
+
+        .wish-dropdown-section {
+            margin-left: 0;
+            flex-shrink: 0;
         }
 
         .wish-select {
-            width: 110px;
-            padding: 8px;
+            width: 130px;
+            padding: 14px 12px;
+            font-size: 16px;
+            min-height: 48px;
         }
     }
 

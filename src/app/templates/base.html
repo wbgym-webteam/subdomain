@@ -49,9 +49,32 @@
 
 <body>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+  <div class="content-wrapper">
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <div class="student-footer">
+      <p>Diese Website wurde komplett von Schülern der Webteam AG aufgebaut und wird durch Schüler der AG verwaltet.</p>
+      <div class="info-container">
+          <div class="info-icon">i</div>
+          <div class="info-popover">
+              <strong>Erstellt von:</strong>
+              <ul style="text-align: left; margin-top: 5px; padding-left: 20px; margin-bottom: 0;">
+                <li>Nicolas Evdokimov</li>
+                <li>Michael Vorogushyn</li>
+                  <li>Linus Busch</li>
+                  <li>Philipp Kretschmer</li>
+                  <li>Samuel Schlusche</li>
+              </ul>
+              <strong>Unterstützt von:</strong>
+              <ul style="text-align: left; margin-top: 5px; padding-left: 20px; margin-bottom: 0;">
+                  <li>Herrn Debray</li>
+              </ul>
+          </div>
+      </div>
+  </div>
 
 </body>
 

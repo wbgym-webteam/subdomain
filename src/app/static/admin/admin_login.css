@@ -1,12 +1,10 @@
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(135deg, #560d4f, #8846a4);
-    height: 100vh;
+main {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    min-height: calc(100vh - 80px);
     color: #fff;
 }
 
