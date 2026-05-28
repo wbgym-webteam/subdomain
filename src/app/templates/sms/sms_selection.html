@@ -13,6 +13,8 @@
     <!-- Course selection form matching login structure -->
     <div class="login-container sms-container">
         <div class="top-bar">
+            <img src="{{ url_for('static', filename='images/Webteam_Logo.png') }}"
+                 alt="Weinberg Gymnasium Logo" class="header-logo">
             <a href="#" onclick="handleLogout(); return false;" class="logout-btn">Abmelden</a>
         </div>
 
@@ -441,9 +443,15 @@
     .top-bar {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: space-between;
         padding: 10px 0 20px 0;
         margin-bottom: 15px;
+    }
+
+    .header-logo {
+        height: clamp(48px, 12vw, 110px);
+        width: auto;
+        object-fit: contain;
     }
 
     .header-section {
@@ -809,6 +817,12 @@
             padding: 14px 12px;
             font-size: 16px;
             min-height: 48px;
+        }
+    }
+
+    @media screen and (max-width: 400px) {
+        .header-section h1 {
+            font-size: 1.7rem;
         }
     }
 
