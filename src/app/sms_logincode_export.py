@@ -65,7 +65,8 @@ def export_logincodes(names_file):
                 doc.save(docx_buffer)
                 zipf.writestr(f"SmS_Logincodes_{grade}.docx", docx_buffer.getvalue())
             else:
-                for grade_selector in range(1, 5):
+                selectors = sorted(gs for (g, gs) in groups if g == grade)
+                for grade_selector in selectors:
                     students = groups.get((grade, grade_selector), [])
                     if not students:
                         continue
