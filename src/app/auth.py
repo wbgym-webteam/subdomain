@@ -100,8 +100,12 @@ def adminLogin():
             session.permanent = True
             session["admin_logged_in"] = True
             next_page = request.args.get('next')
-            if next_page and next_page.startswith('/admin/'):
-                return redirect(next_page)
+            if next_page:
+                from urllib.parse import urlparse
+                parsed = urlparse(next_page)
+                path = parsed.path if parsed.scheme else next_page
+                if path.startswith('/admin/'):
+                    return redirect(path)
             return redirect("/admin/sms/panel")
         else:
             return render_template("admin/admin_login.html", error="Invalid credentials")

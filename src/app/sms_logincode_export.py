@@ -47,7 +47,7 @@ def export_logincodes(names_file):
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
         for grade in range(5, 13):
-            special_grade = grade in (5, 6, 11, 12)
+            special_grade = grade in (5, 6, 12)
 
             if special_grade:
                 # Merge all grade_selectors for this grade
