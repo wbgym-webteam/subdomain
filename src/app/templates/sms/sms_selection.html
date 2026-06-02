@@ -123,6 +123,18 @@
 
     </div>
 
+    <!-- Logout confirmation modal -->
+    <div id="logout-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">
+        <div class="modal-box">
+            <h2 class="modal-title" id="modal-title">Abmelden?</h2>
+            <p class="modal-text" id="modal-text"></p>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" id="modal-cancel">Zurück</button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="modal-confirm">Abmelden</button>
+            </div>
+        </div>
+    </div>
+
     <div class="student-footer">
         <p>Diese Website wurde komplett von Schülern der Webteam AG aufgebaut und wird durch Schüler der AG verwaltet.</p>
         <div class="info-container">
@@ -263,34 +275,62 @@
                     console.error('Error submitting selections:', error);
                     window.location.href = '{{ url_for("sms.logout") }}';
                 });
+            } else if (wishes.length > 6) {
+                showLogoutModal(wishes.length + ' Wünsche gewählt – es sind genau 6 nötig. So nicht speicherbar; nicht gespeicherte Änderungen gehen verloren.');
             } else if (wishes.length > 0) {
-                if (confirm('Sie haben Kurswünsche ausgewählt, die noch nicht gespeichert wurden. Sollen diese automatisch gespeichert werden?')) {
-                    // Auto-submit the form data
-                    const form = document.querySelector('form');
-                    const formData = new FormData(form);
-                    
-                    fetch('{{ url_for("sms.submit_selection") }}', {
-                        method: 'POST',
-                        body: formData
-                    }).then(response => {
-                        if (response.ok) {
-                            window.location.href = '{{ url_for("sms.logout") }}';
-                        } else {
-                            console.error('Failed to submit selections');
-                            window.location.href = '{{ url_for("sms.logout") }}';
-                        }
-                    }).catch(error => {
-                        console.error('Error submitting selections:', error);
-                        window.location.href = '{{ url_for("sms.logout") }}';
-                    });
-                } else {
-                    // User chose not to save, just logout
-                    window.location.href = '{{ url_for("sms.logout") }}';
-                }
+                showLogoutModal('Erst ' + wishes.length + ' von 6 Wünschen gewählt. Diese Auswahl geht beim Abmelden verloren.');
             } else {
                 // No wishes selected, just logout
                 window.location.href = '{{ url_for("sms.logout") }}';
             }
+        }
+
+        // Custom mobile-friendly logout confirmation modal
+        function showLogoutModal(message) {
+            const modal = document.getElementById('logout-modal');
+            const modalText = document.getElementById('modal-text');
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+
+            modalText.textContent = message;
+            modal.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            confirmBtn.focus();
+
+            function closeModal() {
+                modal.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                confirmBtn.removeEventListener('click', onConfirm);
+                cancelBtn.removeEventListener('click', onCancel);
+                modal.removeEventListener('click', onOverlayClick);
+                document.removeEventListener('keydown', onKeydown);
+            }
+
+            function onConfirm() {
+                closeModal();
+                window.location.href = '{{ url_for("sms.logout") }}';
+            }
+
+            function onCancel() {
+                closeModal();
+            }
+
+            function onOverlayClick(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            }
+
+            function onKeydown(event) {
+                if (event.key === 'Escape') {
+                    closeModal();
+                }
+            }
+
+            confirmBtn.addEventListener('click', onConfirm);
+            cancelBtn.addEventListener('click', onCancel);
+            modal.addEventListener('click', onOverlayClick);
+            document.addEventListener('keydown', onKeydown);
         }
 
         // Initialize the page
@@ -685,6 +725,107 @@
         font-size: 16px;
     }
 
+    /* Logout confirmation modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(40, 5, 36, 0.65);
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+        padding: 20px;
+        /* center using flex when open */
+        align-items: center;
+        justify-content: center;
+        /* respect mobile safe areas */
+        padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    }
+
+    .modal-overlay.modal-open {
+        display: flex;
+        animation: modal-fade-in 0.2s ease;
+    }
+
+    @keyframes modal-fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-box {
+        background: #fff;
+        color: #2a2a2a;
+        border-radius: 16px;
+        padding: 28px 24px 22px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        text-align: center;
+        animation: modal-pop-in 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    @keyframes modal-pop-in {
+        from { transform: scale(0.9) translateY(10px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-title {
+        margin: 0 0 10px;
+        font-size: 20px;
+        color: #560d4f;
+    }
+
+    .modal-text {
+        margin: 0 0 22px;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #444;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .modal-btn {
+        flex: 1;
+        padding: 14px 16px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.15s ease;
+        /* comfortable touch target on small screens */
+        min-height: 48px;
+    }
+
+    .modal-btn-cancel {
+        background: #ececf1;
+        color: #333;
+    }
+
+    .modal-btn-cancel:hover {
+        background: #dcdce4;
+    }
+
+    .modal-btn-confirm {
+        background: #560d4f;
+        color: #fff;
+    }
+
+    .modal-btn-confirm:hover {
+        background: #8846a4;
+    }
+
+    .modal-btn:active {
+        transform: scale(0.97);
+    }
+
     .wishes-container {
         background: #f8f9fa;
         padding: 20px;
@@ -823,6 +964,40 @@
     @media screen and (max-width: 400px) {
         .header-section h1 {
             font-size: 1.7rem;
+        }
+
+        .modal-box {
+            padding: 22px 18px 18px;
+            border-radius: 14px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+        }
+
+        .modal-text {
+            font-size: 14px;
+        }
+
+        /* Stack buttons on very narrow screens; primary action on top */
+        .modal-actions {
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+    }
+
+    @media screen and (orientation: landscape) and (max-height: 500px) {
+        .modal-box {
+            padding: 16px 18px;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+
+        .modal-text {
+            margin-bottom: 14px;
         }
     }
 

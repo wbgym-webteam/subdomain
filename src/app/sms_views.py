@@ -141,6 +141,9 @@ def submit_selection():
                 priority = int(value)
                 wish_selections[course_id] = priority
 
+        if len(wish_selections) != 6:
+            return redirect(url_for('sms.selection', error='true'))
+
         try:
             # Clear existing selections for this student - use correct table name
             db.session.execute(
