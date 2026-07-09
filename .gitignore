@@ -18,3 +18,5 @@ instance
 migrations
 
 uv.lock
+
+tmpclaude-*-cwd
