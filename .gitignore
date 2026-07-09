@@ -1,5 +1,6 @@
 __pycache__
 .venv
+build
 ubuntu
 .vscode
 .env
@@ -17,3 +18,5 @@ instance
 migrations
 
 uv.lock
+
+tmpclaude-*-cwd

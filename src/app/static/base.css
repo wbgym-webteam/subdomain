@@ -1,9 +1,37 @@
-html,
+/* subdomain\src\app\static\base.css */
+
+/* 1. Global Reset & Box Sizing (Crucial for layout math) */
+html {
+    box-sizing: border-box;
+    height: 100%; /* Ensure html takes full height */
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
 body {
     margin: 0;
-    font-family: 'Arial';
+    font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #560d4f, #8846a4);
+    /* 2. Sticky Footer Setup */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Body takes at least full viewport height */
+}
 
+/* 3. Content wrapper pushes footer down */
+.content-wrapper {
+    flex: 1 0 auto; /* Grow to fill available space */
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+main {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 20px;
 }
 
 header {
@@ -16,8 +44,97 @@ header {
     margin-right: 2.5%;
 }
 
-h1,
-h2 {
+h1, h2 {
     margin: 0;
     padding: 1%;
+}
+
+.student-footer {
+    background-color: #560d4f; 
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    border-top: 1px solid #7b598d; 
+    /* Prevent footer from shrinking */
+    flex-shrink: 0; 
+}
+
+.student-footer p {
+    margin: 0;
+    font-weight: bold; 
+}
+
+.info-container {
+    position: relative; 
+    display: inline-block;
+    vertical-align: super;
+}
+
+.info-icon {
+    font-family: 'Georgia', 'Times New Roman', serif; 
+    font-size: 12px;
+    font-weight: bold;
+    background-color: rgba(221, 221, 221, 0.8);
+    color: #000;
+    border-radius: 50%;
+    width: 14px; 
+    height: 14px; 
+    line-height: 14px; 
+    text-align: center;
+    cursor: pointer;
+    display: block;
+}
+
+.info-popover {
+    display: none;
+    position: absolute;
+    bottom: 150%; 
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    color: #333;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    width: 200px;
+    text-align: left;
+    font-size: 12px;
+    z-index: 101;
+}
+
+.info-container:hover .info-popover {
+    display: block;
+}
+
+.info-popover::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: white transparent transparent transparent;
+}
+
+@media (max-width: 600px) {
+    .student-footer {
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 8px;
+        text-align: center;
+    }
+    .student-footer p {
+        font-size: 13px;
+        word-break: break-word;
+        white-space: normal;
+    }
+    .info-container {
+        margin-top: 4px;
+    }
 }

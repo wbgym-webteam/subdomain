@@ -1,38 +1,68 @@
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(135deg, #560d4f, #8846a4);
-    height: 100vh;
+/* subdomain\src\app\static\login.css */
+
+
+main {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: center;     
+    width: 100%;
+    position: relative;      
+}
+div.admin-panel {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #7b598d;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 10;
+}
+
+div.admin-panel a {
+    text-decoration: none;
     color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+select {
+    padding: 10px;
+    background-color: #560d4f;
+    color: white;
+    border-radius: 15px;
+    border: 1px solid white;
+    margin-bottom: 15px; 
+    cursor: pointer;
+}
+
+select option:disabled {
+    color: #999;
+    background-color: #3a0935;
 }
 
 .login-container {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     padding: 40px 30px;
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     text-align: center;
 }
 
 .login-container h1 {
     font-size: 28px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #333;
 }
 
 .login-container p {
     font-size: 14px;
-    margin-bottom: 30px;
-    color: #555;
+    margin-bottom: 25px;
+    color: #666;
+    line-height: 1.4;
 }
-
-
 
 .login-container input {
     width: 100%;
@@ -42,12 +72,13 @@ body {
     border-radius: 8px;
     font-size: 16px;
     box-sizing: border-box;
+    transition: border-color 0.2s;
 }
 
 .login-container input:focus {
     outline: none;
-    border-color: #4a90e2;
-    box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+    border-color: #8846a4;
+    box-shadow: 0 0 0 3px rgba(136, 70, 164, 0.2);
 }
 
 .login-container input.submit {
@@ -57,6 +88,7 @@ body {
     border: none;
     color: white;
     font-size: 18px;
+    font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
@@ -64,7 +96,7 @@ body {
 
 .login-container input.submit:hover {
     background-color: #8846a4;
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .login-container input.submit:active {
@@ -72,9 +104,56 @@ body {
 }
 
 p.error {
-    color: rgb(170, 5, 5);
-    background: #e67272;
-    border: 1px solid #c53d3d;
-    border-radius: 3px;
-    padding: 5px;
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.login-container input.input-error {
+    border-color: #dc3545; /* Red */
+    background-color: #fff8f8;
+    color: #721c24;
+    /* Trigger the shake animation */
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Ensure the red border stays even if clicked immediately */
+.login-container input.input-error:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+@media (max-width: 430px) {
+    .login-container {
+        padding: 30px 20px;
+        max-width: 90%;
+    }
+    div.admin-panel {
+        top: auto;
+        bottom: -40px; 
+        right: 50%;
+        transform: translateX(50%);
+    }
 }

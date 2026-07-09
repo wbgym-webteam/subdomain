@@ -1,3 +1,4 @@
+<!--subdomain\src\app\templates\tdw\tdw_selection.html-->
 {% extends './base.html' %}
 
 {% block title %}
@@ -5,110 +6,136 @@ Präsentationsauswahl
 {% endblock %}
 
 {% block content %}
-
-<head>
     <link rel="stylesheet" href="{{ url_for('static', filename='tdw/tdw_selection.css') }}">
-</head>
 
-<body>
+    <div class="login-container sms-container">
 
+        <div class="logout-container">
+            <form action="{{ url_for('tdw.logout') }}" method="post" id="logout-form">
+                <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="logout-btn">Abmelden</a>
+            </form>
+        </div>
 
-    <!-- Pls do not change the form, bc it is generated yk-->
-    <div class="container">
+        <div class="header-section">
+            <h1>Präsentationsauswahl</h1>
+            <!--<p class="instruction-text">Für {{ student }}</p>-->
+            <p class="instruction-text" style="font-size: 0.9rem;">Bitte wählen Sie die gewünschten Präsentationen aus (Maximal 7).</p>
+        </div>
 
-    <div id="logout">
-        <form action="{{ url_for('tdw.logout') }}" method="post">
-            <input type="submit" value="Logout" class="logout_button">
-        </form>
-    </div>
-        <h1>Präsentationsauswahl für {{ student }}</h1>
-
-
+        <div class="selection-counter">
+            <div class="counter-main">
+                Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit">7</span>
+            </div>
+        </div>
 
         <form action="{{ url_for('tdw.submit_selection') }}" method="post">
-            <table>
-                <tr>
-                    <th>Titel</th>
-                    <th>Dozent</th>
-                    <th>Abstract</th>
-                    <th>Auswahl</th>
-                </tr>
+            <div class="courses-container">
                 {% for presentation in presentations %}
-                <tr>
-                    <td>{{ presentations[presentation][0] }}</td>
-                    <td>{{ presentations[presentation][1] }}</td>
-                    <td>{{ presentations[presentation][2] }}</td>
-                    <td class="checkbox-cell">
-                        <input type="checkbox" name="options" id="checkbox" value="{{ presentation }}" {% if
-                            presentation in chosen_presentations %}checked{% endif %}>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-            <div class="submit-selection-container">
-                <div class="selection-counter">
-                    Ausgewählte Präsentationen: <span id="selection-count">0</span>/<span id="selection-limit">7</span>
+                <div class="course-card">
+                    <div class="course-header" onclick="togglePresentation('{{ presentation }}')">
+                        <div class="course-title-section">
+                            <h3 class="course-title">{{ presentations[presentation][0] }}</h3>
+                            <div class="expand-icon" id="icon_{{ presentation }}">▼</div>
+                        </div>
+                        
+                        <div class="wish-dropdown-section">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" 
+                                       name="options" 
+                                       id="checkbox_{{ presentation }}" 
+                                       class="custom-checkbox"
+                                       value="{{ presentation }}" 
+                                       {% if presentation in chosen_presentations %}checked{% endif %}
+                                       onclick="event.stopPropagation()">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="course-details course-details-hidden" id="details_{{ presentation }}">
+                        <div class="detail-row">
+                            <span class="detail-label">Dozent:</span>
+                            <span class="detail-value">{{ presentations[presentation][1] }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Abstract:</span>
+                            <span class="detail-value">{{ presentations[presentation][2] }}</span>
+                        </div>
+                    </div>
                 </div>
-                <input type="submit" value="Submit" class="button" class="submit-button">
+                {% endfor %}
+            </div>
+
+            <div id="limit-message" class="error-message" style="display: none;">
+                Du kannst maximal <span id="limit-text">7</span> Präsentationen anwählen!
+            </div>
+
+            <div class="submit-container">
+                <input type="submit" value="Auswahl bestätigen" class="submit" class="submit-button">
             </div>
         </form>
+
     </div>
-
-    <!-- red error message -->
-    <div id="limit-message" class="limit-message" style="display: none;">
-        Du kannst maximal <span id="limit-text">7</span> Präsentationen anwählen!
-    </div>
-
-  
-
 
     <script>
+        // --- Accordion Logic ---
+        function togglePresentation(id) {
+            const details = document.getElementById('details_' + id);
+            const icon = document.getElementById('icon_' + id);
+            
+            if (details.style.display === 'none' || details.style.display === '') {
+                details.style.display = 'block';
+                icon.textContent = '▲';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                details.style.display = 'none';
+                icon.textContent = '▼';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // --- Limit Logic ---
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         const selectionCount = document.getElementById('selection-count');
         const limitMessage = document.getElementById('limit-message');
-        const limitText = document.getElementById('limit-text');
         const selectionLimit = 7;
 
-        // Function to update the count of checked checkboxes
         const updateSelectionCount = () => {
             const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
             selectionCount.textContent = checkedCount;
-            if (checkedCount > selectionLimit) {
-            limitMessage.style.display = 'block';
+            
+            if (checkedCount === selectionLimit) {
+                selectionCount.parentElement.style.color = '#28a745';
             } else {
-            limitMessage.style.display = 'none';
+                selectionCount.parentElement.style.color = '#560d4f';
+            }
+
+            if (checkedCount > selectionLimit) {
+                limitMessage.style.display = 'block';
+            } else {
+                limitMessage.style.display = 'none';
             }
         };
 
-        // Initialize the count on page load
         document.addEventListener('DOMContentLoaded', () => {
             updateSelectionCount();
         });
 
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', () => {
-            const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
+                const checkedCount = document.querySelectorAll('input[type="checkbox"]:checked').length;
 
-            if (checkedCount <= selectionLimit) {
-                updateSelectionCount();
-            } else {
-                checkbox.checked = false; // Prevent checking the checkbox
-                limitMessage.style.display = 'block'; // Show the limit message
-            }
+                if (checkedCount <= selectionLimit) {
+                    updateSelectionCount();
+                    limitMessage.style.display = 'none';
+                } else {
+                    checkbox.checked = false; 
+                    limitMessage.style.display = 'block';
+                    setTimeout(() => {
+                        limitMessage.style.display = 'none';
+                    }, 3000);
+                }
             });
         });
     </script>
-
-    <style>
-        .left-align {
-            float: left;
-            margin-right: auto;
-        }
-        
-        .checkbox-cell {
-            text-align: right;
-        }
-    </style>
-</body>
 
 {% endblock %}

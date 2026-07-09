@@ -1,0 +1,278 @@
+<!--subdomain\src\app\templates\pt\pt_selection.html-->
+{% extends 'base.html' %}
+
+{% block title %}PT - Course Selection{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='pt/pt_selection.css') }}">
+
+<div class="sms-container">
+    <div class="page-island">
+        <div class="header-section">
+            <div class="header-actions">
+                <form action="{{ url_for('pt.logout') }}" method="post">
+                    <button type="submit" class="logout-btn logout-btn--ghost" aria-label="Abmelden">
+                        <span class="btn-icon" aria-hidden="true"></span>Abmelden
+                    </button>
+                </form>
+            </div>
+            
+            <h1>PT Kurswahl</h1>
+            
+            <p class="welcome">Willkommen!</p>
+            
+            <p class="instruction-text">
+                Ordnen Sie die Kurse in jeder Spalte mit den Pfeilen. <strong>Oben = Rang 1</strong>, darunter Rang 2, usw.
+            </p>
+            <p>
+              Speichern nicht vergessen! Ihre Auswahl wird nur übernommen, wenn Sie unten auf "Auswahl bestätigen" klicken.
+            </p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}" role="alert">
+                            <span class="flash-icon">✓</span>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="selection-counter" id="pt-counter" aria-live="polite">
+            <div class="counter-main">Die Reihenfolge in jeder Spalte bestimmt direkt den Rang.</div>
+        </div>
+
+        <form action="{{ url_for('pt.submit_selection') }}" method="post" id="selection-form">
+            <div class="columns-container">
+                {% for column, presentations in presentations_by_column.items() %}
+                <div class="column" data-column="{{ column }}">
+                    <h3>Spalte {{ column }}</h3>
+
+                    <div class="presentations">
+                        {% for presentation in presentations %}
+                        <div class="presentation-card" draggable="true" data-presentation-id="{{ presentation.id }}" data-merged-ids="{{ presentation.presentation_ids|join(',') }}">
+
+                            <div class="presentation-header">
+                                <div class="drag-handle" title="Klicken und ziehen zum Sortieren">
+                                    <span class="grip-lines"></span>
+                                </div>
+
+                                <h4 class="presentation-title">{{ presentation.title }}</h4>
+
+                                <div class="rank-controls">
+                                    <button type="button" class="arrow-btn arrow-up" title="Nach oben" aria-label="Nach oben">▲</button>
+                                    <button type="button" class="arrow-btn arrow-down" title="Nach unten" aria-label="Nach unten">▼</button>
+                                    <span class="rank-chip" aria-live="polite">Rang&nbsp;<span class="rank-num">–</span></span>
+                                </div>
+
+                                {% for pid in presentation.presentation_ids %}
+                                <input type="hidden" name="ranking_{{ pid }}" class="ranking-input" data-column="{{ column }}" data-merged-id="{{ presentation.id }}" value="{% if existing_selections.get(presentation.id) %}{{ existing_selections.get(presentation.id) }}{% else %}0{% endif %}">
+                                {% endfor %}
+                            </div>
+
+                            <div class="presentation-details">
+                                {% if presentation.teacher %}<p><strong>Lehrer:</strong> {{ presentation.teacher }}</p>{% endif %}
+                                <p><strong>Referent:</strong> {{ presentation.hosts }}</p>
+                                {% if presentation.description %}<p><strong>Beschreibung:</strong> {{ presentation.description }}</p>{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="submit-container">
+                <button type="submit" class="submit-btn">Auswahl bestätigen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+/* --- Ranking with animated swaps (FLIP) + Drag & Drop --- */
+
+function recomputeRanks(columnEl){
+  const list = columnEl.querySelector('.presentations');
+  const cards = Array.from(list.children).filter(el => el.classList.contains('presentation-card'));
+  
+  cards.forEach((card, idx) => {
+    const rankNum = idx + 1;
+    card.querySelector('.rank-num').textContent = String(rankNum);
+    const inputs = card.querySelectorAll('.ranking-input');
+    inputs.forEach(input => { input.value = String(rankNum); });
+    const up = card.querySelector('.arrow-up');
+    const down = card.querySelector('.arrow-down');
+    if (up) up.disabled = (idx === 0);
+    if (down) down.disabled = (idx === cards.length - 1);
+  });
+}
+
+function animateSwap(card, dir){
+  const list = card.closest('.presentations');
+  if (!list) return;
+  
+  let neighbor = (dir === 'up') ? card.previousElementSibling : card.nextElementSibling;
+  while (neighbor && !neighbor.classList.contains('presentation-card')) {
+    neighbor = (dir === 'up') ? neighbor.previousElementSibling : neighbor.nextElementSibling;
+  }
+
+  if (!neighbor) return;
+  if (list.dataset.animating === '1') return;
+  
+  list.dataset.animating = '1';
+  list.classList.add('animating');
+
+  const items = Array.from(list.querySelectorAll('.presentation-card'));
+  const firstRects = new Map();
+  items.forEach(el => firstRects.set(el, el.getBoundingClientRect()));
+
+  if (dir === 'up') { list.insertBefore(card, neighbor); } else { list.insertBefore(neighbor, card); }
+
+  let activeAnimations = 0;
+  items.forEach(el => {
+    const first = firstRects.get(el);
+    const last  = el.getBoundingClientRect();
+    const dx = first.left - last.left;
+    const dy = first.top  - last.top;
+
+    if (dx || dy) {
+      activeAnimations++;
+      el.style.transition = 'none';
+      el.style.transform  = `translate(${dx}px, ${dy}px)`;
+      el.offsetHeight; 
+      el.style.transition = 'transform 220ms cubic-bezier(.2,.8,.2,1)';
+      el.style.transform  = '';
+      const done = () => {
+        el.removeEventListener('transitionend', done);
+        if (--activeAnimations === 0) {
+          list.dataset.animating = '0';
+          list.classList.remove('animating');
+          const col = list.closest('.column');
+          if (col) recomputeRanks(col);
+        }
+      };
+      el.addEventListener('transitionend', done);
+    }
+  });
+
+  if (activeAnimations === 0) {
+    list.dataset.animating = '0';
+    list.classList.remove('animating');
+    const col = list.closest('.column');
+    if (col) recomputeRanks(col);
+  }
+}
+
+/* --- STABLE Drag and Drop Logic --- */
+let sourceColumn = null; 
+let currentLine = null;
+
+function enableDragAndDrop() {
+  const cards = document.querySelectorAll('.presentation-card');
+  const lists = document.querySelectorAll('.presentations');
+
+  cards.forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      card.classList.add('dragging');
+      sourceColumn = card.closest('.column').dataset.column;
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData('text/plain', card.dataset.presentationId || '');
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      if (currentLine) { currentLine.remove(); currentLine = null; }
+      card.style.opacity = ''; 
+      sourceColumn = null;
+    });
+  });
+
+  lists.forEach(list => {
+    list.addEventListener('dragover', e => {
+      e.preventDefault();
+      const targetWrapper = list.closest('.column');
+      const targetCol = targetWrapper ? targetWrapper.dataset.column : null;
+      if (sourceColumn !== targetCol) {
+        if (currentLine) currentLine.remove();
+        return;
+      }
+      const afterElement = getDragAfterElement(list, e.clientY);
+      if (!currentLine) {
+        currentLine = document.createElement('li');
+        currentLine.classList.add('insertion-line');
+        currentLine.style.pointerEvents = "none"; 
+      }
+      if (afterElement == null) { list.appendChild(currentLine); } else { list.insertBefore(currentLine, afterElement); }
+    });
+
+    list.addEventListener('dragleave', (e) => {});
+
+    list.addEventListener('drop', e => {
+      e.preventDefault();
+      const draggable = document.querySelector('.dragging');
+      if (!draggable) return;
+      const targetWrapper = list.closest('.column');
+      if (!targetWrapper || targetWrapper.dataset.column !== sourceColumn) return;
+
+      if (currentLine && currentLine.parentNode === list) {
+        list.insertBefore(draggable, currentLine);
+        currentLine.remove();
+        currentLine = null;
+      } else {
+        const afterElement = getDragAfterElement(list, e.clientY);
+        if (afterElement == null) { list.appendChild(draggable); } else { list.insertBefore(draggable, afterElement); }
+      }
+      recomputeRanks(targetWrapper);
+    });
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.presentation-card:not(.dragging)')];
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.column').forEach(col => {
+    const list = col.querySelector('.presentations');
+    const cards = Array.from(list.children);
+    cards.sort((a,b) => {
+      const sa = parseInt(a.querySelector('.ranking-input')?.value || '0',10);
+      const sb = parseInt(b.querySelector('.ranking-input')?.value || '0',10);
+      return (sa>0?sa:9999) - (sb>0?sb:9999);
+    }).forEach(c=>list.appendChild(c));
+    recomputeRanks(col);
+  });
+
+  enableDragAndDrop();
+
+  document.body.addEventListener('click', e=>{
+    const btn = e.target.closest('.arrow-btn');
+    if (!btn) return;
+    animateSwap(btn.closest('.presentation-card'), btn.classList.contains('arrow-up')?'up':'down');
+  });
+  
+  document.body.addEventListener('keydown', e=>{
+    if (!e.altKey || !['ArrowUp','ArrowDown'].includes(e.key)) return;
+    const h = e.target.closest('.presentation-header');
+    if(h){ e.preventDefault(); animateSwap(h.closest('.presentation-card'), e.key==='ArrowUp'?'up':'down'); }
+  });
+
+  document.getElementById('selection-form').addEventListener('submit', e=>{
+    let ok = true;
+    document.querySelectorAll('.column').forEach(col=>{
+      recomputeRanks(col);
+      col.querySelectorAll('.ranking-input').forEach(input=>{ if (input.value==='0') ok=false; });
+    });
+    if (!ok){ e.preventDefault(); alert('Bitte ordnen Sie alle Kurse.'); }
+  });
+});
+</script>
+{% endblock %}

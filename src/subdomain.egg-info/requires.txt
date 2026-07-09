@@ -1,0 +1,8 @@
+flask
+gunicorn
+flask-sqlalchemy
+flask-migrate
+openpyxl
+dotenv
+python-docx
+reportlab
