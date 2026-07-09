@@ -23,13 +23,6 @@ def AssignmentExporter(db, names_file):
         text("SELECT Student_id, grade, grade_selector FROM students_sms ORDER BY grade, grade_selector, Student_id")
     ).mappings().all()
 
-    course_titles = {
-        row["course_id"]: row["course_title"]
-        for row in db.session.execute(
-            text("SELECT course_id, course_title FROM courses")
-        ).mappings().all()
-    }
-
     assignments = {}
     for row in db.session.execute(
         text("SELECT student_id, course_id, session FROM sms_assignment")
@@ -45,8 +38,8 @@ def AssignmentExporter(db, names_file):
     for s in students:
         sid = s["Student_id"]
         names = names_map.get(sid, {"first": "", "last": ""})
-        c1 = course_titles.get(assignments.get((sid, 1)), "")
-        c2 = course_titles.get(assignments.get((sid, 2)), "")
+        c1 = assignments.get((sid, 1)) or ""
+        c2 = assignments.get((sid, 2)) or ""
         sheet.append([
             sid, names["last"], names["first"],
             s["grade"], s["grade_selector"],

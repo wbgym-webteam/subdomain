@@ -243,6 +243,8 @@ def sms_run_engine():
         stats = run_sms_engine(db)
         total = stats["total_students"]
         parts = [f"Total Students: {total}"]
+        if stats.get("happiness_score") is not None:
+            parts.append(f"Happiness Score: {stats['happiness_score']} (best of {stats.get('restarts', 1)} attempts)")
         for key, count in stats["satisfaction"].items():
             percent = (count / total * 100) if total > 0 else 0
             parts.append(f"{key}: {count} ({percent:.1f}%)")

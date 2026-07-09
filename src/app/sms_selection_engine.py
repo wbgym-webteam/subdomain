@@ -1,3 +1,4 @@
+import copy
 import random
 import math
 from sqlalchemy.sql import text
@@ -7,9 +8,14 @@ WISH_HAPPINESS = {1: 100, 2: 70, 3: 50, 4: 30, 5: 15, 6: 5}
 NO_WISH_HAPPINESS = -50
 UNASSIGNED_PENALTY = -50000
 
-START_TEMP = 1500.0
+START_TEMP = 1500.02
 COOLING_RATE = 0.99997
 TOTAL_ITERS = 150_000
+
+# Number of full restarts. Each restart does a fresh greedy init + annealing run
+# from a different random shuffle; we keep whichever run scores highest. More
+# restarts = more tries = better odds of a good solution (at the cost of runtime).
+RESTARTS = 10
 
 
 def _load_data(db_session):
@@ -40,12 +46,21 @@ def _load_data(db_session):
         }
 
     wish_map = {}
+    # locked_map: student_id -> list of course_ids that MUST be assigned.
+    # Signalled by weight == 0 in student_course (a value the frontend never
+    # writes; only a raw SQL edit produces it). These bypass the optimiser and
+    # are pinned into a slot before everything else, then never moved.
+    locked_map = {}
     for r in db_session.execute(
         text("SELECT Student_id, Course_id, weight FROM student_course")
     ).fetchall():
-        wish_map.setdefault(r[0], {})[r[1]] = r[2]
+        sid, cid, weight = r[0], r[1], r[2]
+        if weight == 0:
+            locked_map.setdefault(sid, []).append(cid)
+        else:
+            wish_map.setdefault(sid, {})[cid] = weight
 
-    return students, courses_dict, wish_map
+    return students, courses_dict, wish_map, locked_map
 
 
 def _eligible_courses(grade, courses_dict):
@@ -67,10 +82,55 @@ def _happiness(student_id, course_id, wish_map):
     return NO_WISH_HAPPINESS
 
 
-def _greedy_init(students, courses_dict, wish_map):
+def _apply_locks(students, courses_dict, locked_map):
+    """Pin guaranteed (weight==0) courses into slots before optimisation.
+
+    Returns (assignment, course_load, locked) where `locked` is a set of
+    (student_id, session) pairs that no later phase may modify. Two guarantees
+    for the same student are spread across the two slots when possible.
+    """
     assignment = {s["student_id"]: {1: None, 2: None} for s in students}
     course_load = {cid: {1: 0, 2: 0} for cid in courses_dict}
+    locked = set()
+    grade_of = {s["student_id"]: s["grade"] for s in students}
 
+    for sid, course_ids in locked_map.items():
+        if sid not in assignment:
+            print(f"Warning: guaranteed course(s) for unknown student {sid}; skipping")
+            continue
+        grade = grade_of[sid]
+        for cid in course_ids:
+            if cid not in courses_dict:
+                # Course doesn't run in any slot (or doesn't exist) — can't guarantee it.
+                print(f"Warning: cannot guarantee course {cid} for student {sid} (course not runnable)")
+                continue
+            c = courses_dict[cid]
+            if not (c["min_grade"] <= grade <= c["max_grade"]):
+                print(f"Warning: student {sid} is grade-ineligible for guaranteed course {cid}; skipping")
+                continue
+            # Prefer a slot that is still free for this student, among the slots
+            # the course actually runs in.
+            placed = False
+            for session in sorted(c["available_sessions"]):
+                if (sid, session) in locked:
+                    continue
+                if assignment[sid][session] is not None:
+                    continue
+                assignment[sid][session] = cid
+                course_load[cid][session] += 1
+                locked.add((sid, session))
+                placed = True
+                break
+            if not placed:
+                print(
+                    f"Warning: could not place guaranteed course {cid} for student {sid} "
+                    f"(no free slot among {sorted(c['available_sessions'])}); skipping"
+                )
+
+    return assignment, course_load, locked
+
+
+def _greedy_init(assignment, course_load, locked, students, courses_dict, wish_map):
     shuffled = students[:]
     random.shuffle(shuffled)
 
@@ -82,6 +142,8 @@ def _greedy_init(students, courses_dict, wish_map):
         wished_ids = [cid for cid, _ in wishes if cid in eligible]
 
         for session in (1, 2):
+            if (sid, session) in locked:
+                continue  # guaranteed slot — leave it alone
             other_session = 2 if session == 1 else 1
             already_assigned = assignment[sid][other_session]
             for cid in wished_ids:
@@ -109,7 +171,7 @@ def _total_happiness(assignment, wish_map):
     return total
 
 
-def _simulated_annealing(assignment, course_load, students, courses_dict, wish_map):
+def _simulated_annealing(assignment, course_load, locked, students, courses_dict, wish_map):
     temp = START_TEMP
     student_ids = [s["student_id"] for s in students]
     student_grade = {s["student_id"]: s["grade"] for s in students}
@@ -120,6 +182,9 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
             # MOVE: reassign one student's session slot
             sid = random.choice(student_ids)
             session = random.choice((1, 2))
+            if (sid, session) in locked:
+                temp *= COOLING_RATE
+                continue
             grade = student_grade[sid]
             eligible = _eligible_courses(grade, courses_dict)
             if not eligible:
@@ -161,6 +226,11 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
                 continue
             sid_a, sid_b = random.sample(student_ids, 2)
             session = random.choice((1, 2))
+
+            # Never swap a guaranteed slot.
+            if (sid_a, session) in locked or (sid_b, session) in locked:
+                temp *= COOLING_RATE
+                continue
 
             cid_a = assignment[sid_a][session]
             cid_b = assignment[sid_b][session]
@@ -222,13 +292,16 @@ def _simulated_annealing(assignment, course_load, students, courses_dict, wish_m
     return assignment, course_load
 
 
-def _fill_unassigned(assignment, course_load, students, courses_dict, wish_map):
+def _fill_unassigned(assignment, course_load, locked, students, courses_dict, wish_map):
     for student in students:
         sid = student["student_id"]
         grade = student["grade"]
         eligible = _eligible_courses(grade, courses_dict)
 
         for session in (1, 2):
+            # Locked slots are always filled (never None), so this is belt-and-braces.
+            if (sid, session) in locked:
+                continue
             if assignment[sid][session] is not None:
                 continue
             other_session = 2 if session == 1 else 1
@@ -247,17 +320,18 @@ def _fill_unassigned(assignment, course_load, students, courses_dict, wish_map):
     return assignment, course_load
 
 
-def _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_map):
+def _resolve_overcapacity(assignment, course_load, locked, students, courses_dict, wish_map):
     student_grade = {s["student_id"]: s["grade"] for s in students}
 
     for cid in courses_dict:
         for session in (1, 2):
             capacity = courses_dict[cid]["capacity"]
             while course_load[cid][session] > capacity:
-                # Find students assigned to this overcrowded slot, sorted by happiness ascending (move worst first)
+                # Find students assigned to this overcrowded slot, sorted by happiness ascending (move worst first).
+                # Guaranteed (locked) slots are never evicted, even if that leaves the course over capacity.
                 victims = [
                     sid for sid, sessions in assignment.items()
-                    if sessions[session] == cid
+                    if sessions[session] == cid and (sid, session) not in locked
                 ]
                 if not victims:
                     break
@@ -282,7 +356,11 @@ def _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_
                     if moved:
                         break
                 if not moved:
-                    print(f"Warning: could not resolve overcapacity for course {cid} session {session}")
+                    print(
+                        f"Warning: could not resolve overcapacity for course {cid} session {session} "
+                        f"(load {course_load[cid][session]} > capacity {capacity}); "
+                        f"remaining occupants may be guaranteed/locked"
+                    )
                     break
 
     return assignment, course_load
@@ -303,17 +381,38 @@ def _save_to_db(assignment, db_session):
 
 
 def run_engine(db):
-    students, courses_dict, wish_map = _load_data(db.session)
+    students, courses_dict, wish_map, locked_map = _load_data(db.session)
 
     if not students:
         raise RuntimeError("No students found in database.")
     if not courses_dict:
         raise RuntimeError("No courses found in database.")
 
-    assignment, course_load = _greedy_init(students, courses_dict, wish_map)
-    assignment, course_load = _simulated_annealing(assignment, course_load, students, courses_dict, wish_map)
-    assignment, course_load = _fill_unassigned(assignment, course_load, students, courses_dict, wish_map)
-    assignment, course_load = _resolve_overcapacity(assignment, course_load, students, courses_dict, wish_map)
+    # Locks are deterministic, so compute them once up front and reuse for every restart.
+    base_assignment, base_course_load, locked = _apply_locks(students, courses_dict, locked_map)
+
+    # Run the optimiser several times from fresh random starts and keep the best.
+    best_assignment = None
+    best_happiness = None
+    for attempt in range(1, RESTARTS + 1):
+        assignment = copy.deepcopy(base_assignment)
+        course_load = copy.deepcopy(base_course_load)
+
+        assignment, course_load = _greedy_init(assignment, course_load, locked, students, courses_dict, wish_map)
+        assignment, course_load = _simulated_annealing(assignment, course_load, locked, students, courses_dict, wish_map)
+        assignment, course_load = _fill_unassigned(assignment, course_load, locked, students, courses_dict, wish_map)
+        assignment, course_load = _resolve_overcapacity(assignment, course_load, locked, students, courses_dict, wish_map)
+
+        happiness = _total_happiness(assignment, wish_map)
+        print(f"Engine attempt {attempt}/{RESTARTS}: happiness score = {happiness}")
+
+        if best_happiness is None or happiness > best_happiness:
+            best_happiness = happiness
+            best_assignment = assignment
+
+    assignment = best_assignment
+    print(f"Engine finished. Best happiness score = {best_happiness} (over {RESTARTS} attempts)")
+
     _save_to_db(assignment, db.session)
 
     total_students = len(students)
@@ -323,6 +422,10 @@ def run_engine(db):
         for session, cid in sessions.items():
             if cid is None:
                 satisfaction_stats["Unassigned"] += 1
+                continue
+            if (sid, session) in locked:
+                # Guaranteed slot — treat as a first-choice grant in the stats.
+                satisfaction_stats["1st Choice"] += 1
                 continue
             ranking = wish_map.get(sid, {}).get(cid)
             if ranking == 1:
@@ -337,4 +440,6 @@ def run_engine(db):
     return {
         "total_students": total_students,
         "satisfaction": satisfaction_stats,
+        "happiness_score": best_happiness,
+        "restarts": RESTARTS,
     }
